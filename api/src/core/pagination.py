@@ -1,13 +1,12 @@
-from typing import Generic, TypeVar
-
 from pydantic import BaseModel
 
-T = TypeVar("T")
 
-
-class Pagination(BaseModel, Generic[T]):
+class Pagination[T](BaseModel):
+    items: list[T]
     page: int
     page_size: int
-    total_items: int    
+    # len items
+    item_count: int
+    # len items match condition
+    total_items: int
     total_pages: int
-    data: list[T]

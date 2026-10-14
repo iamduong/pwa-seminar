@@ -1,6 +1,7 @@
+from pymongo.asynchronous.database import AsyncDatabase
+
 from core.permission import PERMISSIONS
 from model.role_model import RoleModel
-from pymongo.asynchronous.database import AsyncDatabase
 
 super_admin_domain = PERMISSIONS
 admin_domain = [
@@ -43,9 +44,16 @@ async def init_role(db: AsyncDatabase):
     collection = db["role"]
 
     roles: list[RoleModel] = [
-        RoleModel(name="super_admin", permissions=super_admin_domain, is_system=True, priority=0),
+        RoleModel(
+            name="super_admin",
+            permissions=super_admin_domain,
+            is_system=True,
+            priority=0,
+        ),
         RoleModel(name="admin", permissions=admin_domain, is_system=True, priority=1),
-        RoleModel(name="poi_owner", permissions=poi_owner_domain, is_system=True, priority=10),
+        RoleModel(
+            name="poi_owner", permissions=poi_owner_domain, is_system=True, priority=10
+        ),
         RoleModel(name="user", permissions=user_domain, is_system=True, priority=100),
     ]
 

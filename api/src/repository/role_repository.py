@@ -1,6 +1,7 @@
 from bson import ObjectId
-from model.role_model import RoleModel
 from pymongo.asynchronous.database import AsyncDatabase
+
+from model.role_model import RoleModel
 
 
 class RoleRepository:

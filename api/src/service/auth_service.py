@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import jwt
 from bson import ObjectId
@@ -65,6 +65,13 @@ class AuthService:
                 detail="Email hoặc SĐT đã tồn tại",
             )
 
+        poi_owner_role = await self.role_repository.find_one({"name": "poi_owner"})
+        if poi_owner_role is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Vai trò chủ doanh nghiệp chưa được cấu hình",
+            )
+
         admin_user_document = AdminUserModel(
             full_name=body.full_name,
             email=body.email,
@@ -73,7 +80,8 @@ class AuthService:
             is_active=True,
             is_poi_owner_verified=False,
             id_card_encrypted=encrypt_pii(body.id_card),
-            pii_collected_at=datetime.now(timezone.utc),
+            pii_collected_at=datetime.now(UTC),
+            role_id=poi_owner_role.id,
         ).to_dump()
 
         admin_user_inserted = await self.admin_user_repository.insert_item(
@@ -135,6 +143,30 @@ class AuthService:
 
         return {"access_token": access_token, "refresh_token": refresh_token}
 
+    async def get_current_profile(self, user_id: str):
+        admin_user = await self.admin_user_repository.find_one(
+            {"_id": ObjectId(user_id)}
+        )
+
+        if admin_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy tài khoản"
+            )
+
+        role = None
+        if admin_user.role_id is not None:
+            role = await self.role_repository.find_one({"_id": admin_user.role_id})
+
+        poi_owner_registration = await self.poi_owner_registration_repository.find_one(
+            {"user_id": ObjectId(user_id)}
+        )
+
+        return {
+            "admin_user": admin_user,
+            "poi_owner_registration": poi_owner_registration,
+            "role": role,
+        }
+
     async def refresh_access_token(self, refresh_token: str | None) -> str:
         if refresh_token is None:
             raise HTTPException(
@@ -155,9 +187,7 @@ class AuthService:
                 detail="Refresh token không chính xác",
             )
 
-        existing = await self.admin_user_repository.find_by_id(
-            ObjectId(payload["sub"])
-        )
+        existing = await self.admin_user_repository.find_by_id(ObjectId(payload["sub"]))
         if existing is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -197,7 +227,7 @@ class AuthService:
             existing.id,
             {
                 "password_hash": hash_password(body.new_password),
-                "updated_at": datetime.now(timezone.utc),
+                "updated_at": datetime.now(UTC),
             },
         )
 

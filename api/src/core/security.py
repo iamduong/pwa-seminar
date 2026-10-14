@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 
 import bcrypt
@@ -40,7 +40,7 @@ def generate_access_token(
     if permissions is None:
         permissions = []
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": id,
         "type": TokenType.ACCESS.value,
@@ -55,7 +55,7 @@ def generate_access_token(
 
 
 def generate_refresh_token(id: str) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": id,
         "type": TokenType.REFRESH.value,
@@ -70,7 +70,7 @@ def decode_token(token: str, token_type: TokenType) -> dict:
     secret = (
         setting.JWT_ACCESS if token_type == TokenType.ACCESS else setting.JWT_REFRESH
     )
-    
+
     payload = jwt.decode(
         token,
         secret,

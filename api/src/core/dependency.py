@@ -24,7 +24,36 @@ class AccessTokenPayload(BaseModel):
 bearer_schema = HTTPBearer(auto_error=False)
 
 
-async def get_current_access_token(
+async def get_current_profile(
+    request: Request,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_schema)],
+) -> AccessTokenPayload | None:
+
+    token = (
+        credentials.credentials
+        if credentials is not None
+        else request.cookies.get("access_token")
+    )
+
+    if token is None:
+        return None
+
+    try:
+        payload = decode_token(token, TokenType.ACCESS)
+        return AccessTokenPayload.model_validate(payload)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Phiên đăng nhập đã hết hạn",
+        )
+    except jwt.InvalidTokenError, ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Phiên đăng nhập không chính xác",
+        )
+
+
+async def validate_access_token(
     request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_schema)],
 ) -> AccessTokenPayload:
@@ -34,6 +63,8 @@ async def get_current_access_token(
         if credentials is not None
         else request.cookies.get("access_token")
     )
+
+    print(token)
 
     if token is None:
         raise HTTPException(
@@ -48,7 +79,7 @@ async def get_current_access_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Phiên đăng nhập đã hết hạn",
         )
-    except (jwt.InvalidTokenError, ValueError):
+    except jwt.InvalidTokenError, ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Phiên đăng nhập không chính xác",
@@ -56,9 +87,12 @@ async def get_current_access_token(
 
 
 def require_permission(permission: str):
+    # Func to check permission
     async def permission_checker(
-        state: Annotated[AccessTokenPayload, Depends(get_current_access_token)],
+        # Check access token
+        state: Annotated[AccessTokenPayload, Depends(validate_access_token)],
     ) -> AccessTokenPayload:
+        # After dependencies run, check permission
         if permission not in state.permissions:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

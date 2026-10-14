@@ -36,7 +36,9 @@ class PoiOwnerRegistrationReposioty:
             PoiOwnerRegistrationModel.model_validate(document) for document in documents
         ]
 
-    async def find_pagination(self, page: int, page_size: int, search: dict):
+    async def find_pagination(
+        self, page: int, page_size: int, search: dict, sort_by: str, sort_order: str
+    ):
         pass
 
     # Insert document
