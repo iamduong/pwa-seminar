@@ -1,13 +1,12 @@
 from typing import Annotated, Literal
 
 import jwt
+from core.provider.mongo import get_mongo
+from core.security import TokenType, decode_token
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from pymongo.asynchronous.database import AsyncDatabase
-
-from core.provider.mongo import get_mongo
-from core.security import TokenType, decode_token
 
 MongoDB = Annotated[AsyncDatabase, Depends(get_mongo)]
 
@@ -54,7 +53,7 @@ async def get_current_profile(
         )
 
 
-async def get_current_access_token(
+async def validate_access_token(
     request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_schema)],
 ) -> AccessTokenPayload:
@@ -64,6 +63,8 @@ async def get_current_access_token(
         if credentials is not None
         else request.cookies.get("access_token")
     )
+
+    print(token)
 
     if token is None:
         raise HTTPException(
@@ -86,9 +87,12 @@ async def get_current_access_token(
 
 
 def require_permission(permission: str):
+    # Func to check permission
     async def permission_checker(
-        state: Annotated[AccessTokenPayload, Depends(get_current_access_token)],
+        # Check access token
+        state: Annotated[AccessTokenPayload, Depends(validate_access_token)],
     ) -> AccessTokenPayload:
+        # After dependencies run, check permission
         if permission not in state.permissions:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

@@ -1,9 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
-
 from core.api_response import ApiResponse
 from core.dependency import AccessTokenPayload, require_permission
+from fastapi import APIRouter, Depends
 from service.owner_service import OwnerService
 
 router = APIRouter(prefix="/owner", tags=["Owner Controller"])

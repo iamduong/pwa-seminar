@@ -3,9 +3,8 @@ from enum import Enum
 
 import bcrypt
 import jwt
-from cryptography.fernet import Fernet
-
 from core.setting import get_setting
+from cryptography.fernet import Fernet
 
 setting = get_setting()
 fernet = Fernet(setting.PII_ENCRYPTION_KEY.encode("utf-8"))

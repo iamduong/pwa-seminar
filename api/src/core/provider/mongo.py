@@ -7,6 +7,7 @@ setting = get_setting()
 mongo_client: AsyncMongoClient | None = None
 mongo_database: AsyncDatabase | None = None
 
+
 async def connect_mongo() -> None:
     global mongo_client, mongo_database
 
@@ -14,6 +15,7 @@ async def connect_mongo() -> None:
     mongo_database = mongo_client[setting.MONGO_DATABASE]
 
     await mongo_client.admin.command("ping")
+
 
 async def close_mongo() -> None:
     if mongo_client is not None:

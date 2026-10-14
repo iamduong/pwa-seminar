@@ -85,7 +85,6 @@ export function AppSidebar() {
   )
 
   const permittedNavigation = navigation.filter((item) => {
-    console.log(item)
     if ((isUnverifiedOwner && item.href !== "/owner/registration-status") || (!isUnverifiedOwner && item.href === "/owner/registration-status")) {
       return false
     }

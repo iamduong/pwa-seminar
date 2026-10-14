@@ -30,8 +30,7 @@ function toAuthUser(profile: AuthenticatedProfile): AuthUser {
     email: profile.email,
     phone: profile.phone,
     isActive: profile.is_active,
-    isPoiOwnerVerified:
-      profile.is_poi_owner_verified ?? profile.poi_owner?.status === "approved",
+    isPoiOwnerVerified: profile.is_poi_owner_verified ?? profile.poi_owner?.status === "approved",
     ownerSummary: profile.poi_owner,
     role: profile.role,
   }

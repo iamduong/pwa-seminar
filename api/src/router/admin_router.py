@@ -1,8 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
-
 from core.api_response import ApiResponse
+from core.dependency import require_permission
+from fastapi import APIRouter, Depends
 from schema.admin_schema import AdminUserFilter, UpdatePoiPOwnerRegistration
 from service.admin_service import AdminService
 
@@ -25,11 +25,22 @@ async def review_registration(
     )
 
 
-# dependencies=[Depends(require_permission("user:read"))]
 # interact document - collection: admin_user
-@router.get("/admin-users")
+@router.get(
+    "/admin-users",
+    dependencies=[Depends(require_permission("admin:user:read"))],
+)
 async def filter_admin_users(
     filters: Annotated[AdminUserFilter, Depends()],
     admin_service: Annotated[AdminService, Depends()],
 ):
-    _ = await admin_service.filter_admin_users(filters)
+    result = await admin_service.filter_admin_users(filters)
+    return ApiResponse(
+        success=True, message="Lấy dữ liệu người dùng thành công", data=result
+    )
+
+
+@router.get("/amdin-user/{id}")
+async def get_admin_user_by_id(id: str):
+
+    pass

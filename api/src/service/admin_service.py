@@ -2,9 +2,8 @@ import re
 from datetime import UTC, datetime
 
 from bson import ObjectId
-from fastapi import HTTPException, status
-
 from core.dependency import MongoDB
+from fastapi import HTTPException, status
 from model.poi_owner_registration_model import PoiOwnerRegistrationStatus
 from repository.admin_user_repository import AdminUserRepository
 from repository.poi_owner_registration_repository import PoiOwnerRegistrationReposioty
@@ -22,18 +21,22 @@ class AdminService:
         search: dict = {}
         # documents isn't deleted
         search["deleted_at"] = None
+        print(f"Query param q: {filters.q}")
 
         if filters.q is not None:
             keyword = re.escape(filters.q.strip())
 
-            search["$or"] = {
-                "full_name": {
-                    "$regex": keyword,
-                    "$options": "i",
+            search["$or"] = [
+                {
+                    "full_name": {"$regex": keyword, "$options": "i"},
                 },
-                "email": {"$regex": keyword, "$option": "i"},
-                "phone": {"$regex": keyword, "$option": "i"},
-            }
+                {
+                    "email": {"$regex": keyword, "$options": "i"},
+                },
+                {
+                    "phone": {"$regex": keyword, "$options": "i"},
+                },
+            ]
 
         if filters.role_id:
             if not ObjectId.is_valid(filters.role_id):
@@ -48,6 +51,32 @@ class AdminService:
 
         if filters.is_poi_owner_verified is not None:
             search["is_poi_owner_verified"] = filters.is_poi_owner_verified
+
+        result = await self.admin_user_repository.find_pagination(
+            page=filters.page,
+            page_size=filters.page_size,
+            search=search,
+            sort_by=filters.sort_by,
+            sort_order=filters.sort_order,
+        )
+
+        return result
+
+    async def get_admin_user_by_id(self, id: str):
+
+        if not ObjectId.is_valid(id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mã người dùng không hợp lệ",
+            )
+
+        admin_user = await self.admin_user_repository.find_one({"_id": ObjectId(id)})
+
+        if admin_user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Không tìm thấy người dùng",
+            )
 
     """ ------------------------------ Collection: Poi Owner Registration ------------------------------ """
 

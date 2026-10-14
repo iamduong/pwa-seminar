@@ -1,10 +1,16 @@
 import api, { type ApiResponse } from "#lib/api"
 
+// * API: /admin/auth/login
 export interface LoginPayload {
   identifier: string
   password: string
 }
 
+export interface AnonymousProfile {
+  is_login: false
+}
+
+// * API: /admin/auth/register
 export interface RegisterOwnerPayload {
   full_name: string
   email: string
@@ -20,6 +26,7 @@ export interface RegisterOwnerResult {
   poi_owner_registration_id: string
 }
 
+// * API: /admin/auth/me
 export interface AuthRole {
   name: string
   permissions: string[]
@@ -44,10 +51,7 @@ export interface AuthenticatedProfile {
   role: AuthRole | null
 }
 
-export interface AnonymousProfile {
-  is_login: false
-}
-
+// If user doesn't login, using AnonymousProfile type, else AuthenticatedProfile
 export type AuthProfile = AuthenticatedProfile | AnonymousProfile
 
 class AuthService {

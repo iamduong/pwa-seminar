@@ -1,13 +1,11 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, Response
-
 from core.api_response import ApiResponse
 from core.dependency import (
     AccessTokenPayload,
-    get_current_access_token,
-    get_current_profile,
+    validate_access_token,
 )
+from fastapi import APIRouter, Depends, Request, Response
 from schema.auth_schema import ChangePassword, Login, RegisterPoiOwner
 from service.auth_service import AuthService
 
@@ -58,7 +56,7 @@ async def login(
 
 @router.get("/me")
 async def get_current_user(
-    state: Annotated[AccessTokenPayload | None, Depends(get_current_profile)],
+    state: Annotated[AccessTokenPayload | None, Depends(validate_access_token)],
     auth_service: Annotated[AuthService, Depends()],
 ):
     if state is None:
@@ -141,7 +139,7 @@ async def logout(response: Response) -> ApiResponse[None]:
 @router.post("/change-password")
 async def change_password(
     body: ChangePassword,
-    state: Annotated[AccessTokenPayload, Depends(get_current_access_token)],
+    state: Annotated[AccessTokenPayload, Depends(validate_access_token)],
     auth_service: Annotated[AuthService, Depends()],
 ) -> ApiResponse[None]:
     await auth_service.change_password(state.sub, body)
