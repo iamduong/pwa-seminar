@@ -6,7 +6,7 @@ import { useAuth } from "#hooks/use-auth"
 
 export function ProtectedRoute() {
   const location = useLocation()
-  const { refreshProfile, status, user } = useAuth()
+  const { refreshProfile, status } = useAuth()
 
   if (status === "checking") {
     return (
@@ -37,16 +37,6 @@ export function ProtectedRoute() {
 
   if (status === "unauthenticated") {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
-  }
-
-  const isUnverifiedOwner = Boolean(
-    user?.ownerSummary && !user.isPoiOwnerVerified,
-  )
-  if (
-    isUnverifiedOwner &&
-    location.pathname !== "/owner/registration-status"
-  ) {
-    return <Navigate to="/owner/registration-status" replace />
   }
 
   return <Outlet />

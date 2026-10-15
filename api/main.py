@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from router.admin_router import router as admin_router
 from router.auth_router import router as auth_router
 from router.owner_router import router as owner_router
+from router.poi_category_router import router as poi_category_router
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
@@ -107,3 +108,4 @@ async def unexpected_exception_handler(
 app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(owner_router)
+app.include_router(poi_category_router)

@@ -5,30 +5,38 @@ PERMISSIONS: list[str] = [
     "poi:delete",
     "poi:approve",
     "poi:toogle",
+    # ---------
     "menu:read",
     "menu:create",
     "menu:update",
     "menu:delete",
+    # ---------
     "user:read",
     "user:create",
     "user:update",
     "user:delete",
+    # ---------
     "role:read",
     "role:create",
     "role:update",
     "role:delete",
+    # ---------
     "analytics:view",
     "analytics:export",
     "analytics:view_own",
+    # ---------
     "audit:read",
     "audit:manage",
+    # ---------
     "system:config",
     "system:log",
     "system:backup",
+    # ---------
     "owner:register",
     "owner:access",
     "owner:submit_poi",
     "owner:manage_own_poi",
+    # ---------
     "content:moderate",
     "content:publish",
 ]

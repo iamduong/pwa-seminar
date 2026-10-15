@@ -6,24 +6,15 @@ export interface LoginPayload {
   password: string
 }
 
-export interface AnonymousProfile {
-  is_login: false
-}
-
-// * API: /admin/auth/register
-export interface RegisterOwnerPayload {
+export interface RegisterPayload {
   full_name: string
   email: string
   password: string
   phone: string
-  business_name: string
-  business_address: string
-  id_card: string
 }
 
-export interface RegisterOwnerResult {
-  admin_user_id: string
-  poi_owner_registration_id: string
+export interface RegisterResult {
+  user_id: string
 }
 
 // * API: /admin/auth/me
@@ -51,25 +42,22 @@ export interface AuthenticatedProfile {
   role: AuthRole | null
 }
 
-// If user doesn't login, using AnonymousProfile type, else AuthenticatedProfile
-export type AuthProfile = AuthenticatedProfile | AnonymousProfile
-
 class AuthService {
   async login(payload: LoginPayload) {
     const response = await api.post<ApiResponse>("/admin/auth/login", payload)
     return response.data
   }
 
-  async registerOwner(payload: RegisterOwnerPayload) {
-    const response = await api.post<ApiResponse<RegisterOwnerResult>>(
-      "/admin/auth/register-owner",
+  async register(payload: RegisterPayload) {
+    const response = await api.post<ApiResponse<RegisterResult>>(
+      "/admin/auth/register",
       payload,
     )
     return response.data
   }
 
   async getCurrentProfile() {
-    const response = await api.get<ApiResponse<AuthProfile>>("/admin/auth/me")
+    const response = await api.get<ApiResponse<AuthenticatedProfile>>("/admin/auth/me")
     return response.data
   }
 

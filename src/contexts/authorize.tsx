@@ -30,6 +30,7 @@ export interface AuthorizeContextValue {
   logout: () => Promise<void>
   refreshProfile: () => Promise<void>
   hasPermission: (permission: string) => boolean
+  permissions: string[]
 }
 
 export const AuthorizeContext = createContext<AuthorizeContextValue | null>(null)

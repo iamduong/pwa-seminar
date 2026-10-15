@@ -6,20 +6,21 @@ from core.dependency import (
     validate_access_token,
 )
 from fastapi import APIRouter, Depends, Request, Response
-from schema.auth_schema import ChangePassword, Login, RegisterPoiOwner
+from schema.auth_schema import ChangePassword, Login, RegisterUser
 from service.auth_service import AuthService
 
 router = APIRouter(prefix="/admin/auth", tags=["Admin Auth Controller"])
 
 
-@router.post("/register-owner")
-async def register_poi_owner(
-    body: RegisterPoiOwner,
+@router.post("/register", status_code=201)
+async def register_user(
+    body: RegisterUser,
     auth_service: Annotated[AuthService, Depends()],
 ) -> ApiResponse[dict[str, str]]:
-
-    result = await auth_service.register_poi_owner(body)
-    return ApiResponse(success=True, message="Đăng ký chủ quán thành công", data=result)
+    result = await auth_service.register_user(body)
+    return ApiResponse(
+        success=True, message="Đăng ký tài khoản thành công", data=result
+    )
 
 
 @router.post("/login")
@@ -59,11 +60,7 @@ async def get_current_user(
     state: Annotated[AccessTokenPayload | None, Depends(validate_access_token)],
     auth_service: Annotated[AuthService, Depends()],
 ):
-    if state is None:
-        return ApiResponse(
-            success=True, message="Chưa đăng nhập", data={"is_login": False}
-        )
-
+    print("Validate successfull")
     result = await auth_service.get_current_profile(state.sub)
     poi_owner = None
     role = None

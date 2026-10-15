@@ -1,6 +1,6 @@
 import { type FormEvent, useState } from "react"
 import { EyeIcon, EyeOffIcon, Loader2Icon, LogInIcon } from "lucide-react"
-import { useNavigate } from "react-router"
+import { Link, useNavigate } from "react-router"
 
 import { AuthLayout } from "#components/auth/AuthLayout"
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert"
@@ -16,8 +16,8 @@ interface LoginErrors {
 }
 
 export function LoginPage() {
-  const { login } = useAuth()
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [errors, setErrors] = useState<LoginErrors>({})
   const [requestError, setRequestError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -44,12 +44,9 @@ export function LoginPage() {
       setIsSubmitting(true)
       const user = await login({ identifier, password })
       setIsSuccess(true)
-      navigate(
-        user.ownerSummary && !user.isPoiOwnerVerified
-          ? "/owner/registration-status"
-          : "/dashboard",
-        { replace: true },
-      )
+      localStorage.setItem("STATE", JSON.stringify(user))
+
+      navigate("/trang-chu", { replace: true })
     } catch (error) {
       setRequestError(getApiErrorMessage(error, "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin."))
     } finally {
@@ -136,10 +133,10 @@ export function LoginPage() {
       </form>
 
       <div className="mt-7 border-t pt-6 text-center text-sm text-muted-foreground">
-        Bạn muốn đưa doanh nghiệp lên hệ thống?{" "}
-        <a className="font-medium text-foreground underline-offset-4 hover:underline" href="/register-owner">
-          Đăng ký đối tác
-        </a>
+        Chưa có tài khoản?{" "}
+        <Link className="font-medium text-foreground underline-offset-4 hover:underline" to="/register">
+          Đăng ký
+        </Link>
       </div>
     </AuthLayout>
   )
