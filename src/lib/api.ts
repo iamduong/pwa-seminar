@@ -1,14 +1,14 @@
-import axios, { AxiosError } from "axios"
+import axios, { AxiosError, type AxiosResponse } from "axios";
 
 export interface ApiResponse<T = null> {
-  success: boolean
-  message: string
-  data: T | null
+  success: boolean;
+  message: string;
+  data: T | null;
   errors: Array<{
-    field?: string
-    message?: string
-    detail?: unknown
-  }> | null
+    field?: string;
+    message?: string;
+    detail?: unknown;
+  }> | null;
 }
 
 const api = axios.create({
@@ -19,18 +19,27 @@ const api = axios.create({
     Accept: "application/json",
     "Content-Type": "application/json",
   },
-})
+});
+
+api.interceptors.response.use(
+  (response: AxiosResponse) => {
+    return response;
+  },
+  async (error: AxiosError) => {
+    return Promise.reject(error);
+  },
+);
 
 export function getApiErrorMessage(
   error: unknown,
   fallback = "Không thể kết nối đến hệ thống. Vui lòng thử lại.",
 ) {
   if (error instanceof AxiosError) {
-    const response = error.response?.data as Partial<ApiResponse> | undefined
-    return response?.message || fallback
+    const response = error.response?.data as Partial<ApiResponse> | undefined;
+    return response?.message || fallback;
   }
 
-  return fallback
+  return fallback;
 }
 
-export default api
+export default api;

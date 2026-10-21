@@ -23,7 +23,7 @@ export function ProtectedRoute() {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
         <div className="max-w-sm text-center">
-          <h1 className="font-semibold">Không thể kiểm tra phiên đăng nhập</h1>
+            <h1 className="font-semibold">Không thể kiểm tra phiên đăng nhập</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Vui lòng kiểm tra kết nối và thử lại.
           </p>
@@ -35,9 +35,9 @@ export function ProtectedRoute() {
     )
   }
 
-  if (status === "unauthenticated") {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />
-  }
+  // if (status === "unauthenticated") {
+  //   return <Navigate to="/login" replace state={{ from: location.pathname }} />
+  // }
 
   return <Outlet />
 }
