@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from bson import ObjectId
-from model._base import Base
+from schema.contract.base_contact import Base
 
 
 class AdminUserModel(Base):

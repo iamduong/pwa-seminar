@@ -8,7 +8,7 @@ import {
 import { NavLink } from "react-router"
 
 const navigation = [
-  { title: "Địa điểm", href: "/trang-chu", icon: MapPinnedIcon },
+  { title: "Trang chủ", href: "/", icon: MapPinnedIcon },
   { title: "Món ăn", href: "/mon-an", icon: SoupIcon },
   { title: "Gần tôi", href: "/gan-toi", icon: LocateFixedIcon },
   { title: "Quét QR", href: "/quet-qr", icon: QrCodeIcon },
@@ -22,7 +22,7 @@ export function BottomNavigation() {
       style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
     >
       <nav
-        className="pointer-events-auto mx-auto grid h-[4.25rem] max-w-xl grid-cols-5 gap-1 rounded-2xl border bg-card/95 p-1.5 shadow-lg backdrop-blur-xl"
+        className="pointer-events-auto mx-auto grid h-17 max-w-xl grid-cols-5 gap-1 rounded-2xl border bg-card/95 p-1.5 shadow-lg backdrop-blur-xl"
         aria-label="Điều hướng chính"
       >
         {navigation.map((item) => (

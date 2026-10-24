@@ -31,13 +31,13 @@ export interface AuthOwnerRegistration {
 }
 
 export interface AuthenticatedProfile {
-  is_login?: true
   user_id: string
   full_name: string
   email: string
   phone: string
   is_active: boolean
-  is_poi_owner_verified?: boolean
+  is_poi_owner_verified: boolean
+  
   poi_owner: AuthOwnerRegistration | null
   role: AuthRole | null
 }

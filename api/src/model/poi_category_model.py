@@ -1,7 +1,6 @@
-from model._base import Base
+from schema.contract.base_contact import Base
 
 
 class PoiCategoryModel(Base):
-    code: str
     name: str
     is_active: bool = True

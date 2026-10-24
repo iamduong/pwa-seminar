@@ -6,15 +6,15 @@ async def init_poi_category(db: AsyncDatabase):
     collection = db["poi_category"]
 
     poi_categories: list[PoiCategoryModel] = [
-        PoiCategoryModel(code="street-food", name="Ẩm thực đường phố"),
-        PoiCategoryModel(code="restaurant", name="Nhà hàng"),
-        PoiCategoryModel(code="local-eatery", name="Quán ăn địa phương"),
-        PoiCategoryModel(code="cafe", name="Cà phê"),
-        PoiCategoryModel(code="beverage", name="Đồ uống"),
-        PoiCategoryModel(code="dessert", name="Tráng miệng và ăn vặt"),
-        PoiCategoryModel(code="bakery", name="Tiệm bánh"),
-        PoiCategoryModel(code="food-market", name="Chợ và khu ẩm thực"),
-        PoiCategoryModel(code="specialty", name="Đặc sản địa phương"),
+        PoiCategoryModel(name="Ẩm thực đường phố"),
+        PoiCategoryModel(name="Nhà hàng"),
+        PoiCategoryModel(name="Quán ăn địa phương"),
+        PoiCategoryModel(name="Cà phê"),
+        PoiCategoryModel(name="Đồ uống"),
+        PoiCategoryModel(name="Tráng miệng và ăn vặt"),
+        PoiCategoryModel(name="Tiệm bánh"),
+        PoiCategoryModel(name="Chợ và khu ẩm thực"),
+        PoiCategoryModel(name="Đặc sản địa phương"),
     ]
 
     documents = [

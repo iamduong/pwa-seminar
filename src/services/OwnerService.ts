@@ -16,16 +16,18 @@ export interface OwnerRegistrationPayload {
   business_name: string
   business_address: string
   id_card: string
+  note: string
 }
 
 export interface OwnerRegistrationResult {
   registration_id: string
+  status: OwnerRegistrationStatus
 }
 
 class OwnerService {
   async createRegistration(payload: OwnerRegistrationPayload) {
     const response = await api.post<ApiResponse<OwnerRegistrationResult>>(
-      "/owner/registrations",
+      "/poi-owner-registrations/register",
       payload,
     )
     return response.data

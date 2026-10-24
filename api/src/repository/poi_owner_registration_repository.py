@@ -13,14 +13,7 @@ class PoiOwnerRegistrationReposioty:
     def __init__(self, db: AsyncDatabase):
         self.collection = db["poi_owner_registration"]
 
-    async def find_by_id(self, id: ObjectId) -> PoiOwnerRegistrationModel | None:
-        document = await self.collection.find_one({"_id": id})
-
-        if document is None:
-            return None
-
-        return PoiOwnerRegistrationModel.model_validate(document)
-
+    # Find document
     async def find_one(self, search: dict) -> PoiOwnerRegistrationModel | None:
         document = await self.collection.find_one(search)
 

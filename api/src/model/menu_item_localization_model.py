@@ -1,5 +1,14 @@
+from enum import Enum
+
 from bson import ObjectId
-from model._base import Base
+from schema.contract.base_contact import Base
+
+
+class AudioStatus(str, Enum):
+    PENDING = "pending"
+    READY = "ready"
+    PROCESSING = "processing"
+    FAILED = "failed"
 
 
 class MenuItemLocalizationModel(Base):
@@ -8,3 +17,4 @@ class MenuItemLocalizationModel(Base):
     name: str
     description: str | None = None
     audio_url: str | None = None
+    audio_status: AudioStatus = AudioStatus.PENDING

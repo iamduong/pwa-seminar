@@ -1,4 +1,4 @@
-from model._base import Base
+from schema.contract.base_contact import Base
 
 
 class RoleModel(Base):

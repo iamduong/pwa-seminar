@@ -1,7 +1,7 @@
 from bson import ObjectId
 from core.pagination import Pagination
 from model.admin_user_model import AdminUserModel
-from pymongo import ASCENDING, DESCENDING
+from pymongo import ASCENDING
 from pymongo.asynchronous.database import AsyncDatabase
 from pymongo.results import (
     DeleteResult,
@@ -9,7 +9,7 @@ from pymongo.results import (
     InsertOneResult,
     UpdateResult,
 )
-from view.admin_user_view import AdminUserView
+from schema.admin_user_schema import ViewAdminUser
 
 
 class AdminUserRepository:
@@ -17,14 +17,6 @@ class AdminUserRepository:
         self.collection = db["admin_user"]
 
     # Find document
-    async def find_by_id(self, id: ObjectId) -> AdminUserModel | None:
-        document = await self.collection.find_one({"_id": id})
-
-        if document is None:
-            return None
-
-        return AdminUserModel.model_validate(document)
-
     async def find_one(self, search: dict) -> AdminUserModel | None:
         document = await self.collection.find_one(search)
 
@@ -40,9 +32,8 @@ class AdminUserRepository:
 
     async def find_pagination(
         self, page: int, page_size: int, search: dict, sort_by: str, sort_order: str
-    ) -> Pagination[AdminUserView]:
+    ) -> Pagination[ViewAdminUser]:
         skip = (page - 1) * page_size
-        direction = ASCENDING if sort_order.lower() == "asc" else DESCENDING
 
         total_items = await self.collection.count_documents(search)
         total_pages = (total_items + page_size - 1) // page_size
@@ -57,7 +48,7 @@ class AdminUserRepository:
                     "as": "role",
                 }
             },
-            {"$sort": {sort_by: direction, "_id": direction}},
+            {"$sort": {"_id": ASCENDING}},
             {"$skip": skip},
             {"$limit": page_size},
         ]
@@ -66,7 +57,7 @@ class AdminUserRepository:
         documents = await cursor.to_list()
 
         result = [
-            AdminUserView(
+            ViewAdminUser(
                 id=str(document["_id"]),
                 full_name=document["full_name"],
                 email=document["email"],
@@ -81,7 +72,7 @@ class AdminUserRepository:
             for document in documents
         ]
 
-        return Pagination[AdminUserView](
+        return Pagination[ViewAdminUser](
             items=result,
             page=page,
             page_size=page_size,

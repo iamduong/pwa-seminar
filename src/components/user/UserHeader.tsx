@@ -1,7 +1,7 @@
 import { ChevronLeftIcon, MapPinIcon } from "lucide-react"
 import { Link, useLocation } from "react-router"
+import { useAuthorize } from "../../providers/AuthorizeProvider"
 
-import { useAuth } from "#hooks/use-auth"
 
 const pageTitles: Record<string, string> = {
   "/trang-chu": "Địa điểm",
@@ -14,7 +14,7 @@ const pageTitles: Record<string, string> = {
 
 export function UserHeader() {
   const location = useLocation()
-  const { user } = useAuth()
+  const { session } = useAuthorize()
   const title = pageTitles[location.pathname] ?? "Quan4 Tourism"
   const isOwnerPage = location.pathname === "/dang-ky-chu-quan"
 
@@ -43,7 +43,7 @@ export function UserHeader() {
             to="/ho-so"
             aria-label="Mở hồ sơ"
           >
-            {user?.fullName.charAt(0).toUpperCase()}
+            {session?.fullName.charAt(0).toUpperCase()}
           </Link>
         )}
       </div>

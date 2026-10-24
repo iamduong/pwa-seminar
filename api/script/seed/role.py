@@ -1,43 +1,20 @@
-from pymongo.asynchronous.database import AsyncDatabase
-
 from core.permission import PERMISSIONS
 from model.role_model import RoleModel
+from pymongo.asynchronous.database import AsyncDatabase
 
 super_admin_domain = PERMISSIONS
-admin_domain = [
-    "poi:read",
-    "poi:create",
-    "poi:update",
-    "poi:delete",
-    "poi:approve",
-    "poi:toogle",
-    "menu:read",
-    "menu:create",
-    "menu:update",
-    "menu:delete",
-    "user:read",
-    "user:create",
-    "user:update",
-    "user:delete",
-    "analytics:view",
-    "analytics:export",
-    "analytics:view_own",
-    "audit:read",
-    "audit:manage",
-    "content:moderate",
-    "content:publish",
-]
+admin_domain = []
 poi_owner_domain = [
-    "poi:read",
-    "owner:access",
-    "owner:submit_poi",
-    "owner:manage_own_poi",
-    "menu:read",
-    "menu:create",
-    "menu:update",
-    "analytics:view_own",
+    "owner:poi_read",
+    "owner:poi_submit",
+    "owner:menu_read",
+    "owner:menu_submit",
 ]
-user_domain = ["poi:read", "menu:read", "owner:register"]
+user_domain = [
+    "owner_registration:register",
+    "owner_registration:read_self",
+    "owner_registration:resubmit",
+]
 
 
 async def init_role(db: AsyncDatabase):

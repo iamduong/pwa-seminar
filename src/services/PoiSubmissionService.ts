@@ -91,13 +91,15 @@ export interface AdminSubmissionFilters {
 }
 
 class PoiSubmissionService {
+  // Helper method
   async getCategories(signal?: AbortSignal) {
-    const response = await api.get<ApiResponse<PoiCategory[]>>("/categories", {
+    const response = await api.get<ApiResponse<PoiCategory[]>>("/public/categories", {
       signal,
     })
     return response.data
   }
 
+  // Main method
   async create(payload: CreatePoiSubmissionPayload) {
     const response = await api.post<ApiResponse<PoiSubmission>>(
       "/owner/poi-submissions",

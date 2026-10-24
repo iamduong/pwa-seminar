@@ -2,11 +2,11 @@ import { Loader2Icon } from "lucide-react"
 import { Navigate, Outlet, useLocation } from "react-router"
 
 import { Button } from "#components/ui/button"
-import { useAuth } from "#hooks/use-auth"
+import { useAuthorize } from "../../providers/AuthorizeProvider"
 
 export function ProtectedRoute() {
   const location = useLocation()
-  const { refreshProfile, status } = useAuth()
+  const { status  } = useAuthorize()
 
   if (status === "checking") {
     return (
@@ -27,7 +27,7 @@ export function ProtectedRoute() {
           <p className="mt-2 text-sm text-muted-foreground">
             Vui lòng kiểm tra kết nối và thử lại.
           </p>
-          <Button className="mt-5" variant="outline" onClick={() => void refreshProfile()}>
+          <Button className="mt-5" variant="outline" onClick={() => console.log("Try again")}>
             Thử lại
           </Button>
         </div>
@@ -35,9 +35,9 @@ export function ProtectedRoute() {
     )
   }
 
-  // if (status === "unauthenticated") {
-  //   return <Navigate to="/login" replace state={{ from: location.pathname }} />
-  // }
+  if (status === "unauthenticated") {
+    return <Navigate to="/dang-nhap" replace state={{ from: location.pathname }} />
+  }
 
   return <Outlet />
 }

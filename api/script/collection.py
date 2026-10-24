@@ -24,10 +24,6 @@ async def init_collection():
     await db.create_collection("poi_submission")
     await db.create_collection("poi")
 
-    await db["poi_submission"].create_index([("owner_id", 1), ("status", 1)])
-    await db["poi_submission"].create_index([("created_at", -1)])
-    await db["poi"].create_index([("location", "2dsphere")])
-
     print("Init collection successfully")
 
     # Insert seeds

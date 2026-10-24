@@ -3,8 +3,6 @@ PERMISSIONS: list[str] = [
     "poi:create",
     "poi:update",
     "poi:delete",
-    "poi:approve",
-    "poi:toogle",
     # ---------
     "menu:read",
     "menu:create",
@@ -21,22 +19,18 @@ PERMISSIONS: list[str] = [
     "role:update",
     "role:delete",
     # ---------
-    "analytics:view",
-    "analytics:export",
-    "analytics:view_own",
+    "owner:poi_read",
+    "owner:poi_submit",
+    "owner:menu_read",
+    "owner:menu_submit",
     # ---------
-    "audit:read",
-    "audit:manage",
+    "owner_registration:register",
+    "owner_registration:read_self",
+    "owner_registration:resubmit",
     # ---------
-    "system:config",
-    "system:log",
-    "system:backup",
+    "owner_registration:read",
+    "owner_registration:review",
     # ---------
-    "owner:register",
-    "owner:access",
-    "owner:submit_poi",
-    "owner:manage_own_poi",
-    # ---------
-    "content:moderate",
-    "content:publish",
+    "poi_submission:read",
+    "poi_submission:review",
 ]

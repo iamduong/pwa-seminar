@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 
 from bson import ObjectId
-from model._base import Base
+from schema.contract.base_contact import Base
 
 
 class AudioTaskStatus(str, Enum):

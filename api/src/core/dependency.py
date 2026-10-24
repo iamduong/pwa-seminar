@@ -4,7 +4,6 @@ import jwt
 from core.provider.mongo import get_mongo
 from core.security import TokenType, decode_token
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from pymongo.asynchronous.database import AsyncDatabase
 
@@ -12,6 +11,7 @@ MongoDB = Annotated[AsyncDatabase, Depends(get_mongo)]
 
 
 class AccessTokenPayload(BaseModel):
+    # sub = admin_user_id
     sub: str
     type: Literal["access"]
     role_name: str | None
@@ -21,50 +21,12 @@ class AccessTokenPayload(BaseModel):
     exp: int
 
 
-bearer_schema = HTTPBearer(auto_error=False)
-
-
-async def get_current_profile(
+async def validate_session(
     request: Request,
-    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_schema)],
-) -> AccessTokenPayload | None:
-
-    token = (
-        credentials.credentials
-        if credentials is not None
-        else request.cookies.get("access_token")
-    )
-
-    if token is None:
-        return None
-
-    try:
-        payload = decode_token(token, TokenType.ACCESS)
-        return AccessTokenPayload.model_validate(payload)
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Phiên đăng nhập đã hết hạn",
-        )
-    except jwt.InvalidTokenError, ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Phiên đăng nhập không chính xác",
-        )
-
-
-async def validate_access_token(
-    request: Request,
-    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_schema)],
 ) -> AccessTokenPayload:
 
-    token = (
-        credentials.credentials
-        if credentials is not None
-        else request.cookies.get("access_token")
-    )
-
-    print(token)
+    token = request.cookies.get("access_token")
+    print(f"Token in session request: {token}")
 
     if token is None:
         raise HTTPException(
@@ -90,15 +52,17 @@ def require_permission(permission: str):
     # Func to check permission
     async def permission_checker(
         # Check access token
-        state: Annotated[AccessTokenPayload, Depends(validate_access_token)],
+        session: Annotated[AccessTokenPayload, Depends(validate_session)],
     ) -> AccessTokenPayload:
+        if not permission:
+            return session
         # After dependencies run, check permission
-        if permission not in state.permissions:
+        if permission not in session.permissions:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Bạn không có quyền truy cập",
             )
 
-        return state
+        return session
 
     return permission_checker

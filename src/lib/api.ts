@@ -12,7 +12,7 @@ export interface ApiResponse<T = null> {
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "",
   timeout: 15_000,
   withCredentials: true,
   headers: {
@@ -26,6 +26,24 @@ api.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
+    // Network error or timeout
+    // if (!error.response) {
+    //   console.log("Network error or timeout:", error);
+    // }
+
+    // Token is expired or invalid, call refresh token endpoint
+    // if (error.response?.status === 401) {
+    //   console.log("Unauthorized error, token might be expired or invalid:");
+    // }
+
+    // Fobidden or unauthorized, throw error to handle in the component
+    // if (error.response?.status === 403) {
+    //   console.log("Forbidden error, user might not have permission:");
+    // }
+
+    // console.error("API error:", error.response?.data || error.message);
+    
+    // Other errors, handle later in the component
     return Promise.reject(error);
   },
 );
