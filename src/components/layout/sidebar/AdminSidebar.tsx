@@ -1,13 +1,10 @@
 import { useState } from "react";
 import {
-  BarChart3Icon,
   ChevronDownIcon,
   ClipboardCheckIcon,
   FileClockIcon,
-  LayoutDashboardIcon,
   LogOutIcon,
   MapPinnedIcon,
-  SettingsIcon,
   ShieldCheckIcon,
   StoreIcon,
   UsersIcon,
@@ -35,40 +32,23 @@ import { authorizeService } from "../../../services/AuthorizeService";
 
 const navigationGroup = [
   {
-    title: "Tổng quan",
-    icon: LayoutDashboardIcon,
-    child: [
-      {
-        title: "Bảng điều khiển",
-        href: "/dashboard",
-        permissions: ["analytics:view", "analytics:view_own"],
-      },
-    ],
-  },
-  {
     title: "Địa điểm POI",
     icon: MapPinnedIcon,
     child: [
       {
         title: "Danh sách POI",
-        href: "/quan-ly/danh-sach-poi",
-        // poi:update, poi:delete, poi:toggle
+        href: "/quan-ly/dia-diem-poi",
         permissions: ["poi:read"],
       },
       {
         title: "Thêm POI",
-        href: "/quan-ly/them-poi",
+        href: "/quan-ly/dia-diem-poi/them",
         permissions: ["poi:create"],
-      },
-      {
-        title: "Duyệt đơn POI",
-        href: "/quan-ly/duyet-don-poi",
-        permissions: ["poi:approve"],
       },
     ],
   },
   {
-    title: "Thực đơn",
+    title: "Ẩm thực",
     icon: UtensilsIcon,
     child: [
       {
@@ -91,7 +71,6 @@ const navigationGroup = [
       {
         title: "Danh sách người dùng",
         href: "/quan-ly/danh-sach-nguoi-dung",
-        // user:update, user: delete
         permissions: ["user:read"],
       },
       {
@@ -102,13 +81,12 @@ const navigationGroup = [
     ],
   },
   {
-    title: "Vai trò",
+    title: "Quyền hạn",
     icon: ShieldCheckIcon,
     child: [
       {
         title: "Danh sách vai trò",
         href: "/quan-ly/danh-sach-vai-tro",
-        // role: update, role: delete
         permissions: ["role:read"],
       },
       {
@@ -118,95 +96,61 @@ const navigationGroup = [
       },
     ],
   },
-  // ------------------------
   {
-    title: "Thống kê",
-    icon: BarChart3Icon,
-    child: [
-      {
-        title: "Tổng quan thống kê",
-        href: "/quan-ly/thong-ke",
-        permissions: ["analytics:view"],
-      },
-      {
-        title: "Thống kê của tôi",
-        href: "/quan-ly/thong-ke-cua-toi",
-        permissions: ["analytics:view_own"],
-      },
-      {
-        title: "Xuất báo cáo",
-        href: "/quan-ly/xuat-bao-cao",
-        permissions: ["analytics:export"],
-      },
-    ],
-  },
-  {
-    title: "Nhật ký",
-    icon: FileClockIcon,
-    child: [
-      {
-        title: "Nhật ký hoạt động",
-        href: "/quan-ly/nhat-ky-hoat-dong",
-        permissions: ["audit:read"],
-      },
-      {
-        title: "Quản lý nhật ký",
-        href: "/quan-ly/quan-ly-nhat-ky",
-        permissions: ["audit:manage"],
-      },
-    ],
-  },
-  {
-    title: "Hệ thống",
-    icon: SettingsIcon,
-    child: [
-      {
-        title: "Cấu hình hệ thống",
-        href: "/quan-ly/cau-hinh-he-thong",
-        permissions: ["system:config"],
-      },
-      {
-        title: "Nhật ký hệ thống",
-        href: "/quan-ly/nhat-ky-he-thong",
-        permissions: ["system:log"],
-      },
-      {
-        title: "Sao lưu dữ liệu",
-        href: "/quan-ly/sao-luu-du-lieu",
-        permissions: ["system:backup"],
-      },
-    ],
-  },
-  // ------------------------
-  {
-    title: "Chủ địa điểm",
+    title: "Chức năng chủ quán",
     icon: StoreIcon,
     child: [
       {
-        title: "Gửi yêu cầu thêm POI",
-        href: "/quan-ly/gui-yeu-cau-poi",
-        permissions: ["owner:submit_poi"],
-      },
-      {
         title: "POI của tôi",
         href: "/quan-ly/poi-cua-toi",
-        permissions: ["owner:manage_own_poi"],
+        permissions: ["owner:poi_read"],
+      },
+      {
+        title: "Gửi yêu cầu thêm POI",
+        href: "/quan-ly/gui-yeu-cau-poi",
+        permissions: ["owner:poi_submit"],
+      },
+      {
+        title: "Thực đơn của tôi",
+        href: "/quan-ly/thuc-don-cua-toi",
+        permissions: ["owner:menu_read"],
+      },
+      {
+        title: "Gửi yêu cầu thực đơn",
+        href: "/quan-ly/gui-yeu-cau-thuc-don",
+        permissions: ["owner:menu_submit"],
       },
     ],
   },
   {
-    title: "Nội dung",
+    title: "Đơn đăng ký chủ quán",
     icon: ClipboardCheckIcon,
     child: [
       {
-        title: "Kiểm duyệt nội dung",
-        href: "/quan-ly/kiem-duyet-noi-dung",
-        permissions: ["content:moderate"],
+        title: "Danh sách đơn đăng ký",
+        href: "/quan-ly/don-chu-qua",
+        permissions: ["owner_registration:read"],
       },
       {
-        title: "Xuất bản nội dung",
-        href: "/quan-ly/xuat-ban-noi-dung",
-        permissions: ["content:publish"],
+        title: "Duyệt đơn đăng ký",
+        href: "/quan-ly/don-chu-qua/duyet",
+        permissions: ["owner_registration:review"],
+      },
+    ],
+  },
+  {
+    title: "Đơn đăng ký POI",
+    icon: FileClockIcon,
+    child: [
+      {
+        title: "Danh sách đơn POI",
+        href: "/quan-ly/danh-sach-poi",
+        permissions: ["poi_submission:read"],
+      },
+      {
+        title: "Duyệt đơn POI",
+        href: "/quan-ly/danh-sach-poi/duyet",
+        permissions: ["poi_submission:review"],
       },
     ],
   },
@@ -221,7 +165,17 @@ export function AdminSidebar() {
   const navigate = useNavigate();
 
   const { session } = useAuthorize();
-  console.log(session)
+
+  const permittedNavigation = navigationGroup
+    .map((group) => ({
+      ...group,
+      child: group.child.filter((item) =>
+        item.permissions.some((permission) =>
+          session?.role?.permissions.includes(permission),
+        ),
+      ),
+    }))
+    .filter((group) => group.child.length > 0);
 
   const [openedGroups, setOpenedGroups] = useState<string[]>(() =>
     navigationGroup
@@ -260,7 +214,7 @@ export function AdminSidebar() {
         </Link>
       </SidebarHeader>
 
-      {/* <SidebarContent>
+      <SidebarContent>
         {permittedNavigation.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>Quản lý</SidebarGroupLabel>
@@ -314,7 +268,7 @@ export function AdminSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-      </SidebarContent> */}
+      </SidebarContent>
 
       <SidebarFooter className="border-t p-2">
         <SidebarMenu>

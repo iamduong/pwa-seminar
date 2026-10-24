@@ -52,7 +52,7 @@ async def review_registration(
 @router.post("/register")
 async def register_poi_owner(
     principal: Annotated[
-        AccessTokenPayload, Depends(require_permission("owner:register"))
+        AccessTokenPayload, Depends(require_permission("owner_registration:register"))
     ],
     body: RegisterPoiOwnerRegistration,
     poi_owner_registration_service: Annotated[PoiOwnerRegistrationService, Depends()],

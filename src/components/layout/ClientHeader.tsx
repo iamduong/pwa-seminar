@@ -9,14 +9,14 @@ const pageTitles: Record<string, string> = {
   "/gan-toi": "Gần tôi",
   "/quet-qr": "Quét QR",
   "/ho-so": "Hồ sơ",
-  "/dang-ky-chu-quan": "Hồ sơ chủ quán",
+  "/chu-quan": "Hồ sơ chủ quán",
 }
 
-export function UserHeader() {
+export const ClientHeader = () => {
   const location = useLocation()
   const { session } = useAuthorize()
   const title = pageTitles[location.pathname] ?? "Quan4 Tourism"
-  const isOwnerPage = location.pathname === "/dang-ky-chu-quan"
+  const isOwnerPage = location.pathname === "/chu-quan"
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-xl">

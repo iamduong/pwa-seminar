@@ -15,7 +15,7 @@ const navigation = [
   { title: "Hồ sơ", href: "/ho-so", icon: CircleUserRoundIcon },
 ]
 
-export function BottomNavigation() {
+export const ClientNavigation = () => {
   return (
     <div
       className="pointer-events-none fixed inset-x-0 z-50 px-3"

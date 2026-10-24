@@ -23,4 +23,4 @@ class PublicService {
     }
 }
 
-export default PublicService;
+export const publicService = new PublicService();

@@ -16,7 +16,7 @@ from model.admin_user_model import AdminUserModel
 from repository.admin_user_repository import AdminUserRepository
 from repository.poi_owner_registration_repository import PoiOwnerRegistrationReposioty
 from repository.role_repository import RoleRepository
-from schema.authorize_schema import ChangePassword, LoginUser, RegisterUser
+from schema.contract.authorize_contract import ChangePassword, LoginUser, RegisterUser
 
 
 class AuthorizeService:

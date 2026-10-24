@@ -80,7 +80,7 @@ export function ProfilePage() {
           </button>
 
           {(showOwnerRegistration || showOwnerProfile) && (
-            <Link className="flex items-center gap-3 border-b px-4 py-4 transition-colors hover:bg-muted/60 active:bg-muted" to="/dang-ky-chu-quan">
+            <Link className="flex items-center gap-3 border-b px-4 py-4 transition-colors hover:bg-muted/60 active:bg-muted" to="/chu-quan">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
                 <StoreIcon className="size-5" aria-hidden="true" />
               </span>
