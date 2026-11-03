@@ -135,9 +135,10 @@ class AuthorizeService:
         if admin_user.role_id is not None:
             role = await self.role_repository.find_one({"_id": admin_user.role_id})
 
-        poi_owner_registration = await self.poi_owner_registration_repository.find_one(
-            {"user_id": ObjectId(user_id)}
+        registrations = await self.poi_owner_registration_repository.find_many(
+            {"user_id": ObjectId(user_id), "deleted_at": None}
         )
+        poi_owner_registration = registrations[0] if registrations else None
 
         return {
             "admin_user": admin_user,

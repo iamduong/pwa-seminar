@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react"
+import { type FormEvent, useEffect, useState } from "react"
 import {
   BriefcaseBusinessIcon,
   CheckCircle2Icon,
@@ -33,11 +33,15 @@ type RegistrationErrors = Partial<
 const idCardPattern = /^(?:\d{9}|\d{12})$/
 
 export function RegisterOwnerPage() {
-  const { session } = useAuthorize()
+  const { session, refreshProfile } = useAuthorize()
   const { execute, inProcess: isSubmitting } = useQuery()
   const [errors, setErrors] = useState<RegistrationErrors>({})
   const [requestError, setRequestError] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
+
+  useEffect(() => {
+    void refreshProfile()
+  }, [refreshProfile])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -72,6 +76,7 @@ export function RegisterOwnerPage() {
         await poiOwnerRegistrationService.RegisterPoiOwner(values)
         formElement.reset()
         setIsSubmitted(true)
+        await refreshProfile()
         window.scrollTo({ top: 0, behavior: "smooth" })
       },
       {
