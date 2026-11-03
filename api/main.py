@@ -24,9 +24,6 @@ async def lifespan(app: FastAPI):
 
 origins = [
     "http://localhost:5173",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://localhost:8080",
 ]
 
 app = FastAPI(title="PWA Seminar API", lifespan=lifespan)

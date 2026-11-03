@@ -15,6 +15,7 @@ interface DataPaginationProps {
   pageSize: number
   totalItems: number
   totalPages: number
+  itemLabel?: string
   disabled?: boolean
   onPageChange: (page: number) => void
   onPageSizeChange: (pageSize: number) => void
@@ -34,6 +35,7 @@ export function DataPagination({
   pageSize,
   totalItems,
   totalPages,
+  itemLabel = "người dùng",
   disabled = false,
   onPageChange,
   onPageSizeChange,
@@ -43,7 +45,7 @@ export function DataPagination({
   return (
     <div className="flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-muted-foreground">
-        {totalItems.toLocaleString("vi-VN")} người dùng
+        {totalItems.toLocaleString("vi-VN")} {itemLabel}
       </p>
 
       <div className="flex flex-wrap items-center gap-3">

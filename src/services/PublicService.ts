@@ -6,7 +6,7 @@ class PublicService {
     async GetPoiCategory(
         q: string = "",
         page: number = 1,
-        pageSize: number = 10,
+        pageSize: number = 20,
     ) {
         const response = await api.get<ApiResponse<PoiCategoryPagination>>(
             "/public/categories",

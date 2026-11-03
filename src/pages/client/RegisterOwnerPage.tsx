@@ -23,10 +23,8 @@ import { Input } from "#components/ui/input"
 import { Textarea } from "#components/ui/textarea"
 import { useQuery } from "#hooks/use-query"
 import { useAuthorize } from "../../providers/AuthorizeProvider"
-import {
-  ownerService,
-  type OwnerRegistrationPayload,
-} from "../../services/OwnerService"
+import type { OwnerRegistrationPayload } from "../../types/PoiOwnerRegistration"
+import { poiOwnerRegistrationService } from "../../services/PoiOwnerRegistrationService"
 
 type RegistrationErrors = Partial<
   Record<keyof OwnerRegistrationPayload, string>
@@ -36,7 +34,7 @@ const idCardPattern = /^(?:\d{9}|\d{12})$/
 
 export function RegisterOwnerPage() {
   const { session } = useAuthorize()
-  const { execute: submitRegistration, inProcess: isSubmitting } = useQuery()
+  const { execute, inProcess: isSubmitting } = useQuery()
   const [errors, setErrors] = useState<RegistrationErrors>({})
   const [requestError, setRequestError] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -69,9 +67,9 @@ export function RegisterOwnerPage() {
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
-    await submitRegistration(
+    await execute(
       async () => {
-        await ownerService.createRegistration(values)
+        await poiOwnerRegistrationService.RegisterPoiOwner(values)
         formElement.reset()
         setIsSubmitted(true)
         window.scrollTo({ top: 0, behavior: "smooth" })

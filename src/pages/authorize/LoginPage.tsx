@@ -14,6 +14,7 @@ import {
 import { Input } from "#components/ui/input";
 import { authorizeService } from "../../services/AuthorizeService";
 import { useQuery } from "#hooks/use-query";
+import { useAuthorize } from "../../providers/AuthorizeProvider";
 
 interface LoginErrors {
   identifier?: string;
@@ -23,6 +24,7 @@ interface LoginErrors {
 export function LoginPage() {
   const navigate = useNavigate();
   const { execute, inProcess: isSubmitting } = useQuery();
+  const { refreshProfile } = useAuthorize();
 
   const [errors, setErrors] = useState<LoginErrors>({});
   const [requestError, setRequestError] = useState("");
@@ -49,14 +51,18 @@ export function LoginPage() {
     await execute(
       async () => {
         await authorizeService.Login({ identifier, password });
-        const session = await authorizeService.GetProfileSession();
-        localStorage.setItem("PWA_SESSION", JSON.stringify(session));
-        navigate("/", { replace: true });
+        const authenticated = await refreshProfile();
+        if (!authenticated) {
+          throw new Error("Không thể tải thông tin phiên đăng nhập.");
+        }
       },
       {
         onError(error) {
           setRequestError(error.message);
         },
+        onSuccess() {
+          navigate("/", { replace: true });
+        }
       },
     );
     

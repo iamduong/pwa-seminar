@@ -20,14 +20,14 @@ export const useQuery = () => {
     const execute = useCallback(async (
         doQuery: () => void,
         options?: {
-            onSucess?: () => void,
+            onSuccess?: () => void,
             onError?: (error: QueryError, callback?: string) => void,
         }
     ) => {
         try {
             setInProcess(true);
             await doQuery();
-            options?.onSucess?.();
+            options?.onSuccess?.();
         } catch (error: unknown) {
             console.log("Catch error in useQuery: ", error);
             let code = 0;
@@ -43,6 +43,9 @@ export const useQuery = () => {
                         message = response.data.message;
                     }
                 }
+            }
+            else if (error instanceof Error) {
+                message = error.message;
             }
 
             message = message ?? QueryErrorDict[code];

@@ -1,0 +1,1 @@
+export type PoiOwnerRegistrationStatus = "pending" | "approved" | "rejected";

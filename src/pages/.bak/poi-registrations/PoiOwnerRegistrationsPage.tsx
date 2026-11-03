@@ -15,12 +15,9 @@ import {
   TableRow,
 } from "#components/ui/table"
 import { getApiErrorMessage } from "#lib/api"
-import {
-  poiSubmissionService,
-  type PoiCategory,
-  type PoiSubmissionPagination,
-  type PoiSubmissionStatus,
-} from "../../services/PoiSubmissionService"
+import type { PoiOwnerRegistrationStatus } from "../../../types/contract/IncludeStatus"
+import type { PoiCategory } from "../../../types/PoiCategory"
+import type { PoiOwnerRegistrationPagination } from "../../../types/PoiOwnerRegistration"
 
 const STATUS_META = {
   pending: { label: "Chờ duyệt", className: "bg-amber-100 text-amber-800" },
@@ -31,14 +28,14 @@ const STATUS_META = {
 const dateFormatter = new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" })
 
 interface AppliedFilters {
-  status: PoiSubmissionStatus | "all"
-  address: string
-  categoryId: string
+  status: PoiOwnerRegistrationStatus | null;
+  address: string;
+  categoryId: string;
 }
 
 export default function PoiRegistrationsPage() {
   const [categories, setCategories] = useState<PoiCategory[]>([])
-  const [data, setData] = useState<PoiSubmissionPagination | null>(null)
+  const [data, setData] = useState<PoiOwnerRegistrationPagination | null>(null)
   const [filters, setFilters] = useState<AppliedFilters>({ status: "pending", address: "", categoryId: "" })
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)

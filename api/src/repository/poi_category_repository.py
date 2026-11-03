@@ -1,8 +1,6 @@
-from core.pagination import Pagination
 from model.poi_category_model import PoiCategoryModel
 from pymongo import ASCENDING
 from pymongo.asynchronous.database import AsyncDatabase
-from schema.poi_category_schema import ViewPoiCategory
 
 
 class PoiCategoryRepository:
@@ -18,39 +16,29 @@ class PoiCategoryRepository:
 
         return PoiCategoryModel.model_validate(document)
 
+    # Find document by pagination
+    async def count_filter(self, pipeline: list[dict]) -> int:
+        pipeline = [*pipeline, {"$count": "total"}]
+
+        cursor = await self.collection.aggregate(pipeline)
+        documents = await cursor.to_list()
+
+        if not documents:
+            return 0
+
+        return documents[0]["total"]
+
     async def find_pagination(
-        self, page: int, page_size: int, search: dict
-    ) -> Pagination[ViewPoiCategory]:
-        skip = (page - 1) * page_size
-
-        total_items = await self.collection.count_documents(search)
-        total_pages = (total_items + page_size - 1) // page_size
-
+        self, pipeline: list[dict], page: int, page_size: int
+    ) -> list[PoiCategoryModel]:
         pipeline = [
-            {"$match": search},
+            *pipeline,
             {"$sort": {"_id": ASCENDING}},
-            {"$skip": skip},
+            {"$skip": (page - 1) * page_size},
             {"$limit": page_size},
         ]
 
         cursor = await self.collection.aggregate(pipeline)
         documents = await cursor.to_list()
 
-        print(documents)
-
-        result = [
-            ViewPoiCategory(
-                id=str(document["_id"]),
-                name=document["name"],
-            )
-            for document in documents
-        ]
-
-        return Pagination[ViewPoiCategory](
-            items=result,
-            page=page,
-            page_size=page_size,
-            item_count=len(result),
-            total_items=total_items,
-            total_pages=total_pages,
-        )
+        return [PoiCategoryModel.model_validate(document) for document in documents]

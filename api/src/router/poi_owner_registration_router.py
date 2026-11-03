@@ -23,7 +23,11 @@ async def filter_poi_owner_registration(
     params: Annotated[FilterPoiOwnerRegistration, Depends()],
     poi_owner_registration_service: Annotated[PoiOwnerRegistrationService, Depends()],
 ) -> ApiResponse[Pagination[ViewPoiOwnerRegistration]]:
-    pass
+    result = await poi_owner_registration_service.filter_poi_owner_registration(params)
+
+    return ApiResponse(
+        success=True, message="Lấy danh sách đăng ký chủ quán thành công", data=result
+    )
 
 
 # Review poi owner registration

@@ -13,6 +13,7 @@ import HomePage from "./pages/HomePage";
 import { ProfilePage } from "./pages/client/ProfilePage";
 import { RegisterOwnerPage } from "./pages/client/RegisterOwnerPage";
 // Admin page
+import PoiOwnerRegistrationsPage from "./pages/admin/poi-owner-registration/PoiOwnerRegistrationsPage";
 
 export default function App() {
   return (
@@ -33,7 +34,7 @@ export default function App() {
           </Route>
 
           <Route path="/quan-ly" element={<AdminLayout />}>
-            
+            <Route path="don-chu-qua" element={<PoiOwnerRegistrationsPage />} />
           </Route>
         </Route>
 

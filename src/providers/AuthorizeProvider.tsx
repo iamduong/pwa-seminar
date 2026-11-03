@@ -46,13 +46,16 @@ const toFormated = (session: ProfileSession): ProfileSessionFormated => {
 export type AuthorizeContextValue = {
   status: AuthorizeStatus;
   session: ProfileSessionFormated | null;
+  refreshProfile: () => Promise<boolean>;
 }
 
 const AuthorizeContext = createContext<AuthorizeContextValue | null>(null);
 
 const AuthorizeProvider = ({ children }: { children: React.ReactNode }) => {
   const initialize = useRef<boolean>(false);
-  const [status, setStatus] = useState<AuthorizeStatus>("checking");
+  const [status, setStatus] = useState<AuthorizeStatus>(() =>
+    localStorage.getItem("PWA_SESSION") ? "checking" : "unauthenticated"
+  );
   const [session, setSession] = useState<ProfileSessionFormated | null>(null);
 
   const refreshProfile = useCallback(async () => {
@@ -63,8 +66,10 @@ const AuthorizeProvider = ({ children }: { children: React.ReactNode }) => {
       if (!profileData) {
         throw new Error("Profile session is null");
       }
+      localStorage.setItem("PWA_SESSION", JSON.stringify(profileData));
       setSession(toFormated(profileData));
       setStatus("authenticated");
+      return true;
     } catch (error: unknown) {
       localStorage.removeItem("PWA_SESSION");
       if (error instanceof AxiosError && error.response?.status === 401) {
@@ -73,6 +78,7 @@ const AuthorizeProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setStatus("error");
       }
+      return false;
     }
   }, []);
 

@@ -1,7 +1,9 @@
+import re
 from datetime import UTC, datetime
 
 from bson import ObjectId
 from core.dependency import MongoDB
+from core.pagination import Pagination
 from core.security import encrypt_pii
 from fastapi import HTTPException, status
 from model.poi_owner_registration_model import (
@@ -11,6 +13,10 @@ from model.poi_owner_registration_model import (
 from repository.admin_user_repository import AdminUserRepository
 from repository.poi_owner_registration_repository import PoiOwnerRegistrationReposioty
 from repository.role_repository import RoleRepository
+from schema.poi_owner_registration_schema import (
+    FilterPoiOwnerRegistration,
+    ViewPoiOwnerRegistration,
+)
 
 
 class PoiOwnerRegistrationService:
@@ -20,6 +26,76 @@ class PoiOwnerRegistrationService:
         self.role_repository = RoleRepository(db)
 
     # Method: Filter Poi Owner Registration
+    async def filter_poi_owner_registration(
+        self,
+        filters: FilterPoiOwnerRegistration,
+    ) -> Pagination[ViewPoiOwnerRegistration]:
+        pipeline: list[dict] = []
+
+        if filters.q:
+            keyword = filters.q.strip()
+            pipeline.append(
+                {
+                    "$match": {
+                        "$or": [
+                            {
+                                "business_name": {
+                                    "$regex": re.escape(keyword),
+                                    "$options": "i",
+                                }
+                            },
+                            {
+                                "business_address": {
+                                    "$regex": re.escape(keyword),
+                                    "$options": "i",
+                                }
+                            },
+                        ],
+                    }
+                }
+            )
+
+        if filters.status:
+            pipeline.append(
+                {
+                    "$match": {
+                        "status": filters.status,
+                        "deleted_at": None,
+                    }
+                }
+            )
+
+        total_item = await self.poi_owner_registration_repository.count_filter(pipeline)
+        poi_owner_registrations = (
+            await self.poi_owner_registration_repository.find_pagination(
+                pipeline=pipeline, page=filters.page, page_size=filters.page_size
+            )
+        )
+
+        print(poi_owner_registrations)
+
+        total_page = (total_item + filters.page_size - 1) // filters.page_size
+
+        return Pagination[ViewPoiOwnerRegistration](
+            page=filters.page,
+            page_size=filters.page_size,
+            total_item=total_item,
+            total_page=total_page,
+            data=[
+                ViewPoiOwnerRegistration(
+                    id=str(poi_owner_registration.id),
+                    user_id=str(poi_owner_registration.user_id),
+                    business_name=poi_owner_registration.business_name,
+                    business_address=poi_owner_registration.business_address,
+                    note=poi_owner_registration.note,
+                    status=poi_owner_registration.status,
+                    admin_note=poi_owner_registration.admin_note,
+                    created_at=poi_owner_registration.created_at,
+                    updated_at=poi_owner_registration.updated_at,
+                )
+                for poi_owner_registration in poi_owner_registrations
+            ],
+        )
 
     # Method: Review Poi Owner Registration
     async def review_registration(

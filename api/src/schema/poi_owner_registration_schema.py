@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from model.poi_owner_registration_model import PoiOwnerRegistrationStatus
@@ -5,7 +6,15 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class ViewPoiOwnerRegistration(BaseModel):
-    pass
+    id: str
+    user_id: str
+    business_name: str
+    business_address: str
+    note: str
+    status: PoiOwnerRegistrationStatus
+    admin_note: str | None = None
+    created_at: datetime
+    updated_at: datetime
 
 
 class FilterPoiOwnerRegistration(BaseModel):
