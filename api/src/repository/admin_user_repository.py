@@ -27,6 +27,9 @@ class AdminUserRepository:
         documents = await cursor.to_list(length=None)
         return [AdminUserModel.model_validate(document) for document in documents]
 
+    async def count_filter(self, search: dict) -> int:
+        return await self.collection.count_documents(search)
+
     async def find_pagination(
         self, page: int, page_size: int, search: dict, sort_by: str, sort_order: str
     ):
