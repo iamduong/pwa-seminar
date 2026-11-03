@@ -6,10 +6,8 @@ from core.provider.mongo import close_mongo, connect_mongo
 from core.provider.redis import close_redis, connect_redis
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from router.admin_router import router as admin_router
-from router.auth_router import router as auth_router
-from router.owner_router import router as owner_router
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
@@ -18,14 +16,24 @@ async def lifespan(app: FastAPI):
     await connect_mongo()
     await connect_redis()
 
-    yield   
+    yield
 
     await close_mongo()
     await close_redis()
 
-app = FastAPI(
-    title="PWA Seminar API",
-    lifespan=lifespan
+
+origins = [
+    "http://localhost:5173",
+]
+
+app = FastAPI(title="PWA Seminar API", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -46,6 +54,7 @@ async def http_exception_handler(
         content=response.model_dump(mode="json"),
         headers=exc.headers,
     )
+
 
 # Validation exception
 @app.exception_handler(RequestValidationError)
@@ -72,21 +81,16 @@ async def validation_exception_handler(
         content=response.model_dump(mode="json"),
     )
 
+
 # Validation ObjectId exception
 @app.exception_handler(InvalidId)
-async def bson_id_exception_handler(
-    _request: Request,
-    _exc: InvalidId
-) -> JSONResponse:
+async def bson_id_exception_handler(_request: Request, _exc: InvalidId) -> JSONResponse:
     response = ApiResponse[None](
-        success=False,
-        message="Dữ liệu đầu vào không chính xác"
+        success=False, message="Dữ liệu đầu vào không chính xác"
     )
 
-    return JSONResponse(
-        status_code=400,
-        content=response.model_dump(mode="json")
-    )
+    return JSONResponse(status_code=400, content=response.model_dump(mode="json"))
+
 
 # Fallback server exception
 @app.exception_handler(Exception)
@@ -104,6 +108,11 @@ async def unexpected_exception_handler(
         content=response.model_dump(mode="json"),
     )
 
-app.include_router(auth_router)
-app.include_router(admin_router)
-app.include_router(owner_router)
+
+from router.authorize_router import router as authorize_router
+from router.poi_owner_registration_router import router as poi_owner_registration_router
+from router.public_router import router as public_router
+
+app.include_router(public_router)
+app.include_router(authorize_router)
+app.include_router(poi_owner_registration_router)
