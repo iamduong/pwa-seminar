@@ -33,4 +33,5 @@ PERMISSIONS: list[str] = [
     # ---------
     "poi_submission:read",
     "poi_submission:review",
+    "poi_submission:monitor",
 ]

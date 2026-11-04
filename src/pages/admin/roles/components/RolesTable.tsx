@@ -154,7 +154,11 @@ export function RolesTable({
                       <Button
                         variant="ghost"
                         size="sm"
-                        render={<Link to={`/quan-ly/vai-tro/${role.id}/chinh-sua`} />}
+                        render={
+                          <Link
+                            to={`/quan-ly/quyen-han/danh-sach-vai-tro/${role.id}`}
+                          />
+                        }
                       >
                         <PencilIcon aria-hidden="true" />
                         Sửa

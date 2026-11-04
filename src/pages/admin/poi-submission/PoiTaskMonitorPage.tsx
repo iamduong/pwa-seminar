@@ -1,9 +1,17 @@
 import { useState } from "react";
-import { ActivityIcon, CircleDotIcon, ListTreeIcon } from "lucide-react";
+import {
+  ActivityIcon,
+  BotIcon,
+  CircleDotIcon,
+  Clock3Icon,
+  ListTreeIcon,
+  MapPinIcon,
+} from "lucide-react";
 
 import {
   CodeBlock,
   CodeBlockContent,
+  CodeBlockFooter,
   CodeBlockHeader,
   CodeBlockTitle,
 } from "#components/ui/code-block";
@@ -11,12 +19,50 @@ import { cn } from "#lib/utils";
 
 type DemoPoiTask = {
   id: string;
+  poiId: string;
+  status: "queued" | "running" | "done" | "failed";
+  progress: number;
+  startedAt: string;
   logs: string[];
+};
+
+const STATUS_META: Record<
+  DemoPoiTask["status"],
+  { label: string; badgeClassName: string; progressClassName: string }
+> = {
+  queued: {
+    label: "Đang chờ",
+    badgeClassName:
+      "bg-amber-100 text-amber-800 dark:bg-amber-400/10 dark:text-amber-300",
+    progressClassName: "bg-amber-500",
+  },
+  running: {
+    label: "Đang xử lý",
+    badgeClassName:
+      "bg-blue-100 text-blue-800 dark:bg-blue-400/10 dark:text-blue-300",
+    progressClassName: "bg-blue-500",
+  },
+  done: {
+    label: "Hoàn tất",
+    badgeClassName:
+      "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300",
+    progressClassName: "bg-emerald-500",
+  },
+  failed: {
+    label: "Thất bại",
+    badgeClassName:
+      "bg-red-100 text-red-800 dark:bg-red-400/10 dark:text-red-300",
+    progressClassName: "bg-red-500",
+  },
 };
 
 const DEMO_TASKS: DemoPoiTask[] = [
   {
     id: "690ad45aee12c987f45a1001",
+    poiId: "690ad3f4ee12c987f45a0ff1",
+    status: "done",
+    progress: 100,
+    startedAt: "04/11/2026, 08:31",
     logs: [
       "[08:31:02] Task đã được đưa vào hàng đợi.",
       "[08:31:03] Worker bắt đầu xử lý POI 690ad3f4ee12c987f45a0ff1.",
@@ -29,6 +75,10 @@ const DEMO_TASKS: DemoPoiTask[] = [
   },
   {
     id: "690ad45aee12c987f45a1002",
+    poiId: "690ad3f4ee12c987f45a0ff2",
+    status: "running",
+    progress: 68,
+    startedAt: "04/11/2026, 08:34",
     logs: [
       "[08:34:18] Task đã được đưa vào hàng đợi.",
       "[08:34:21] Worker bắt đầu xử lý POI 690ad3f4ee12c987f45a0ff2.",
@@ -40,6 +90,10 @@ const DEMO_TASKS: DemoPoiTask[] = [
   },
   {
     id: "690ad45aee12c987f45a1003",
+    poiId: "690ad3f4ee12c987f45a0ff3",
+    status: "queued",
+    progress: 0,
+    startedAt: "Chưa bắt đầu",
     logs: [
       "[08:40:05] Task đã được đưa vào hàng đợi.",
       "[08:40:06] Đang chờ worker khả dụng.",
@@ -47,6 +101,10 @@ const DEMO_TASKS: DemoPoiTask[] = [
   },
   {
     id: "690ad45aee12c987f45a1004",
+    poiId: "690ad3f4ee12c987f45a0ff4",
+    status: "failed",
+    progress: 32,
+    startedAt: "04/11/2026, 08:42",
     logs: [
       "[08:42:10] Task đã được đưa vào hàng đợi.",
       "[08:42:12] Worker bắt đầu xử lý POI 690ad3f4ee12c987f45a0ff4.",
@@ -74,9 +132,9 @@ export default function PoiTaskMonitorPage() {
         </p>
       </header>
 
-      <div className="grid min-h-150 overflow-hidden rounded-xl border bg-card shadow-sm lg:h-[calc(100dvh-14rem)] lg:grid-cols-[18rem_minmax(0,1fr)]">
+      <div className="grid min-h-150 gap-4 lg:h-[calc(100dvh-14rem)] lg:grid-cols-[18rem_minmax(0,1fr)]">
         <section
-          className="flex min-h-0 flex-col border-b lg:border-r lg:border-b-0"
+          className="flex min-h-0 flex-col overflow-hidden rounded-xl border bg-card shadow-sm"
           aria-labelledby="poi-task-list-title"
         >
           <div className="flex items-center gap-2 border-b px-4 py-3">
@@ -97,18 +155,36 @@ export default function PoiTaskMonitorPage() {
                   aria-pressed={selected}
                   onClick={() => setSelectedTaskId(task.id)}
                   className={cn(
-                    "flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50",
-                    selected && "bg-muted font-medium text-foreground",
+                    "w-full rounded-lg border border-transparent px-3 py-3 text-left text-sm outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50",
+                    selected && "border-border bg-muted text-foreground",
                   )}
                 >
-                  <CircleDotIcon
-                    className={cn(
-                      "size-4 shrink-0 text-muted-foreground",
-                      selected && "text-primary",
-                    )}
-                    aria-hidden="true"
-                  />
-                  <span className="truncate font-mono text-xs">{task.id}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <CircleDotIcon
+                      className={cn(
+                        "size-4 shrink-0 text-muted-foreground",
+                        selected && "text-primary",
+                      )}
+                      aria-hidden="true"
+                    />
+                    <span className="truncate font-mono text-xs font-medium">
+                      {task.id}
+                    </span>
+                  </span>
+                  <span className="mt-2 flex items-center justify-between gap-3">
+                    <span
+                      className={cn(
+                        "rounded-md px-1.5 py-0.5 text-[0.68rem] font-medium",
+                        STATUS_META[task.status].badgeClassName,
+                      )}
+                    >
+                      {STATUS_META[task.status].label}
+                    </span>
+                    <span className="text-xs tabular-nums text-muted-foreground">
+                      {task.progress}%
+                    </span>
+                  </span>
+                  <TaskProgress task={task} className="mt-2" />
                 </button>
               );
             })}
@@ -116,7 +192,7 @@ export default function PoiTaskMonitorPage() {
         </section>
 
         <section
-          className="flex min-h-0 min-w-0 flex-col bg-neutral-950"
+          className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border bg-neutral-950 shadow-sm"
           aria-labelledby="task-monitor-title"
         >
           <CodeBlock className="h-full rounded-none border-0 bg-neutral-950 text-neutral-100">
@@ -128,16 +204,98 @@ export default function PoiTaskMonitorPage() {
                 <ActivityIcon className="text-emerald-400" aria-hidden="true" />
                 {selectedTask.id}
               </CodeBlockTitle>
+              <span
+                className={cn(
+                  "ml-auto rounded-md px-2 py-1 text-xs font-medium",
+                  STATUS_META[selectedTask.status].badgeClassName,
+                )}
+              >
+                {STATUS_META[selectedTask.status].label}
+              </span>
             </CodeBlockHeader>
+
+            <div className="border-b border-neutral-800 bg-neutral-900/70 px-4 py-4">
+              <div className="grid gap-3 text-xs text-neutral-400 sm:grid-cols-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <MapPinIcon className="size-4 shrink-0" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <p>POI</p>
+                    <p className="truncate font-mono text-neutral-100">
+                      {selectedTask.poiId}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock3Icon className="size-4 shrink-0" aria-hidden="true" />
+                  <div>
+                    <p>Bắt đầu</p>
+                    <p className="text-neutral-100">{selectedTask.startedAt}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <BotIcon className="size-4 shrink-0" aria-hidden="true" />
+                  <div>
+                    <p>Worker</p>
+                    <p className="text-neutral-100">
+                      {selectedTask.status === "queued" ? "Chưa gán" : "audio-worker-01"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
             <CodeBlockContent
               className="flex-1 px-4 py-4 text-xs leading-6 text-neutral-200 sm:text-sm"
               aria-label={`Nhật ký tác vụ ${selectedTask.id}`}
             >
               {selectedTask.logs.join("\n")}
             </CodeBlockContent>
+            <CodeBlockFooter className="block border-t border-neutral-800 bg-neutral-900 px-4 py-3 pb-3 text-neutral-200">
+              <div className="mb-2 flex items-center justify-between gap-3 text-xs">
+                <span className="font-medium">Tiến độ xử lý</span>
+                <span className="font-mono text-base font-semibold text-neutral-100">
+                  {selectedTask.progress}%
+                </span>
+              </div>
+              <TaskProgress task={selectedTask} dark className="h-2.5" />
+            </CodeBlockFooter>
           </CodeBlock>
         </section>
       </div>
+    </div>
+  );
+}
+
+function TaskProgress({
+  task,
+  dark = false,
+  className,
+}: {
+  task: DemoPoiTask;
+  dark?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      role="progressbar"
+      aria-label={`Tiến độ tác vụ ${task.id}`}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={task.progress}
+      className={cn(
+        "h-1.5 w-full overflow-hidden rounded-full bg-muted",
+        dark && "bg-neutral-800",
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          "h-full rounded-full transition-[width]",
+          STATUS_META[task.status].progressClassName,
+        )}
+        style={{ width: `${task.progress}%` }}
+      />
     </div>
   );
 }
