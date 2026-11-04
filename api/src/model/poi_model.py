@@ -45,5 +45,5 @@ class PoiModel(Base):
     activation_requested: bool = False
     # Playback priority when multiple POIs are nearby; lower values have higher priority
     audio_priority: int = 100
-    # Overall audio generation status for the POI
+    # Overall audio generation status for the POI, can't change
     audio_status: AudioStatus = AudioStatus.PENDING

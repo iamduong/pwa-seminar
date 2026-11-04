@@ -19,6 +19,7 @@ class PoiSubmissionType(str, Enum):
 class PoiSubmissionModel(Base):
     owner_id: ObjectId
 
+    # Default is null because wait for reviewing
     poi_id: ObjectId | None = None
     submission_type: PoiSubmissionType = PoiSubmissionType.CREATE
 
@@ -31,6 +32,7 @@ class PoiSubmissionModel(Base):
     location: GeoPointModel
 
     images: list[str]
+    trigger_radius: int = 30
     owner_note: str
 
     status: PoiSubmissionStatus = PoiSubmissionStatus.PENDING
