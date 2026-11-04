@@ -47,6 +47,7 @@ export type AuthorizeContextValue = {
   status: AuthorizeStatus;
   session: ProfileSessionFormated | null;
   refreshProfile: () => Promise<boolean>;
+  clearSession: () => void;
 }
 
 const AuthorizeContext = createContext<AuthorizeContextValue | null>(null);
@@ -58,8 +59,13 @@ const AuthorizeProvider = ({ children }: { children: React.ReactNode }) => {
   );
   const [session, setSession] = useState<ProfileSessionFormated | null>(null);
 
+  const clearSession = useCallback(() => {
+    localStorage.removeItem("PWA_SESSION");
+    setSession(null);
+    setStatus("unauthenticated");
+  }, []);
+
   const refreshProfile = useCallback(async () => {
-    console.log("Render refreshProfile function again")
     try {
       const profile = await authorizeService.GetProfileSession();
       const profileData = profile?.data;
@@ -98,8 +104,9 @@ const AuthorizeProvider = ({ children }: { children: React.ReactNode }) => {
       status,
       session,
       refreshProfile,
+      clearSession,
     }),
-    [status, session, refreshProfile]
+    [status, session, refreshProfile, clearSession]
   );
 
   return (

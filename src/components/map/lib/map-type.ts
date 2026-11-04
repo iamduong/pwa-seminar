@@ -20,6 +20,8 @@ export interface HybridMapProps {
 
   selectedLocation?: MapCoordinates | null;
   selectedRadius?: number | null;
+  focusSelectedLocation?: boolean;
+  selectedLocationZoom?: number;
   
   onLocationSelect?: (coordinates: MapCoordinates) => void;
   onPoiSelect?: (poi: MapPoi) => void;

@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from core.api_response import ApiResponse
-from core.dependency import AccessTokenPayload, validate_session
+from core.dependency import AccessTokenPayload, require_permission
 from core.pagination import Pagination
 from fastapi import APIRouter, Depends, Query
 from schema.poi_submission_shema import (
@@ -25,6 +25,23 @@ async def filter_poi_registration(
 
     return ApiResponse(
         success=True, message="Lấy danh sách đăng ký POI thành công", data=result
+    )
+
+
+@router.get("/mine")
+async def filter_my_poi_registration(
+    params: Annotated[FilterPoiSubmission, Query()],
+    principal: Annotated[
+        AccessTokenPayload, Depends(require_permission("owner:poi_read"))
+    ],
+    poi_submission_service: Annotated[PoiSubmissionService, Depends()],
+) -> ApiResponse[Pagination[ViewPoiSubmission]]:
+    result = await poi_submission_service.filter_owner_poi_submission(
+        params, principal.sub
+    )
+
+    return ApiResponse(
+        success=True, message="Lấy đơn đăng ký POI của bạn thành công", data=result
     )
 
 
@@ -62,7 +79,9 @@ async def review_poi_registration(
 # Register poi registration
 @router.post("/register", dependencies=[])
 async def register_poi_registration(
-    principal: Annotated[AccessTokenPayload, Depends(validate_session)],
+    principal: Annotated[
+        AccessTokenPayload, Depends(require_permission("owner:poi_submit"))
+    ],
     body: RegisterPoiSubmission,
     poi_submission_service: Annotated[PoiSubmissionService, Depends()],
 ) -> ApiResponse[ViewPoiSubmission]:

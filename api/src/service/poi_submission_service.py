@@ -55,7 +55,20 @@ class PoiSubmissionService:
     async def filter_poi_submission(
         self, filters: FilterPoiSubmission
     ) -> Pagination[ViewPoiSubmission]:
+        return await self._filter_poi_submission(filters)
+
+    async def filter_owner_poi_submission(
+        self, filters: FilterPoiSubmission, owner_id: str
+    ) -> Pagination[ViewPoiSubmission]:
+        return await self._filter_poi_submission(filters, ObjectId(owner_id))
+
+    async def _filter_poi_submission(
+        self, filters: FilterPoiSubmission, owner_id: ObjectId | None = None
+    ) -> Pagination[ViewPoiSubmission]:
         conditions: list[dict] = [{"deleted_at": None}]
+
+        if owner_id is not None:
+            conditions.append({"owner_id": owner_id})
 
         if filters.q:
             keyword = re.escape(filters.q.strip())

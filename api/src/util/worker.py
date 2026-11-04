@@ -44,9 +44,7 @@ async def process_worker(database: AsyncDatabase, stop_event: asyncio.Event):
 
         if poi_task_document is None:
             try:
-                await asyncio.wait_for(
-                    stop_event.wait(), timeout=POLL_INTERVAL_SECONDS
-                )
+                await asyncio.wait_for(stop_event.wait(), timeout=POLL_INTERVAL_SECONDS)
             except TimeoutError:
                 pass
             continue
@@ -58,6 +56,7 @@ async def process_worker(database: AsyncDatabase, stop_event: asyncio.Event):
                 raise ValueError(f"Không tìm thấy POI {poi_task.poi_id}")
 
             poi = PoiModel.model_validate(poi_document)
+            print(f"Found poi_task {poi_task.id}")
             await process_poi_task(
                 poi_task,
                 poi,
@@ -66,6 +65,7 @@ async def process_worker(database: AsyncDatabase, stop_event: asyncio.Event):
                 localization_collection,
                 stop_event,
             )
+            print(f"Done poi_task {poi_task.id}")
         except (ValidationError, PyMongoError, ValueError) as error:
             print(f"Không thể xử lý task {poi_task_document.get('_id')}: {error}")
             await poi_task_collection.update_one(
@@ -181,9 +181,7 @@ async def process_poi_task(
                 f"Dịch nội dung thất bại: {error}",
                 language,
             )
-            await _save_progress(
-                task_collection, task, completed_steps, total_steps
-            )
+            await _save_progress(task_collection, task, completed_steps, total_steps)
             continue
 
         await _save_progress(task_collection, task, completed_steps, total_steps)

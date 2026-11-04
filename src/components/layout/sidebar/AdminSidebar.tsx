@@ -110,6 +110,11 @@ const navigationGroup = [
         href: "/quan-ly/chu-quan/gui-yeu-cau-them-poi",
         permissions: ["owner:poi_submit"],
       },
+      {
+        title: "Đơn đăng ký POI",
+        href: "/quan-ly/chu-quan/don-dang-ky-poi",
+        permissions: ["owner:poi_read"],
+      },
       // !NOT IMPLEMENT
       {
         title: "Thực đơn của tôi",
@@ -132,11 +137,11 @@ const navigationGroup = [
         href: "/quan-ly/don-dang-ky-chu-quan/danh-sach-don-dang-ky",
         permissions: ["owner_registration:read"],
       },
-      {
-        title: "Duyệt đơn đăng ký",
-        href: "/quan-ly/don-chu-qua/duyet",
-        permissions: ["owner_registration:review"],
-      },
+      // {
+      //   title: "Duyệt đơn đăng ký",
+      //   href: "/quan-ly/don-chu-qua/duyet",
+      //   permissions: ["owner_registration:review"],
+      // },
     ],
   },
   {
@@ -170,7 +175,7 @@ export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { session } = useAuthorize();
+  const { session, clearSession } = useAuthorize();
 
   const permittedNavigation = navigationGroup
     .map((group) => ({
@@ -200,8 +205,12 @@ export function AdminSidebar() {
   }
 
   async function handleLogout() {
-    await authorizeService.Logout();
-    navigate("/login", { replace: true });
+    try {
+      await authorizeService.Logout();
+    } finally {
+      clearSession();
+      navigate("/dang-nhap", { replace: true });
+    }
   }
 
   return (
