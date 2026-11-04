@@ -22,6 +22,14 @@ class PoiOwnerRegistrationReposioty:
 
         return PoiOwnerRegistrationModel.model_validate(document)
 
+    async def find_many(self, search: dict) -> list[PoiOwnerRegistrationModel]:
+        cursor = self.collection.find(search).sort("created_at", -1)
+        documents = await cursor.to_list(length=None)
+        return [
+            PoiOwnerRegistrationModel.model_validate(document)
+            for document in documents
+        ]
+
     # Find document by pagination
     async def count_filter(self, pipeline: list[dict]) -> int:
         pipeline = [*pipeline, {"$count": "total"}]

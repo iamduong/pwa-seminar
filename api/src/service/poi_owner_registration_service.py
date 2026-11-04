@@ -55,12 +55,13 @@ class PoiOwnerRegistrationService:
                 }
             )
 
+        pipeline.append({"$match": {"deleted_at": None}})
+
         if filters.status:
             pipeline.append(
                 {
                     "$match": {
                         "status": filters.status,
-                        "deleted_at": None,
                     }
                 }
             )
@@ -148,30 +149,35 @@ class PoiOwnerRegistrationService:
         )
 
         poi_owner_registration_updated: dict = {}
-        poi_owner_registration["status"] = body["status"]
-        poi_owner_registration["admin_note"] = body["admin_note"] or ""
-        poi_owner_registration["updated_at"] = datetime.now(UTC)
+        poi_owner_registration_updated["status"] = body["status"]
+        poi_owner_registration_updated["admin_note"] = body.get("admin_note") or ""
+        poi_owner_registration_updated["updated_at"] = datetime.now(UTC)
 
         await self.poi_owner_registration_repository.update_by_id(
             poi_owner_registration.id, poi_owner_registration_updated
         )
 
         return {
-            "registration_id": poi_owner_registration.id,
-            "user_id": poi_owner_registration.user_id,
+            "registration_id": str(poi_owner_registration.id),
+            "user_id": str(poi_owner_registration.user_id),
             "status": body["status"],
-            "admin_note": body["admin_note"],
+            "admin_note": body.get("admin_note") or "",
             "is_poi_owner_verified": is_approved,
         }
 
     # Method: Register Poi Owner
     async def register_poi_owner(self, user_id: str, body: dict) -> dict:
         # Validate poi owner registration
-        poi_owner_registration = await self.poi_owner_registration_repository.find_one(
-            {"user_id": ObjectId(user_id)}
+        existing_registrations = (
+            await self.poi_owner_registration_repository.find_many(
+                {"user_id": ObjectId(user_id), "deleted_at": None}
+            )
         )
 
-        if poi_owner_registration is not None:
+        if existing_registrations and existing_registrations[0].status in (
+            PoiOwnerRegistrationStatus.PENDING,
+            PoiOwnerRegistrationStatus.APPROVED,
+        ):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Tài khoản đã gửi hồ sơ đăng ký chủ địa điểm",
@@ -215,5 +221,21 @@ class PoiOwnerRegistrationService:
 
     # Method: Get self registrations
     async def self_registration(self, user_id: str):
-        # Do later
-        pass
+        registrations = await self.poi_owner_registration_repository.find_many(
+            {"user_id": ObjectId(user_id), "deleted_at": None}
+        )
+
+        return [
+            ViewPoiOwnerRegistration(
+                id=str(registration.id),
+                user_id=str(registration.user_id),
+                business_name=registration.business_name,
+                business_address=registration.business_address,
+                note=registration.note,
+                status=registration.status,
+                admin_note=registration.admin_note,
+                created_at=registration.created_at,
+                updated_at=registration.updated_at,
+            )
+            for registration in registrations
+        ]

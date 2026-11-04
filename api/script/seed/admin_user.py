@@ -7,6 +7,9 @@ from pymongo.asynchronous.database import AsyncDatabase
 
 async def init_admin_user(db: AsyncDatabase):
     collection = db["admin_user"]
+    user_role = await db["role"].find_one({"name": "user", "is_system": True})
+    if user_role is None:
+        raise RuntimeError("User role must be seeded before admin users")
 
     admin_users: list[AdminUserModel] = [
         AdminUserModel(
@@ -110,6 +113,9 @@ async def init_admin_user(db: AsyncDatabase):
             pii_collected_at=datetime.now(UTC),
         ),
     ]
+
+    for admin_user in admin_users:
+        admin_user.role_id = user_role["_id"]
 
     documents = [admin_user.model_dump(by_alias=True) for admin_user in admin_users]
     result = await collection.insert_many(documents=documents)
