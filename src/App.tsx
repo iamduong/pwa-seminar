@@ -18,6 +18,7 @@ import RolesPage from "./pages/admin/roles/RolesPage";
 import RoleFormPage from "./pages/admin/roles/RoleFormPage";
 import PoiSubmissionPage from "./pages/admin/poi-submission/PoiSubmissionPage";
 import PoiSubmissionRegisterPage from "./pages/admin/poi-submission/PoiSubmissionRegisterPage";
+import OwnerPoiSubmissionsPage from "./pages/admin/poi-submission/OwnerPoiSubmissionsPage";
 import PoiSubmissionListPage from "./pages/admin/poi-submission/PoiSubmissionListPage";
 import PoiSubmissionDetailPage from "./pages/admin/poi-submission/PoiSubmissionDetailPage";
 import PoiTaskMonitorPage from "./pages/admin/poi-submission/PoiTaskMonitorPage";
@@ -99,6 +100,10 @@ export default function App() {
               <Route
                 path="gui-yeu-cau-them-poi"
                 element={<PoiSubmissionRegisterPage />}
+              />
+              <Route
+                path="don-dang-ky-poi"
+                element={<OwnerPoiSubmissionsPage />}
               />
             </Route>
             

@@ -119,7 +119,7 @@ const PoiSubmissionRegisterPage = () => {
       {
         onSuccess: () => {
           navigate(
-            `/quan-ly/chu-quan/poi-cua-toi/id=${createdSubmissionId}`,
+            `/quan-ly/chu-quan/don-dang-ky-poi?created=${createdSubmissionId}`,
             { replace: true },
           );
         },

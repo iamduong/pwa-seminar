@@ -100,6 +100,8 @@ const HybridMap = ({
 
   selectedLocation,
   selectedRadius,
+  focusSelectedLocation = false,
+  selectedLocationZoom = 17,
 
   showGeolocation = true,
 
@@ -252,10 +254,19 @@ const HybridMap = ({
     if (map.isStyleLoaded()) updateSelectedLocation();
     map.on("style.load", updateSelectedLocation);
 
+    if (selectedLocation && focusSelectedLocation) {
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      map.easeTo({
+        center: selectedLocation,
+        zoom: selectedLocationZoom,
+        duration: reduceMotion ? 0 : 700,
+      });
+    }
+
     return () => {
       map.off("style.load", updateSelectedLocation);
     };
-  }, [selectedLocation, selectedRadius]);
+  }, [focusSelectedLocation, selectedLocation, selectedLocationZoom, selectedRadius]);
 
   return (
     <section

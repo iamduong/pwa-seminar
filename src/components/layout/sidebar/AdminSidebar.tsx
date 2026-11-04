@@ -110,6 +110,11 @@ const navigationGroup = [
         href: "/quan-ly/chu-quan/gui-yeu-cau-them-poi",
         permissions: ["owner:poi_submit"],
       },
+      {
+        title: "Đơn đăng ký POI",
+        href: "/quan-ly/chu-quan/don-dang-ky-poi",
+        permissions: ["owner:poi_read"],
+      },
       // !NOT IMPLEMENT
       {
         title: "Thực đơn của tôi",

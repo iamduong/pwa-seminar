@@ -33,6 +33,27 @@ class PoiSubmissionService {
     return response.data;
   }
 
+  async GetMyPoiSubmissions(
+    query: PoiSubmissionQuery = {},
+    signal?: AbortSignal,
+  ) {
+    const { page = 1, pageSize = 20, q = "", status } = query;
+    const response = await api.get<ApiResponse<PoiSubmissionPagination>>(
+      "/poi-registrations/mine",
+      {
+        params: {
+          page,
+          page_size: pageSize,
+          q: q.trim() || undefined,
+          status,
+        },
+        signal,
+      },
+    );
+
+    return response.data;
+  }
+
   async RegisterPoiSubmission(payload: RegisterPoiSubmissionPayload) {
     const response = await api.post<ApiResponse<PoiSubmission>>(
       "/poi-registrations/register",
