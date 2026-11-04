@@ -5,7 +5,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { PoiOwnerRegistrationStatus } from "../../../../types/contract/IncludeStatus";
+import type { PoiOwnerRegistrationStatus } from "../../../../types/contract/GeoPoint";
 
 interface StatusMeta {
   label: string;

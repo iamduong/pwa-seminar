@@ -16,6 +16,11 @@ import { RegisterOwnerPage } from "./pages/client/RegisterOwnerPage";
 import PoiOwnerRegistrationsPage from "./pages/admin/poi-owner-registration/PoiOwnerRegistrationsPage";
 import RolesPage from "./pages/admin/roles/RolesPage";
 import RoleFormPage from "./pages/admin/roles/RoleFormPage";
+import PoiSubmissionPage from "./pages/admin/poi-submission/PoiSubmissionPage";
+import PoiSubmissionRegisterPage from "./pages/admin/poi-submission/PoiSubmissionRegisterPage";
+import PoiSubmissionListPage from "./pages/admin/poi-submission/PoiSubmissionListPage";
+import PoiSubmissionDetailPage from "./pages/admin/poi-submission/PoiSubmissionDetailPage";
+import PoiTaskMonitorPage from "./pages/admin/poi-submission/PoiTaskMonitorPage";
 
 export default function App() {
   return (
@@ -43,6 +48,34 @@ export default function App() {
               path="vai-tro/:roleId/chinh-sua"
               element={<RoleFormPage mode="edit" />}
             />
+            {/* Review poi submission */}
+            <Route path="don-dang-ky-poi">
+              <Route path="danh-sach-don-poi" element={<PoiSubmissionListPage />} />
+              <Route path="xem-tien-trinh" element={<PoiTaskMonitorPage />} />
+              <Route path="duyet-don-poi">
+                <Route
+                  index
+                  element={
+                    <Navigate
+                      to="/quan-ly/don-dang-ky-poi/danh-sach-don-poi?status=pending"
+                      replace
+                    />
+                  }
+                />
+                <Route path=":id" element={<PoiSubmissionDetailPage />} />
+              </Route>
+            </Route>
+
+            {/* poi owner registration features */}
+            <Route path="don-dang-ky-chu-quan">
+              <Route path="danh-sach-don-dang-ky" element={<PoiOwnerRegistrationsPage />} />
+            </Route>
+
+            {/* poi owner features */}
+            <Route path="chu-quan">
+              <Route path="poi-cua-toi" element={<PoiSubmissionPage />}/>
+              <Route path="gui-yeu-cau-them-poi" element={<PoiSubmissionRegisterPage />}/>
+            </Route>
           </Route>
         </Route>
 

@@ -23,11 +23,11 @@ import { Input } from "#components/ui/input"
 import { Textarea } from "#components/ui/textarea"
 import { useQuery } from "#hooks/use-query"
 import { useAuthorize } from "../../providers/AuthorizeProvider"
-import type { OwnerRegistrationPayload } from "../../types/PoiOwnerRegistration"
+import type { RegisterPoiOwnerRegistration } from "../../types/PoiOwnerRegistration"
 import { poiOwnerRegistrationService } from "../../services/PoiOwnerRegistrationService"
 
 type RegistrationErrors = Partial<
-  Record<keyof OwnerRegistrationPayload, string>
+  Record<keyof RegisterPoiOwnerRegistration, string>
 >
 
 const idCardPattern = /^(?:\d{9}|\d{12})$/
@@ -46,7 +46,7 @@ export function RegisterOwnerPage() {
 
     const formElement = event.currentTarget
     const form = new FormData(formElement)
-    const values: OwnerRegistrationPayload = {
+    const values: RegisterPoiOwnerRegistration = {
       business_name: String(form.get("business_name") || "").trim(),
       business_address: String(form.get("business_address") || "").trim(),
       id_card: String(form.get("id_card") || "").trim().replace(/\s/g, ""),

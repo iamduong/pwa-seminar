@@ -102,12 +102,12 @@ const navigationGroup = [
     child: [
       {
         title: "POI của tôi",
-        href: "/quan-ly/poi-cua-toi",
+        href: "/quan-ly/chu-quan/poi-cua-toi",
         permissions: ["owner:poi_read"],
       },
       {
         title: "Gửi yêu cầu thêm POI",
-        href: "/quan-ly/gui-yeu-cau-poi",
+        href: "/quan-ly/chu-quan/gui-yeu-cau-them-poi",
         permissions: ["owner:poi_submit"],
       },
       {
@@ -144,12 +144,12 @@ const navigationGroup = [
     child: [
       {
         title: "Danh sách đơn POI",
-        href: "/quan-ly/danh-sach-poi",
+        href: "/quan-ly/don-dang-ky-poi/danh-sach-don-poi",
         permissions: ["poi_submission:read"],
       },
       {
         title: "Duyệt đơn POI",
-        href: "/quan-ly/danh-sach-poi/duyet",
+        href: "/quan-ly/don-dang-ky-poi/duyet-don-poi",
         permissions: ["poi_submission:review"],
       },
     ],

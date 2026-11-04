@@ -1,14 +1,18 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from bson.errors import InvalidId
 from core.api_response import ApiResponse
-from core.provider.mongo import close_mongo, connect_mongo
+from core.provider.mongo import close_mongo, connect_mongo, get_mongo
 from core.provider.redis import close_redis, connect_redis
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from util.audio import AUDIO_DIRECTORY
+from util.worker import process_worker
 
 
 @asynccontextmanager
@@ -16,10 +20,20 @@ async def lifespan(app: FastAPI):
     await connect_mongo()
     await connect_redis()
 
-    yield
+    database = get_mongo()
 
-    await close_mongo()
-    await close_redis()
+    stop_event = asyncio.Event()
+    worker_task = asyncio.create_task(process_worker(database, stop_event))
+
+    try:
+        yield
+    finally:
+        stop_event.set()
+        try:
+            await worker_task
+        finally:
+            await close_mongo()
+            await close_redis()
 
 
 origins = [
@@ -27,6 +41,11 @@ origins = [
 ]
 
 app = FastAPI(title="PWA Seminar API", lifespan=lifespan)
+app.mount(
+    "/resource/audio",
+    StaticFiles(directory=AUDIO_DIRECTORY, check_dir=False),
+    name="audio",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -111,6 +130,7 @@ async def unexpected_exception_handler(
 
 from router.authorize_router import router as authorize_router
 from router.poi_owner_registration_router import router as poi_owner_registration_router
+from router.poi_registration_router import router as poi_registration_router
 from router.public_router import router as public_router
 from router.role_router import router as role_router
 
@@ -118,3 +138,4 @@ app.include_router(public_router)
 app.include_router(authorize_router)
 app.include_router(poi_owner_registration_router)
 app.include_router(role_router)
+app.include_router(poi_registration_router)

@@ -1,54 +1,261 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react";
+import {
+  addProtocol,
+  GeolocateControl,
+  Map,
+  setWorkerUrl,
+  type GeoJSONSource,
+  type StyleSpecification,
+} from "maplibre-gl";
+import type { FeatureCollection, Point, Polygon } from "geojson";
 
-import { cn } from "#lib/utils"
+import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 
-import "maplibre-gl/dist/maplibre-gl.css"
+import { Protocol } from "pmtiles";
 
-import { useGeolocationControl } from "./hooks/use-geolocation-control"
-import { useHybridMap } from "./hooks/use-hybrid-map"
-import { usePoiLayer } from "./layers/use-poi-layer"
-import { useSelectedLocationLayer } from "./layers/use-selected-location-layer"
-import { MapLegend } from "./MapLegend"
-import type { HybridMapProps } from "./types"
+import { cn } from "#lib/utils";
+
+import "maplibre-gl/dist/maplibre-gl.css";
+
+import { createOfflineStyle, ONLINE_STYLE } from "./lib/map-style";
+
+import type { HybridMapProps, MapCoordinates, MapMode } from "./lib/map-type";
+
+setWorkerUrl(mapWorkerUrl);
+
+const DEFAULT_MAP_CENTER: MapCoordinates = [106.704, 10.76];
+const DEFAULT_MAP_ZOOM = 15;
+const SELECTED_LOCATION_SOURCE_ID = "selected-location";
+const SELECTED_RADIUS_FILL_LAYER_ID = "selected-radius-fill";
+const SELECTED_RADIUS_LINE_LAYER_ID = "selected-radius-line";
+const SELECTED_LOCATION_LAYER_ID = "selected-location-point";
+
+let isPmtilesProtocolRegistered = false;
+
+const ensurePmtilesProtocol = () => {
+  // Ignore when component mounts again, needn't register again
+  if (isPmtilesProtocolRegistered) return;
+
+  const protocol = new Protocol();
+  addProtocol("pmtiles", protocol.tile);
+  isPmtilesProtocolRegistered = true;
+};
 
 const MODE_LABELS = {
   checking: "Đang kiểm tra bản đồ…",
   online: "Bản đồ trực tuyến",
   offline: "Bản đồ ngoại tuyến",
-} as const
+} as const;
 
-export default function HybridMap({
+const createCircleCoordinates = (
+  [longitude, latitude]: MapCoordinates,
+  radius: number,
+) => {
+  const points = 64;
+  const latitudeRadius = radius / 111_320;
+  const longitudeRadius = radius / (111_320 * Math.cos((latitude * Math.PI) / 180));
+
+  return Array.from({ length: points + 1 }, (_, index) => {
+    const angle = (index / points) * Math.PI * 2;
+    return [
+      longitude + longitudeRadius * Math.cos(angle),
+      latitude + latitudeRadius * Math.sin(angle),
+    ];
+  });
+};
+
+const createSelectedLocationData = (
+  location?: MapCoordinates | null,
+  radius?: number | null,
+): FeatureCollection<Point | Polygon> => {
+  if (!location) return { type: "FeatureCollection", features: [] };
+
+  const features: FeatureCollection<Point | Polygon>["features"] = [];
+
+  if (radius && radius > 0) {
+    features.push({
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Polygon",
+        coordinates: [createCircleCoordinates(location, radius)],
+      },
+    });
+  }
+
+  features.push({
+    type: "Feature",
+    properties: {},
+    geometry: { type: "Point", coordinates: location },
+  });
+
+  return { type: "FeatureCollection", features };
+};
+
+const HybridMap = ({
   className,
-  initialCenter,
-  initialZoom,
-  pois = [],
-  selectedPoiId,
+
+  initialCenter = DEFAULT_MAP_CENTER,
+  initialZoom = DEFAULT_MAP_ZOOM,
+
   selectedLocation,
+  selectedRadius,
+
   showGeolocation = true,
-  showLegend = true,
-  onMapReady,
+
   onLocationSelect,
-  onPoiSelect,
-}: HybridMapProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const onMapReadyRef = useRef(onMapReady)
-  const { map, mode } = useHybridMap({
-    containerRef,
-    initialCenter,
-    initialZoom,
-  })
+}: HybridMapProps) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<Map | null>(null);
 
-  useGeolocationControl(map, showGeolocation)
-  usePoiLayer(map, pois, selectedPoiId, onPoiSelect)
-  useSelectedLocationLayer(map, selectedLocation, onLocationSelect)
+  const initialCenterRef = useRef(initialCenter);
+  const initialZoomRef = useRef(initialZoom);
+
+  const onLocationSelectRef = useRef(onLocationSelect);
+
+  const [mode, setMode] = useState<MapMode>("checking");
 
   useEffect(() => {
-    onMapReadyRef.current = onMapReady
-  }, [onMapReady])
+    onLocationSelectRef.current = onLocationSelect;
+  }, [onLocationSelect]);
 
   useEffect(() => {
-    if (map) onMapReadyRef.current?.(map)
-  }, [map])
+    const container = containerRef.current;
+    if (!container) return;
+
+    const nextMode: Exclude<MapMode, "checking"> = navigator.onLine
+      ? "online"
+      : "offline";
+    const style: StyleSpecification | string =
+      nextMode === "online" ? ONLINE_STYLE : createOfflineStyle();
+
+    if (nextMode === "offline") {
+      ensurePmtilesProtocol();
+    }
+
+    const map = new Map({
+      container,
+      center: initialCenterRef.current,
+      zoom: initialZoomRef.current,
+      fadeDuration: 0,
+      style,
+    });
+    mapRef.current = map;
+
+    // location
+    if (showGeolocation) {
+      const geolocateControl = new GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true,
+        },
+        trackUserLocation: true,
+        showUserLocation: true,
+      });
+
+      map.addControl(geolocateControl, "top-right");
+    }
+
+    // Clickable
+    if (onLocationSelectRef.current) {
+      map.getCanvas().style.cursor = "crosshair";
+    }
+    map.on("click", (event) => {
+      onLocationSelectRef.current?.([event.lngLat.lng, event.lngLat.lat]);
+    });
+
+    setMode(nextMode);
+
+    const handleOffline = () => {
+      ensurePmtilesProtocol();
+      map.setStyle(createOfflineStyle());
+      setMode("offline");
+    };
+
+    const handleOnline = () => {
+      map.setStyle(ONLINE_STYLE);
+      setMode("online");
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+      map.remove();
+      mapRef.current = null;
+    };
+  }, [showGeolocation]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const data = createSelectedLocationData(selectedLocation, selectedRadius);
+
+    const updateSelectedLocation = () => {
+      const source = map.getSource(SELECTED_LOCATION_SOURCE_ID) as
+        | GeoJSONSource
+        | undefined;
+
+      if (source) {
+        source.setData(data);
+      } else {
+        map.addSource(SELECTED_LOCATION_SOURCE_ID, {
+          type: "geojson",
+          data,
+        });
+      }
+
+      if (!map.getLayer(SELECTED_RADIUS_FILL_LAYER_ID)) {
+        map.addLayer({
+          id: SELECTED_RADIUS_FILL_LAYER_ID,
+          type: "fill",
+          source: SELECTED_LOCATION_SOURCE_ID,
+          filter: ["==", ["geometry-type"], "Polygon"],
+          paint: {
+            "fill-color": "#16a34a",
+            "fill-opacity": 0.2,
+          },
+        });
+      }
+
+      if (!map.getLayer(SELECTED_RADIUS_LINE_LAYER_ID)) {
+        map.addLayer({
+          id: SELECTED_RADIUS_LINE_LAYER_ID,
+          type: "line",
+          source: SELECTED_LOCATION_SOURCE_ID,
+          filter: ["==", ["geometry-type"], "Polygon"],
+          paint: {
+            "line-color": "#16a34a",
+            "line-width": 2,
+          },
+        });
+      }
+
+      if (!map.getLayer(SELECTED_LOCATION_LAYER_ID)) {
+        map.addLayer({
+          id: SELECTED_LOCATION_LAYER_ID,
+          type: "circle",
+          source: SELECTED_LOCATION_SOURCE_ID,
+          filter: ["==", ["geometry-type"], "Point"],
+          paint: {
+            "circle-color": "#16a34a",
+            "circle-radius": 7,
+            "circle-stroke-color": "#ffffff",
+            "circle-stroke-width": 3,
+          },
+        });
+      }
+    };
+
+    if (map.isStyleLoaded()) updateSelectedLocation();
+    map.on("style.load", updateSelectedLocation);
+
+    return () => {
+      map.off("style.load", updateSelectedLocation);
+    };
+  }, [selectedLocation, selectedRadius]);
 
   return (
     <section
@@ -60,12 +267,7 @@ export default function HybridMap({
     >
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
 
-      {onLocationSelect && (
-        <div className="pointer-events-none absolute top-14 left-3 rounded-md border bg-background/90 px-2.5 py-1.5 text-xs shadow-sm backdrop-blur-sm">
-          Nhấn lên bản đồ để chọn vị trí
-        </div>
-      )}
-
+      {/* map mode */}
       <div className="pointer-events-none absolute top-3 left-3 rounded-md border bg-background/90 px-2.5 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm">
         <span
           className={cn(
@@ -78,7 +280,14 @@ export default function HybridMap({
         {MODE_LABELS[mode]}
       </div>
 
-      {showLegend && <MapLegend />}
+      {/* Text helper */}
+      {onLocationSelect && (
+        <div className="pointer-events-none absolute top-14 left-3 rounded-md border bg-background/90 px-2.5 py-1.5 text-xs shadow-sm backdrop-blur-sm">
+          Nhấn lên bản đồ để chọn vị trí
+        </div>
+      )}
     </section>
-  )
-}
+  );
+};
+
+export default HybridMap;
