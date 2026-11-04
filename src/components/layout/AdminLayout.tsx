@@ -1,6 +1,6 @@
 import { Outlet } from "react-router"
 
-import { AdminSidebar } from "#components/layout/sidebar/AdminSidebar"
+import { AdminSidebar } from "#components/layout/AdminSidebar"
 import { Separator } from "#components/ui/separator"
 import {
   SidebarInset,

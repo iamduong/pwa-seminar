@@ -4,8 +4,8 @@ import { AlertCircleIcon, RefreshCwIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert";
 import { Button } from "#components/ui/button";
 import { getApiErrorMessage } from "#lib/api";
-import { menuItemService } from "../../services/MenuItemService";
-import type { MenuItemSubmission } from "../../types/MenuItem";
+import { menuItemService } from "../../../services/MenuItemService";
+import type { MenuItemSubmission } from "../../../types/MenuItem";
 
 const statusLabels = {
   pending: "Chờ duyệt",

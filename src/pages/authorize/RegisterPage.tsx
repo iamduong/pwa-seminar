@@ -51,6 +51,7 @@ function validateRegistration(
 }
 
 export function RegisterPage() {
+  const loginPath = "/quan-ly/dang-nhap";
   const { execute, inProcess: isSubmitting } = useQuery();
 
   const [errors, setErrors] = useState<RegistrationErrors>({});
@@ -113,7 +114,7 @@ export function RegisterPage() {
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Đăng nhập để khám phá địa điểm hoặc đăng ký trở thành chủ địa điểm.
           </p>
-          <Button className="mt-6" render={<Link to="/dang-nhap" />}>
+          <Button className="mt-6" render={<Link to={loginPath} />}>
             Đi đến trang đăng nhập
           </Button>
         </div>
@@ -239,7 +240,7 @@ export function RegisterPage() {
         Đã có tài khoản?{" "}
         <Link
           className="font-medium text-foreground underline-offset-4 hover:underline"
-          to="/login"
+          to={loginPath}
         >
           Đăng nhập
         </Link>

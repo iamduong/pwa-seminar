@@ -37,7 +37,7 @@ export function ProtectedRoute() {
 
   if (status === "unauthenticated") {
     const from = `${location.pathname}${location.search}${location.hash}`
-    return <Navigate to="/dang-nhap" replace state={{ from }} />
+    return <Navigate to="/quan-ly/dang-nhap" replace state={{ from }} />
   }
 
   return <Outlet />

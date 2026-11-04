@@ -12,8 +12,8 @@ import {
 import { Input } from "#components/ui/input";
 import { Textarea } from "#components/ui/textarea";
 import { getApiErrorMessage } from "#lib/api";
-import { menuItemService } from "../../services/MenuItemService";
-import type { OwnerPoiOption } from "../../types/MenuItem";
+import { menuItemService } from "../../../services/MenuItemService";
+import type { OwnerPoiOption } from "../../../types/MenuItem";
 
 export default function MenuItemRequestPage() {
   const [pois, setPois] = useState<OwnerPoiOption[]>([]);

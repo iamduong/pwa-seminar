@@ -8,10 +8,16 @@ import { ClientLayout } from "#components/layout/ClientLayout";
 // Authorize page
 import { LoginPage } from "./pages/authorize/LoginPage";
 import { RegisterPage } from "./pages/authorize/RegisterPage";
-// Client page
-import HomePage from "./pages/HomePage";
-import { ProfilePage } from "./pages/client/ProfilePage";
-import { RegisterOwnerPage } from "./pages/client/RegisterOwnerPage";
+// Client pages
+import { ResponsiveClientPage } from "./pages/client/ResponsiveClientPage";
+import MobilePlacesPage from "./pages/client/mobile/MobilePlacesPage";
+import MobileFoodPage from "./pages/client/mobile/MobileFoodPage";
+import MobileNearbyPage from "./pages/client/mobile/MobileNearbyPage";
+import MobileQrScannerPage from "./pages/client/mobile/MobileQrScannerPage";
+import DesktopPlacesPage from "./pages/client/desktop/DesktopPlacesPage";
+import DesktopFoodPage from "./pages/client/desktop/DesktopFoodPage";
+import DesktopNearbyPage from "./pages/client/desktop/DesktopNearbyPage";
+import DesktopQrScannerPage from "./pages/client/desktop/DesktopQrScannerPage";
 // Admin page
 import PoiOwnerRegistrationsPage from "./pages/admin/poi-owner-registration/PoiOwnerRegistrationsPage";
 import RolesPage from "./pages/admin/roles/RolesPage";
@@ -24,31 +30,72 @@ import PoiSubmissionDetailPage from "./pages/admin/poi-submission/PoiSubmissionD
 import PoiTaskMonitorPage from "./pages/admin/poi-submission/PoiTaskMonitorPage";
 import AdminUserCreatePage from "./pages/admin/user/AdminUserCreatePage";
 import AdminUsersPage from "./pages/admin/user/AdminUsersPage";
-import MenuItemsPage from "./pages/owner/MenuItemsPage";
-import MenuItemRequestPage from "./pages/owner/MenuItemRequestPage";
+import PoiListPage from "./pages/admin/poi/PoiListPage";
+import PoiCreatePage from "./pages/admin/poi/PoiCreatePage";
+import MenuListPage from "./pages/admin/menu/MenuListPage";
+import MenuCreatePage from "./pages/admin/menu/MenuCreatePage";
+import MenuItemsPage from "./pages/admin/menu/MenuItemsPage";
+import MenuItemRequestPage from "./pages/admin/menu/MenuItemRequestPage";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Auth routers */}
-        <Route path="/dang-nhap" element={<LoginPage />} />
-        <Route path="/dang-ky" element={<RegisterPage />} />
+        <Route path="/quan-ly/dang-nhap" element={<LoginPage />} />
+        <Route path="/quan-ly/dang-ky" element={<RegisterPage />} />
 
         <Route element={<ClientLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/mon-an" element={<HomePage />} />
-          <Route path="/gan-toi" element={<HomePage />} />
-          <Route path="/quet-qr" element={<HomePage />} />
-
-          <Route element={<ProtectedRoute />}>
-            <Route path="/ho-so" element={<ProfilePage />} />
-            <Route path="/chu-quan" element={<RegisterOwnerPage />} />
-          </Route>
+          <Route
+            path="/"
+            element={
+              <ResponsiveClientPage
+                mobile={MobilePlacesPage}
+                desktop={DesktopPlacesPage}
+              />
+            }
+          />
+          <Route
+            path="/mon-an"
+            element={
+              <ResponsiveClientPage
+                mobile={MobileFoodPage}
+                desktop={DesktopFoodPage}
+              />
+            }
+          />
+          <Route
+            path="/gan-toi"
+            element={
+              <ResponsiveClientPage
+                mobile={MobileNearbyPage}
+                desktop={DesktopNearbyPage}
+              />
+            }
+          />
+          <Route
+            path="/quet-qr"
+            element={
+              <ResponsiveClientPage
+                mobile={MobileQrScannerPage}
+                desktop={DesktopQrScannerPage}
+              />
+            }
+          />
         </Route>
 
         <Route element={<ProtectedRoute />}>
           <Route path="/quan-ly" element={<AdminLayout />}>
+            {/* POI features */}
+            <Route path="dia-diem-poi">
+              <Route path="danh-sach-poi" element={<PoiListPage />} />
+              <Route path="them-poi" element={<PoiCreatePage />} />
+            </Route>
+
+            {/* Culinary features */}
+            <Route path="danh-sach-thuc-don" element={<MenuListPage />} />
+            <Route path="them-thuc-don" element={<MenuCreatePage />} />
+
             {/* Poi owner registration features */}
             <Route path="don-dang-ky-chu-quan">
               <Route
@@ -91,16 +138,8 @@ export default function App() {
               </Route>
             </Route>
 
-            {/* poi owner registration features */}
-            <Route path="don-dang-ky-chu-quan">
-              <Route
-                path="danh-sach-don-dang-ky"
-                element={<PoiOwnerRegistrationsPage />}
-              />
-            </Route>
-
             {/* poi owner features */}
-            <Route path="chu-quan">
+            <Route path="chuc-nang-chu-quan">
               <Route path="poi-cua-toi" element={<PoiSubmissionPage />} />
               <Route
                 path="gui-yeu-cau-them-poi"
@@ -110,22 +149,24 @@ export default function App() {
                 path="don-dang-ky-poi"
                 element={<OwnerPoiSubmissionsPage />}
               />
+              <Route path="thuc-don-cua-toi" element={<MenuItemsPage />} />
+              <Route
+                path="gui-yeu-cau-thuc-don"
+                element={<MenuItemRequestPage />}
+              />
             </Route>
             
             {/* admin user features */}
-            <Route
-              path="danh-sach-nguoi-dung"
-              element={<AdminUsersPage />}
-            />
-
-            {/* admin user features */}
-            <Route
-              path="them-nguoi-dung"
-              element={<AdminUserCreatePage />}
-            />
-            <Route path="don-chu-qua" element={<PoiOwnerRegistrationsPage />} />
-            <Route path="thuc-don-cua-toi" element={<MenuItemsPage />} />
-            <Route path="gui-yeu-cau-thuc-don" element={<MenuItemRequestPage />} />
+            <Route path="nguoi-dung">
+              <Route
+                path="danh-sach-nguoi-dung"
+                element={<AdminUsersPage />}
+              />
+              <Route
+                path="them-nguoi-dung"
+                element={<AdminUserCreatePage />}
+              />
+            </Route>
           </Route>
         </Route>
 

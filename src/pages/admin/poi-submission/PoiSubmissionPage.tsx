@@ -159,7 +159,7 @@ export default function PoiSubmissionPage() {
           </p>
         </div>
         {session?.role?.permissions.includes("owner:poi_submit") && (
-          <Button render={<Link to="/quan-ly/chu-quan/gui-yeu-cau-them-poi" />}>
+          <Button render={<Link to="/quan-ly/chuc-nang-chu-quan/gui-yeu-cau-them-poi" />}>
             <PlusIcon aria-hidden="true" />
             Đăng ký địa điểm mới
           </Button>

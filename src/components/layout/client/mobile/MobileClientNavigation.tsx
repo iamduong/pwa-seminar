@@ -1,5 +1,4 @@
 import {
-  CircleUserRoundIcon,
   LocateFixedIcon,
   MapPinnedIcon,
   QrCodeIcon,
@@ -7,28 +6,27 @@ import {
 } from "lucide-react"
 import { NavLink } from "react-router"
 
-const navigation = [
+import { ClientMenu } from "#components/layout/client/shared/ClientMenu"
+
+const mobileNavigation = [
   { title: "Trang chủ", href: "/", icon: MapPinnedIcon },
   { title: "Món ăn", href: "/mon-an", icon: SoupIcon },
   { title: "Gần tôi", href: "/gan-toi", icon: LocateFixedIcon },
   { title: "Quét QR", href: "/quet-qr", icon: QrCodeIcon },
-  { title: "Hồ sơ", href: "/ho-so", icon: CircleUserRoundIcon },
 ]
 
-export const ClientNavigation = () => {
+export const MobileClientNavigation = () => {
   return (
-    <div
-      className="pointer-events-none fixed inset-x-0 z-50 px-3"
-      style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
-    >
+    <div className="pointer-events-none fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-50 px-3">
       <nav
-        className="pointer-events-auto mx-auto grid h-17 max-w-xl grid-cols-5 gap-1 rounded-2xl border bg-card/95 p-1.5 shadow-lg backdrop-blur-xl"
+        className="pointer-events-auto mx-auto grid h-17 w-full max-w-130 grid-cols-5 gap-1 rounded-2xl border bg-card/95 p-1.5 shadow-lg backdrop-blur-xl"
         aria-label="Điều hướng chính"
       >
-        {navigation.map((item) => (
+        {mobileNavigation.map((item) => (
           <NavLink
             key={item.href}
             to={item.href}
+            end={item.href === "/"}
             className={({ isActive }) =>
               `flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-[1rem] px-1 text-[10px] font-medium transition-all duration-200 active:scale-95 ${
                 isActive
@@ -41,6 +39,8 @@ export const ClientNavigation = () => {
             <span className="max-w-full truncate">{item.title}</span>
           </NavLink>
         ))}
+
+        <ClientMenu triggerClassName="flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-[1rem] px-1 text-[10px] font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground active:scale-95" />
       </nav>
     </div>
   )
