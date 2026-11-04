@@ -11,7 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from util.worker import AUDIO_DIRECTORY, process_worker
+from util.audio import AUDIO_DIRECTORY
+from util.worker import process_worker
 
 
 @asynccontextmanager
@@ -41,7 +42,7 @@ origins = [
 
 app = FastAPI(title="PWA Seminar API", lifespan=lifespan)
 app.mount(
-    "/static/audio",
+    "/resource/audio",
     StaticFiles(directory=AUDIO_DIRECTORY, check_dir=False),
     name="audio",
 )
