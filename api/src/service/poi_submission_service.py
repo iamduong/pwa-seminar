@@ -19,7 +19,7 @@ from schema.poi_submission_shema import (
     ReviewPoiSubmission,
     ViewPoiSubmission,
 )
-from util.resource import MY_MEMORY_LANGUAGES
+from resource.config import MY_MEMORY_LANGUAGES
 
 
 class PoiSubmissionService:

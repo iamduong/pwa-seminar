@@ -1,3 +1,9 @@
+from pathlib import Path
+
+RESOURCE_DIRECTORY = Path(__file__).resolve().parent
+AUDIO_DIRECTORY = RESOURCE_DIRECTORY / "audio"
+DOC_DIRECTORY = RESOURCE_DIRECTORY / "doc"
+
 DEFAULT_LANGUAGES = ["vi", "en"]
 
 MY_MEMORY_LANGUAGES = ["vi-VN", "en-US", "zh-CN", "ja-JP", "ko-KR"]

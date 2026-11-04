@@ -1,22 +1,18 @@
 import asyncio
-import hashlib
 from datetime import UTC, datetime
-from pathlib import Path
 
-import edge_tts
 from model.poi_localization_model import AudioStatus as LocalizationAudioStatus
 from model.poi_model import AudioStatus as PoiAudioStatus
 from model.poi_model import PoiModel
 from model.poi_task_model import Event, PoiTaskModel, PoiTaskStatus, ProcessStatus
+from pydantic import ValidationError
 from pymongo import ReturnDocument
 from pymongo.asynchronous.database import AsyncDatabase
-from util.resource import MY_MEMORY_VOICES
-from util.translator import translate
+from pymongo.errors import PyMongoError
+from util.audio import AudioGenerationError, ensure_audio_directory, generate_audio
+from util.translator import TranslationError, translate_poi
 
 POLL_INTERVAL_SECONDS = 2
-SOURCE_LANGUAGE = "vi-VN"
-AUDIO_DIRECTORY = Path(__file__).resolve().parents[2] / "static" / "audio"
-AUDIO_URL_PREFIX = "/static/audio"
 
 
 async def process_worker(database: AsyncDatabase, stop_event: asyncio.Event):
@@ -25,7 +21,7 @@ async def process_worker(database: AsyncDatabase, stop_event: asyncio.Event):
     poi_collection = database["poi"]
     localization_collection = database["poi_localization"]
 
-    await asyncio.to_thread(AUDIO_DIRECTORY.mkdir, parents=True, exist_ok=True)
+    await ensure_audio_directory()
 
     while not stop_event.is_set():
         started_at = datetime.now(UTC)
@@ -70,7 +66,7 @@ async def process_worker(database: AsyncDatabase, stop_event: asyncio.Event):
                 localization_collection,
                 stop_event,
             )
-        except Exception as error:
+        except (ValidationError, PyMongoError, ValueError) as error:
             print(f"Không thể xử lý task {poi_task_document.get('_id')}: {error}")
             await poi_task_collection.update_one(
                 {"_id": poi_task_document["_id"]},
@@ -144,7 +140,7 @@ async def process_poi_task(
         )
 
         try:
-            translated = await process_translation(poi, language)
+            translated = await translate_poi(poi, language)
             process.translation_status = ProcessStatus.DONE
             process.error_message = None
             completed_steps += 1
@@ -173,7 +169,7 @@ async def process_poi_task(
                 "Dịch nội dung thành công",
                 language,
             )
-        except Exception as error:
+        except (PyMongoError, TranslationError) as error:
             has_error = True
             completed_steps += 2
             process.translation_status = ProcessStatus.FAILED
@@ -193,7 +189,7 @@ async def process_poi_task(
         await _save_progress(task_collection, task, completed_steps, total_steps)
 
         try:
-            audio_url, was_created = await process_audio(
+            audio_url, was_created = await generate_audio(
                 poi.description,
                 translated["description"],
                 language,
@@ -220,7 +216,7 @@ async def process_poi_task(
                 f"{action} file âm thanh thành công: {audio_url}",
                 language,
             )
-        except Exception as error:
+        except (AudioGenerationError, PyMongoError) as error:
             has_error = True
             completed_steps += 1
             process.audio_status = ProcessStatus.FAILED
@@ -272,59 +268,6 @@ async def process_poi_task(
     if not has_error and task.activation_requested:
         poi_update["is_active"] = True
     await poi_collection.update_one({"_id": poi.id}, {"$set": poi_update})
-
-
-async def process_translation(poi: PoiModel, language: str) -> dict[str, str]:
-    if language == SOURCE_LANGUAGE:
-        return {
-            "category": poi.category_name,
-            "name": poi.name,
-            "description": poi.description,
-        }
-
-    return {
-        "category": await translate(poi.category_name, SOURCE_LANGUAGE, language),
-        "name": await translate(poi.name, SOURCE_LANGUAGE, language),
-        "description": await translate(poi.description, SOURCE_LANGUAGE, language),
-    }
-
-
-async def process_audio(
-    source_description: str,
-    translated_description: str,
-    language: str,
-) -> tuple[str, bool]:
-    voice = MY_MEMORY_VOICES.get(language)
-    if voice is None:
-        raise ValueError(f"Chưa cấu hình giọng đọc cho ngôn ngữ {language}")
-
-    audio_hash = hashlib.md5(
-        f"{source_description}:{language}".encode("utf-8")
-    ).hexdigest()
-    audio_path = AUDIO_DIRECTORY / f"{audio_hash}.mp3"
-    audio_url = f"{AUDIO_URL_PREFIX}/{audio_path.name}"
-
-    if await asyncio.to_thread(_is_valid_audio_file, audio_path):
-        return audio_url, False
-
-    temporary_path = audio_path.with_suffix(".tmp")
-    try:
-        communicate = edge_tts.Communicate(
-            text=translated_description,
-            voice=voice,
-        )
-        await communicate.save(str(temporary_path))
-        await asyncio.to_thread(temporary_path.replace, audio_path)
-    except Exception:
-        if temporary_path.exists():
-            temporary_path.unlink()
-        raise
-
-    return audio_url, True
-
-
-def _is_valid_audio_file(path: Path) -> bool:
-    return path.is_file() and path.stat().st_size > 0
 
 
 def _event(
