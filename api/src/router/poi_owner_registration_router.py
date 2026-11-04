@@ -18,7 +18,10 @@ router = APIRouter(
 
 
 # Get all poi owner registration
-@router.get("", dependencies=[])
+@router.get(
+    "",
+    dependencies=[Depends(require_permission("owner_registration:read"))],
+)
 async def filter_poi_owner_registration(
     params: Annotated[FilterPoiOwnerRegistration, Depends()],
     poi_owner_registration_service: Annotated[PoiOwnerRegistrationService, Depends()],
@@ -35,7 +38,7 @@ async def filter_poi_owner_registration(
 # - Reject -> have to note why reject registration
 @router.patch(
     "/review-registration/{id}",
-    # dependencies=[Depends(require_permission("owner_registration:review"))],
+    dependencies=[Depends(require_permission("owner_registration:review"))],
 )
 async def review_registration(
     id: str,
@@ -85,6 +88,15 @@ async def re_register_poi_owner() -> ApiResponse[ViewPoiOwnerRegistration]:
 # Get self poi owner registrations
 # When admin reject -> the records are not deleted
 # Show all history records and note
-@router.get("/self-registration", dependencies=[])
-async def self_registration() -> ApiResponse[list[ViewPoiOwnerRegistration]]:
-    pass
+@router.get("/self-registration")
+async def self_registration(
+    principal: Annotated[
+        AccessTokenPayload, Depends(require_permission(None))
+    ],
+    poi_owner_registration_service: Annotated[PoiOwnerRegistrationService, Depends()],
+) -> ApiResponse[list[ViewPoiOwnerRegistration]]:
+    result = await poi_owner_registration_service.self_registration(principal.sub)
+
+    return ApiResponse(
+        success=True, message="Lấy lịch sử đăng ký thành công", data=result
+    )

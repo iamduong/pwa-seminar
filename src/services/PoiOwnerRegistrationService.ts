@@ -18,6 +18,19 @@ export interface RegisteredPoiOwner {
   status: PoiOwnerRegistrationStatus;
 }
 
+export interface ReviewPoiOwnerRegistrationPayload {
+  status: "approved" | "rejected";
+  admin_note?: string;
+}
+
+export interface ReviewedPoiOwnerRegistration {
+  registration_id: string;
+  user_id: string;
+  status: PoiOwnerRegistrationStatus;
+  admin_note: string;
+  is_poi_owner_verified: boolean;
+}
+
 class PoiOwnerRegistrationService {
   // Register new Poi Owner
   async RegisterPoiOwner(payload: RegisterPoiOwnerRegistration) {
@@ -46,6 +59,18 @@ class PoiOwnerRegistrationService {
         },
         signal,
       },
+    );
+
+    return response.data;
+  }
+
+  async ReviewPoiOwnerRegistration(
+    id: string,
+    payload: ReviewPoiOwnerRegistrationPayload,
+  ) {
+    const response = await api.patch<ApiResponse<ReviewedPoiOwnerRegistration>>(
+      `/poi-owner-registrations/review-registration/${id}`,
+      payload,
     );
 
     return response.data;

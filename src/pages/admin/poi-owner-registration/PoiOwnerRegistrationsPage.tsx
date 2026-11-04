@@ -117,6 +117,24 @@ export default function PoiOwnerRegistrationsPage() {
     setDetailOpen(true);
   }
 
+  async function reviewRegistration({
+    status,
+    adminNote,
+  }: {
+    status: "approved" | "rejected";
+    adminNote: string;
+  }) {
+    if (!selectedRegistration) return;
+
+    await poiOwnerRegistrationService.ReviewPoiOwnerRegistration(
+      selectedRegistration.id,
+      { status, admin_note: adminNote || undefined },
+    );
+    setDetailOpen(false);
+    setSelectedRegistration(null);
+    setRequestVersion((version) => version + 1);
+  }
+
   const registrations = data?.data ?? [];
 
   return (
@@ -204,6 +222,7 @@ export default function PoiOwnerRegistrationsPage() {
         registration={selectedRegistration}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+        onReview={reviewRegistration}
       />
     </div>
   );

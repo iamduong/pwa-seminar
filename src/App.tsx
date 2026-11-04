@@ -24,6 +24,8 @@ import PoiSubmissionDetailPage from "./pages/admin/poi-submission/PoiSubmissionD
 import PoiTaskMonitorPage from "./pages/admin/poi-submission/PoiTaskMonitorPage";
 import AdminUserCreatePage from "./pages/admin/user/AdminUserCreatePage";
 import AdminUsersPage from "./pages/admin/user/AdminUsersPage";
+import MenuItemsPage from "./pages/owner/MenuItemsPage";
+import MenuItemRequestPage from "./pages/owner/MenuItemRequestPage";
 
 export default function App() {
   return (
@@ -118,6 +120,9 @@ export default function App() {
               path="them-nguoi-dung"
               element={<AdminUserCreatePage />}
             />
+            <Route path="don-chu-qua" element={<PoiOwnerRegistrationsPage />} />
+            <Route path="thuc-don-cua-toi" element={<MenuItemsPage />} />
+            <Route path="gui-yeu-cau-thuc-don" element={<MenuItemRequestPage />} />
           </Route>
         </Route>
 
