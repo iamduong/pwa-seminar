@@ -137,11 +137,11 @@ const navigationGroup = [
         href: "/quan-ly/don-dang-ky-chu-quan/danh-sach-don-dang-ky",
         permissions: ["owner_registration:read"],
       },
-      {
-        title: "Duyệt đơn đăng ký",
-        href: "/quan-ly/don-chu-qua/duyet",
-        permissions: ["owner_registration:review"],
-      },
+      // {
+      //   title: "Duyệt đơn đăng ký",
+      //   href: "/quan-ly/don-chu-qua/duyet",
+      //   permissions: ["owner_registration:review"],
+      // },
     ],
   },
   {
