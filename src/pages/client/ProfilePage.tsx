@@ -19,7 +19,7 @@ const ownerStatusMeta = {
 
 export function ProfilePage() {
   const navigate = useNavigate()
-  const { session } = useAuthorize()
+  const { session, clearSession } = useAuthorize()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   // Check role to open admin portal
@@ -34,12 +34,13 @@ export function ProfilePage() {
     : null
 
   async function handleLogout() {
+    setIsLoggingOut(true)
     try {
-      setIsLoggingOut(true)
       await authorizeService.Logout()
-      navigate("/dang-nhap", { replace: true })
     } finally {
+      clearSession()
       setIsLoggingOut(false)
+      navigate("/", { replace: true })
     }
   }
 

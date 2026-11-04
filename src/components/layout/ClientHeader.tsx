@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, MapPinIcon } from "lucide-react"
+import { ChevronLeftIcon, CircleUserRoundIcon, MapPinIcon } from "lucide-react"
 import { Link, useLocation } from "react-router"
 import { useAuthorize } from "../../providers/AuthorizeProvider"
 
@@ -43,7 +43,11 @@ export const ClientHeader = () => {
             to="/ho-so"
             aria-label="Mở hồ sơ"
           >
-            {session?.fullName.charAt(0).toUpperCase()}
+            {session ? (
+              session.fullName.charAt(0).toUpperCase()
+            ) : (
+              <CircleUserRoundIcon className="size-5" aria-hidden="true" />
+            )}
           </Link>
         )}
       </div>

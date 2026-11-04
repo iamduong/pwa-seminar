@@ -1,6 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { EyeIcon, EyeOffIcon, Loader2Icon, LogInIcon } from "lucide-react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 import { AuthLayout } from "#components/auth/AuthLayout";
 import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert";
@@ -23,6 +23,7 @@ interface LoginErrors {
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { execute, inProcess: isSubmitting } = useQuery();
   const { refreshProfile } = useAuthorize();
 
@@ -30,6 +31,14 @@ export function LoginPage() {
   const [requestError, setRequestError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const requestedPath = (location.state as { from?: unknown } | null)?.from;
+  const destination =
+    typeof requestedPath === "string" &&
+    requestedPath.startsWith("/") &&
+    !requestedPath.startsWith("//")
+      ? requestedPath
+      : "/";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,7 +70,7 @@ export function LoginPage() {
           setRequestError(error.message);
         },
         onSuccess() {
-          navigate("/", { replace: true });
+          navigate(destination, { replace: true });
         }
       },
     );

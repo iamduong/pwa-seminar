@@ -175,7 +175,7 @@ export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { session } = useAuthorize();
+  const { session, clearSession } = useAuthorize();
 
   const permittedNavigation = navigationGroup
     .map((group) => ({
@@ -205,8 +205,12 @@ export function AdminSidebar() {
   }
 
   async function handleLogout() {
-    await authorizeService.Logout();
-    navigate("/login", { replace: true });
+    try {
+      await authorizeService.Logout();
+    } finally {
+      clearSession();
+      navigate("/dang-nhap", { replace: true });
+    }
   }
 
   return (
