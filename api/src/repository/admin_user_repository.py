@@ -33,7 +33,23 @@ class AdminUserRepository:
     async def find_pagination(
         self, page: int, page_size: int, search: dict, sort_by: str, sort_order: str
     ):
-        pass
+        skip = (page - 1) * page_size
+
+        sort_direction = -1 if sort_order.lower() == "desc" else 1
+
+        cursor = (
+            self.collection.find(search)
+            .sort(sort_by, sort_direction)
+            .skip(skip)
+            .limit(page_size)
+        )
+
+        documents = await cursor.to_list(length=page_size)
+
+        return [
+            AdminUserModel.model_validate(document)
+            for document in documents
+        ]
 
     # Insert document
     async def insert_item(self, document: dict) -> InsertOneResult:
@@ -49,3 +65,6 @@ class AdminUserRepository:
     # Delete document
     async def delete_by_id(self, id: ObjectId, document: dict) -> DeleteResult:
         pass
+
+    async def count_search(self, search: dict) -> int:
+        return await self.collection.count_documents(search)

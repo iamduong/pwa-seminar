@@ -133,9 +133,11 @@ from router.poi_owner_registration_router import router as poi_owner_registratio
 from router.poi_registration_router import router as poi_registration_router
 from router.public_router import router as public_router
 from router.role_router import router as role_router
+from router.admin_user_router import router as admin_user_router
 
 app.include_router(public_router)
 app.include_router(authorize_router)
 app.include_router(poi_owner_registration_router)
 app.include_router(role_router)
 app.include_router(poi_registration_router)
+app.include_router(admin_user_router)

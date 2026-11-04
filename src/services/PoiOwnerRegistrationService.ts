@@ -1,6 +1,6 @@
 import api from "#lib/api";
 import type { ApiResponse } from "#lib/api";
-import type { PoiOwnerRegistrationStatus } from "../types/contract/GeoPoint";
+import type { PoiOwnerRegistrationStatus } from "../types/PoiOwnerRegistration";
 import type {
   RegisterPoiOwnerRegistration,
   PoiOwnerRegistrationPagination,

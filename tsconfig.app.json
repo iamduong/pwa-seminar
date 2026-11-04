@@ -22,5 +22,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "src/pages/.bak/admin-users/AdminUsersTable.tsx", "src/pages/.bak/admin-users/AdminUsersPage.tsx", "src/pages/.bak/admin-users/AdminUserFilters.tsx"]
+  "include": ["src"]
 }

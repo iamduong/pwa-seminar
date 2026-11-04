@@ -1,6 +1,9 @@
 import type { Pagination } from "./contract/Pagination";
 
-export type PoiOwnerRegistrationStatus = "";
+export type PoiOwnerRegistrationStatus =
+  | "pending"
+  | "approved"
+  | "rejected";
 
 // View
 export type PoiOwnerRegistration = {
