@@ -14,6 +14,8 @@ import { ProfilePage } from "./pages/client/ProfilePage";
 import { RegisterOwnerPage } from "./pages/client/RegisterOwnerPage";
 // Admin page
 import PoiOwnerRegistrationsPage from "./pages/admin/poi-owner-registration/PoiOwnerRegistrationsPage";
+import RolesPage from "./pages/admin/roles/RolesPage";
+import RoleFormPage from "./pages/admin/roles/RoleFormPage";
 import PoiSubmissionPage from "./pages/admin/poi-submission/PoiSubmissionPage";
 import PoiSubmissionRegisterPage from "./pages/admin/poi-submission/PoiSubmissionRegisterPage";
 import PoiSubmissionListPage from "./pages/admin/poi-submission/PoiSubmissionListPage";
@@ -39,6 +41,13 @@ export default function App() {
           </Route>
 
           <Route path="/quan-ly" element={<AdminLayout />}>
+            <Route path="don-chu-qua" element={<PoiOwnerRegistrationsPage />} />
+            <Route path="danh-sach-vai-tro" element={<RolesPage />} />
+            <Route path="them-vai-tro" element={<RoleFormPage mode="create" />} />
+            <Route
+              path="vai-tro/:roleId/chinh-sua"
+              element={<RoleFormPage mode="edit" />}
+            />
             {/* Review poi submission */}
             <Route path="don-dang-ky-poi">
               <Route path="danh-sach-don-poi" element={<PoiSubmissionListPage />} />
