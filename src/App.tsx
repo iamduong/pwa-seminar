@@ -14,6 +14,8 @@ import { ProfilePage } from "./pages/client/ProfilePage";
 import { RegisterOwnerPage } from "./pages/client/RegisterOwnerPage";
 // Admin page
 import PoiOwnerRegistrationsPage from "./pages/admin/poi-owner-registration/PoiOwnerRegistrationsPage";
+import RolesPage from "./pages/admin/roles/RolesPage";
+import RoleFormPage from "./pages/admin/roles/RoleFormPage";
 
 export default function App() {
   return (
@@ -35,6 +37,12 @@ export default function App() {
 
           <Route path="/quan-ly" element={<AdminLayout />}>
             <Route path="don-chu-qua" element={<PoiOwnerRegistrationsPage />} />
+            <Route path="danh-sach-vai-tro" element={<RolesPage />} />
+            <Route path="them-vai-tro" element={<RoleFormPage mode="create" />} />
+            <Route
+              path="vai-tro/:roleId/chinh-sua"
+              element={<RoleFormPage mode="edit" />}
+            />
           </Route>
         </Route>
 
