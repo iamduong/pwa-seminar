@@ -2,27 +2,45 @@ import api from "#lib/api";
 import type { ApiResponse } from "#lib/api";
 
 import type {
-    AdminUserPagination,
-    FilterAdminUser,
+  AdminUser,
+  AdminUserPagination,
+  FilterAdminUser,
 } from "../types/AdminUser";
 
-class AdminUserService {
-    async PaginationAdminUser(
-        params: FilterAdminUser,
-        signal?: AbortSignal,
-    ) {
-        const response = await api.get<
-            ApiResponse<AdminUserPagination>
-        >("/admin-users", {
-            params: {
-                ...params,
-                q: params.q?.trim() || undefined,
-            },
-            signal,
-        });
+export interface CreateAdminUserPayload {
+  full_name: string;
+  email: string;
+  phone: string;
+  password: string;
+}
 
-        return response.data;
-    }
+class AdminUserService {
+  async PaginationAdminUser(
+    params: FilterAdminUser,
+    signal?: AbortSignal,
+  ) {
+    const response = await api.get<ApiResponse<AdminUserPagination>>(
+      "/admin-users",
+      {
+        params: {
+          ...params,
+          q: params.q?.trim() || undefined,
+        },
+        signal,
+      },
+    );
+
+    return response.data;
+  }
+
+  async CreateAdminUser(payload: CreateAdminUserPayload) {
+    const response = await api.post<ApiResponse<AdminUser>>(
+      "/admin-users",
+      payload,
+    );
+
+    return response.data;
+  }
 }
 
 export const adminUserService = new AdminUserService();
