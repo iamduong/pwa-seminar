@@ -1,5 +1,6 @@
-import type { PoiOwnerRegistrationStatus } from "./contract/IncludeStatus";
 import type { Pagination } from "./contract/Pagination";
+
+export type PoiOwnerRegistrationStatus = "";
 
 // View
 export type PoiOwnerRegistration = {
@@ -18,7 +19,7 @@ export type PoiOwnerRegistration = {
 export type PoiOwnerRegistrationPagination = Pagination<PoiOwnerRegistration>;
 
 // Register new Poi Owner
-export type OwnerRegistrationPayload = {
+export type RegisterPoiOwnerRegistration = {
     business_name: string;
     business_address: string;
     id_card: string;

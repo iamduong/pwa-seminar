@@ -1,8 +1,8 @@
 import api from "#lib/api";
 import type { ApiResponse } from "#lib/api";
-import type { PoiOwnerRegistrationStatus } from "../types/contract/IncludeStatus";
+import type { PoiOwnerRegistrationStatus } from "../types/contract/GeoPoint";
 import type {
-  OwnerRegistrationPayload,
+  RegisterPoiOwnerRegistration,
   PoiOwnerRegistrationPagination,
 } from "../types/PoiOwnerRegistration";
 
@@ -20,7 +20,7 @@ export interface RegisteredPoiOwner {
 
 class PoiOwnerRegistrationService {
   // Register new Poi Owner
-  async RegisterPoiOwner(payload: OwnerRegistrationPayload) {
+  async RegisterPoiOwner(payload: RegisterPoiOwnerRegistration) {
     const response = await api.post<ApiResponse<RegisteredPoiOwner>>(
       "/poi-owner-registrations/register",
       payload,

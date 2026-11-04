@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#components/ui/select";
-import type { PoiOwnerRegistrationStatus } from "../../../../types/contract/IncludeStatus";
+import type { PoiOwnerRegistrationStatus } from "../../../../types/contract/GeoPoint";
 
 export type StatusFilterValue = PoiOwnerRegistrationStatus | "all";
 
