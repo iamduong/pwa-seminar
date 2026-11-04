@@ -86,12 +86,12 @@ const navigationGroup = [
     child: [
       {
         title: "Danh sách vai trò",
-        href: "/quan-ly/danh-sach-vai-tro",
+        href: "/quan-ly/quyen-han/danh-sach-vai-tro",
         permissions: ["role:read"],
       },
       {
         title: "Thêm vai trò",
-        href: "/quan-ly/them-vai-tro",
+        href: "/quan-ly/quyen-han/them-vai-tro",
         permissions: ["role:create"],
       },
     ],
@@ -110,6 +110,7 @@ const navigationGroup = [
         href: "/quan-ly/chu-quan/gui-yeu-cau-them-poi",
         permissions: ["owner:poi_submit"],
       },
+      // !NOT IMPLEMENT
       {
         title: "Thực đơn của tôi",
         href: "/quan-ly/thuc-don-cua-toi",
@@ -128,7 +129,7 @@ const navigationGroup = [
     child: [
       {
         title: "Danh sách đơn đăng ký",
-        href: "/quan-ly/don-chu-qua",
+        href: "/quan-ly/don-dang-ky-chu-quan/danh-sach-don-dang-ky",
         permissions: ["owner_registration:read"],
       },
       {
@@ -151,6 +152,11 @@ const navigationGroup = [
         title: "Duyệt đơn POI",
         href: "/quan-ly/don-dang-ky-poi/duyet-don-poi",
         permissions: ["poi_submission:review"],
+      },
+      {
+        title: "Xem tiến trình",
+        href: "/quan-ly/don-dang-ky-poi/xem-tien-trinh",
+        permissions: ["poi_submission:monitor"],
       },
     ],
   },

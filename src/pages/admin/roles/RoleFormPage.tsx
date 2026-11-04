@@ -27,13 +27,15 @@ interface RoleFormPageProps {
   mode: "create" | "edit";
 }
 
+const ROLE_LIST_PATH = "/quan-ly/quyen-han/danh-sach-vai-tro";
+
 type FormErrors = {
   name?: string;
   priority?: string;
 };
 
 export default function RoleFormPage({ mode }: RoleFormPageProps) {
-  const { roleId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = mode === "edit";
 
@@ -56,8 +58,8 @@ export default function RoleFormPage({ mode }: RoleFormPageProps) {
       try {
         const [permissionResponse, roleResponse] = await Promise.all([
           roleService.getPermissions(controller.signal),
-          isEdit && roleId
-            ? roleService.getRole(roleId, controller.signal)
+          isEdit && id
+            ? roleService.getRole(id, controller.signal)
             : Promise.resolve(null),
         ]);
 
@@ -90,7 +92,7 @@ export default function RoleFormPage({ mode }: RoleFormPageProps) {
 
     void loadFormData();
     return () => controller.abort();
-  }, [isEdit, roleId]);
+  }, [id, isEdit]);
 
   const permissionGroups = useMemo(
     () => getPermissionGroups(availablePermissions),
@@ -158,15 +160,15 @@ export default function RoleFormPage({ mode }: RoleFormPageProps) {
     };
 
     try {
-      if (isEdit && roleId) {
+      if (isEdit && id) {
         await roleService.updateRole(
-          roleId,
+          id,
           isSystemRole ? { name: payload.name } : payload,
         );
       } else {
         await roleService.createRole(payload);
       }
-      navigate("/quan-ly/danh-sach-vai-tro", { replace: true });
+      navigate(ROLE_LIST_PATH, { replace: true });
     } catch (error: unknown) {
       setRequestError(
         getApiErrorMessage(
@@ -194,7 +196,7 @@ export default function RoleFormPage({ mode }: RoleFormPageProps) {
         <Button
           variant="ghost"
           className="-ml-2 mb-3"
-          render={<Link to="/quan-ly/danh-sach-vai-tro" />}
+          render={<Link to={ROLE_LIST_PATH} />}
         >
           <ArrowLeftIcon aria-hidden="true" />
           Danh sách vai trò
@@ -352,7 +354,7 @@ export default function RoleFormPage({ mode }: RoleFormPageProps) {
         </section>
 
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" render={<Link to="/quan-ly/danh-sach-vai-tro" />}>
+          <Button variant="outline" render={<Link to={ROLE_LIST_PATH} />}>
             Hủy
           </Button>
           <Button

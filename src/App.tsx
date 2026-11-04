@@ -41,16 +41,33 @@ export default function App() {
           </Route>
 
           <Route path="/quan-ly" element={<AdminLayout />}>
-            <Route path="don-chu-qua" element={<PoiOwnerRegistrationsPage />} />
-            <Route path="danh-sach-vai-tro" element={<RolesPage />} />
-            <Route path="them-vai-tro" element={<RoleFormPage mode="create" />} />
-            <Route
-              path="vai-tro/:roleId/chinh-sua"
-              element={<RoleFormPage mode="edit" />}
-            />
-            {/* Review poi submission */}
+            {/* Poi owner registration features */}
+            <Route path="don-dang-ky-chu-quan">
+              <Route
+                path="danh-sach-don-dang-ky"
+                element={<PoiOwnerRegistrationsPage />}
+              />
+            </Route>
+
+            {/* Role features */}
+            <Route path="quyen-han">
+              <Route path="danh-sach-vai-tro" element={<RolesPage />} />
+              <Route
+                path="danh-sach-vai-tro/:id"
+                element={<RoleFormPage mode="edit" />}
+              />
+              <Route
+                path="them-vai-tro"
+                element={<RoleFormPage mode="create" />}
+              />
+            </Route>
+
+            {/* Review poi submission features */}
             <Route path="don-dang-ky-poi">
-              <Route path="danh-sach-don-poi" element={<PoiSubmissionListPage />} />
+              <Route
+                path="danh-sach-don-poi"
+                element={<PoiSubmissionListPage />}
+              />
               <Route path="xem-tien-trinh" element={<PoiTaskMonitorPage />} />
               <Route path="duyet-don-poi">
                 <Route
@@ -68,13 +85,19 @@ export default function App() {
 
             {/* poi owner registration features */}
             <Route path="don-dang-ky-chu-quan">
-              <Route path="danh-sach-don-dang-ky" element={<PoiOwnerRegistrationsPage />} />
+              <Route
+                path="danh-sach-don-dang-ky"
+                element={<PoiOwnerRegistrationsPage />}
+              />
             </Route>
 
             {/* poi owner features */}
             <Route path="chu-quan">
-              <Route path="poi-cua-toi" element={<PoiSubmissionPage />}/>
-              <Route path="gui-yeu-cau-them-poi" element={<PoiSubmissionRegisterPage />}/>
+              <Route path="poi-cua-toi" element={<PoiSubmissionPage />} />
+              <Route
+                path="gui-yeu-cau-them-poi"
+                element={<PoiSubmissionRegisterPage />}
+              />
             </Route>
           </Route>
         </Route>

@@ -158,7 +158,7 @@ export default function RolesPage() {
             <RefreshCwIcon className={loading ? "animate-spin" : undefined} aria-hidden="true" />
             Làm mới
           </Button>
-          <Button render={<Link to="/quan-ly/them-vai-tro" />}>
+          <Button render={<Link to="/quan-ly/quyen-han/them-vai-tro" />}>
             <PlusIcon aria-hidden="true" />
             Thêm vai trò
           </Button>
