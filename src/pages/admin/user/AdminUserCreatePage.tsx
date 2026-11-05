@@ -136,7 +136,7 @@ export default function AdminUserCreatePage() {
           </p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button onClick={() => navigate("/quan-ly/danh-sach-nguoi-dung")}>
+            <Button onClick={() => navigate("/quan-ly/nguoi-dung/danh-sach-nguoi-dung")}>
               Xem danh sách người dùng
             </Button>
 
@@ -160,7 +160,7 @@ export default function AdminUserCreatePage() {
           variant="ghost"
           size="sm"
           className="-ml-2 w-fit"
-          render={<Link to="/quan-ly/danh-sach-nguoi-dung" />}
+          render={<Link to="/quan-ly/nguoi-dung/danh-sach-nguoi-dung" />}
         >
           <ArrowLeftIcon aria-hidden="true" />
           Quay lại danh sách
@@ -310,7 +310,7 @@ export default function AdminUserCreatePage() {
                 type="button"
                 variant="outline"
                 disabled={isSubmitting}
-                render={<Link to="/quan-ly/danh-sach-nguoi-dung" />}
+                render={<Link to="/quan-ly/nguoi-dung/danh-sach-nguoi-dung" />}
               >
                 Hủy
               </Button>

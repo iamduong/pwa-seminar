@@ -1,27 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import type { ProfileSession, Role } from "../types/Authorize";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { LOCALSTORAGE_SESSION_KEY } from "../assets/config";
+import type { ProfileSession } from "../types/Authorize";
 import { authorizeService } from "../services/AuthorizeService";
 import { AxiosError } from "axios";
-
-export type AuthorizeStatus = "checking" | "authenticated" | "unauthenticated" | "error";
-
-export type OwnerRegistrationFormated = {
-  bussiness_name: string;
-  bussiness_address: string;
-  admin_note: string | null;
-  status: "pending" | "approved" | "rejected";
-}
-
-export type ProfileSessionFormated = {
-  userId: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  isActive: boolean;
-  isPoiOwnerVerified: boolean;
-  poiOwner: OwnerRegistrationFormated | null;
-  role: Role | null;
-}
+import {
+  AuthorizeContext,
+  type AuthorizeStatus,
+  type ProfileSessionFormated,
+} from "./contexts/authorize-context";
 
 const toFormated = (session: ProfileSession): ProfileSessionFormated => {
   return {
@@ -41,26 +27,14 @@ const toFormated = (session: ProfileSession): ProfileSessionFormated => {
   };
 }
 
-// Start of the AuthorizeProvider component
-
-export type AuthorizeContextValue = {
-  status: AuthorizeStatus;
-  session: ProfileSessionFormated | null;
-  refreshProfile: () => Promise<boolean>;
-  clearSession: () => void;
-}
-
-const AuthorizeContext = createContext<AuthorizeContextValue | null>(null);
-
-const AuthorizeProvider = ({ children }: { children: React.ReactNode }) => {
-  const initialize = useRef<boolean>(false);
+export const AuthorizeProvider = ({ children }: { children: React.ReactNode }) => {
   const [status, setStatus] = useState<AuthorizeStatus>(() =>
-    localStorage.getItem("PWA_SESSION") ? "checking" : "unauthenticated"
+    localStorage.getItem(LOCALSTORAGE_SESSION_KEY) ? "checking" : "unauthenticated"
   );
   const [session, setSession] = useState<ProfileSessionFormated | null>(null);
 
   const clearSession = useCallback(() => {
-    localStorage.removeItem("PWA_SESSION");
+    localStorage.removeItem(LOCALSTORAGE_SESSION_KEY);
     setSession(null);
     setStatus("unauthenticated");
   }, []);
@@ -72,12 +46,12 @@ const AuthorizeProvider = ({ children }: { children: React.ReactNode }) => {
       if (!profileData) {
         throw new Error("Profile session is null");
       }
-      localStorage.setItem("PWA_SESSION", JSON.stringify(profileData));
+      localStorage.setItem(LOCALSTORAGE_SESSION_KEY, JSON.stringify(profileData));
       setSession(toFormated(profileData));
       setStatus("authenticated");
       return true;
     } catch (error: unknown) {
-      localStorage.removeItem("PWA_SESSION");
+      localStorage.removeItem(LOCALSTORAGE_SESSION_KEY);
       if (error instanceof AxiosError && error.response?.status === 401) {
         setSession(null);
         setStatus("unauthenticated");
@@ -89,14 +63,14 @@ const AuthorizeProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (!initialize.current) {
-      initialize.current = true;
+    const stored = localStorage.getItem(LOCALSTORAGE_SESSION_KEY);
+    if (!stored) return;
 
-      const stored = localStorage.getItem("PWA_SESSION");
-      if (!stored) return;
-
+    const timeoutId = window.setTimeout(() => {
       void refreshProfile();
-    }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [refreshProfile]);
 
   const value = useMemo(
@@ -115,13 +89,3 @@ const AuthorizeProvider = ({ children }: { children: React.ReactNode }) => {
     </AuthorizeContext.Provider>
   );
 }
-
-const useAuthorize = () => {
-  const context = useContext(AuthorizeContext);
-  if (!context) {
-    throw new Error("useAuthorize must be used within an AuthorizeProvider");
-  }
-  return context;
-}
-
-export { AuthorizeProvider, useAuthorize };

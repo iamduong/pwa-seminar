@@ -104,7 +104,7 @@ const HybridMap = ({
   selectedLocationZoom = 17,
 
   showGeolocation = true,
-
+  
   onLocationSelect,
 }: HybridMapProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -167,6 +167,7 @@ const HybridMap = ({
 
     setMode(nextMode);
 
+    // online/offline listener
     const handleOffline = () => {
       ensurePmtilesProtocol();
       map.setStyle(createOfflineStyle());

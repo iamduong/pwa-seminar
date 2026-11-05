@@ -28,7 +28,7 @@ export function AuthLayout({ children, description, title, wide }: AuthLayoutPro
     <main className="min-h-screen bg-muted/40 lg:grid lg:grid-cols-[minmax(320px,0.8fr)_minmax(560px,1.2fr)]">
       <aside className="hidden border-r bg-foreground p-10 text-background lg:flex lg:flex-col lg:justify-between xl:p-14">
         <div>
-          <a className="inline-flex items-center gap-3" href="/login">
+          <a className="inline-flex items-center gap-3" href="/quan-ly/dang-nhap">
             <span className="flex size-9 items-center justify-center rounded-lg bg-background text-foreground">
               <MapPinnedIcon className="size-5" aria-hidden="true" />
             </span>
@@ -58,7 +58,7 @@ export function AuthLayout({ children, description, title, wide }: AuthLayoutPro
 
       <section className="flex min-h-screen items-start justify-center px-4 py-8 sm:px-8 lg:items-center lg:px-12 lg:py-12">
         <div className={wide ? "w-full max-w-2xl" : "w-full max-w-md"}>
-          <a className="mb-10 inline-flex items-center gap-2 lg:hidden" href="/login">
+          <a className="mb-10 inline-flex items-center gap-2 lg:hidden" href="/quan-ly/dang-nhap">
             <span className="flex size-8 items-center justify-center rounded-lg bg-foreground text-background">
               <MapPinnedIcon className="size-4" aria-hidden="true" />
             </span>

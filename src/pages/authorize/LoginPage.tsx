@@ -14,7 +14,7 @@ import {
 import { Input } from "#components/ui/input";
 import { authorizeService } from "../../services/AuthorizeService";
 import { useQuery } from "#hooks/use-query";
-import { useAuthorize } from "../../providers/AuthorizeProvider";
+import { useAuthorize } from "../../hooks/use-authorize";
 
 interface LoginErrors {
   identifier?: string;
@@ -33,12 +33,15 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const requestedPath = (location.state as { from?: unknown } | null)?.from;
+  const defaultDestination = location.pathname.startsWith("/quan-ly/")
+    ? "/quan-ly"
+    : "/";
   const destination =
     typeof requestedPath === "string" &&
     requestedPath.startsWith("/") &&
     !requestedPath.startsWith("//")
       ? requestedPath
-      : "/";
+      : defaultDestination;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -169,7 +172,7 @@ export function LoginPage() {
         Chưa có tài khoản?{" "}
         <Link
           className="font-medium text-foreground underline-offset-4 hover:underline"
-          to="/dang-ky"
+          to="/quan-ly/dang-ky"
         >
           Đăng ký
         </Link>

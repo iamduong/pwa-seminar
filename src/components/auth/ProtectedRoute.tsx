@@ -2,7 +2,7 @@ import { Loader2Icon } from "lucide-react"
 import { Navigate, Outlet, useLocation } from "react-router"
 
 import { Button } from "#components/ui/button"
-import { useAuthorize } from "../../providers/AuthorizeProvider"
+import { useAuthorize } from "../../hooks/use-authorize"
 
 export function ProtectedRoute() {
   const location = useLocation()
@@ -37,7 +37,7 @@ export function ProtectedRoute() {
 
   if (status === "unauthenticated") {
     const from = `${location.pathname}${location.search}${location.hash}`
-    return <Navigate to="/dang-nhap" replace state={{ from }} />
+    return <Navigate to="/quan-ly/dang-nhap" replace state={{ from }} />
   }
 
   return <Outlet />

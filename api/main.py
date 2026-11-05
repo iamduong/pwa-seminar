@@ -10,6 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from service.content_dataset_version_service import ContentDatasetVersionService
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from util.audio import AUDIO_DIRECTORY
 from util.worker import process_worker
@@ -21,6 +22,8 @@ async def lifespan(app: FastAPI):
     await connect_redis()
 
     database = get_mongo()
+    # Init content_dataset_version if not exists
+    await ContentDatasetVersionService(database).initialize()
 
     stop_event = asyncio.Event()
     worker_task = asyncio.create_task(process_worker(database, stop_event))

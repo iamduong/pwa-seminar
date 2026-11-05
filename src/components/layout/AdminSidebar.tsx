@@ -27,8 +27,8 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "#components/ui/sidebar";
-import { useAuthorize } from "../../../providers/AuthorizeProvider";
-import { authorizeService } from "../../../services/AuthorizeService";
+import { useAuthorize } from "../../hooks/use-authorize";
+import { authorizeService } from "../../services/AuthorizeService";
 
 const navigationGroup = [
   {
@@ -37,12 +37,12 @@ const navigationGroup = [
     child: [
       {
         title: "Danh sách POI",
-        href: "/quan-ly/dia-diem-poi",
+        href: "/quan-ly/dia-diem-poi/danh-sach-poi",
         permissions: ["poi:read"],
       },
       {
         title: "Thêm POI",
-        href: "/quan-ly/dia-diem-poi/them",
+        href: "/quan-ly/dia-diem-poi/them-poi",
         permissions: ["poi:create"],
       },
     ],
@@ -70,12 +70,12 @@ const navigationGroup = [
     child: [
       {
         title: "Danh sách người dùng",
-        href: "/quan-ly/danh-sach-nguoi-dung",
+        href: "/quan-ly/nguoi-dung/danh-sach-nguoi-dung",
         permissions: ["user:read"],
       },
       {
         title: "Thêm người dùng",
-        href: "/quan-ly/them-nguoi-dung",
+        href: "/quan-ly/nguoi-dung/them-nguoi-dung",
         permissions: ["user:create"],
       },
     ],
@@ -102,28 +102,28 @@ const navigationGroup = [
     child: [
       {
         title: "POI của tôi",
-        href: "/quan-ly/chu-quan/poi-cua-toi",
+        href: "/quan-ly/chuc-nang-chu-quan/poi-cua-toi",
         permissions: ["owner:poi_read"],
       },
       {
         title: "Gửi yêu cầu thêm POI",
-        href: "/quan-ly/chu-quan/gui-yeu-cau-them-poi",
+        href: "/quan-ly/chuc-nang-chu-quan/gui-yeu-cau-them-poi",
         permissions: ["owner:poi_submit"],
       },
       {
         title: "Đơn đăng ký POI",
-        href: "/quan-ly/chu-quan/don-dang-ky-poi",
+        href: "/quan-ly/chuc-nang-chu-quan/don-dang-ky-poi",
         permissions: ["owner:poi_read"],
       },
       // !NOT IMPLEMENT
       {
         title: "Thực đơn của tôi",
-        href: "/quan-ly/thuc-don-cua-toi",
+        href: "/quan-ly/chuc-nang-chu-quan/thuc-don-cua-toi",
         permissions: ["owner:menu_read"],
       },
       {
         title: "Gửi yêu cầu thực đơn",
-        href: "/quan-ly/gui-yeu-cau-thuc-don",
+        href: "/quan-ly/chuc-nang-chu-quan/gui-yeu-cau-thuc-don",
         permissions: ["owner:menu_submit"],
       },
     ],
@@ -137,11 +137,6 @@ const navigationGroup = [
         href: "/quan-ly/don-dang-ky-chu-quan/danh-sach-don-dang-ky",
         permissions: ["owner_registration:read"],
       },
-      // {
-      //   title: "Duyệt đơn đăng ký",
-      //   href: "/quan-ly/don-chu-qua/duyet",
-      //   permissions: ["owner_registration:review"],
-      // },
     ],
   },
   {
@@ -209,7 +204,7 @@ export function AdminSidebar() {
       await authorizeService.Logout();
     } finally {
       clearSession();
-      navigate("/dang-nhap", { replace: true });
+      navigate("/quan-ly/dang-nhap", { replace: true });
     }
   }
 
