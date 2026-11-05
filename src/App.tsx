@@ -36,6 +36,16 @@ import MenuListPage from "./pages/admin/menu/MenuListPage";
 import MenuCreatePage from "./pages/admin/menu/MenuCreatePage";
 import MenuItemsPage from "./pages/admin/menu/MenuItemsPage";
 import MenuItemRequestPage from "./pages/admin/menu/MenuItemRequestPage";
+import { MobileClientAccessGate } from "./components/layout/client/mobile/MobileClientAccessGate";
+import { LanguageProvider } from "./providers/LanguageProvider";
+
+const ClientProviders = () => {
+  return (
+    <LanguageProvider>
+      <MobileClientAccessGate />
+    </LanguageProvider>
+  );
+};
 
 export default function App() {
   return (
@@ -45,45 +55,49 @@ export default function App() {
         <Route path="/quan-ly/dang-nhap" element={<LoginPage />} />
         <Route path="/quan-ly/dang-ky" element={<RegisterPage />} />
 
-        <Route element={<ClientLayout />}>
-          <Route
-            path="/"
-            element={
-              <ResponsiveClientPage
-                mobile={MobilePlacesPage}
-                desktop={DesktopPlacesPage}
-              />
-            }
-          />
-          <Route
-            path="/mon-an"
-            element={
-              <ResponsiveClientPage
-                mobile={MobileFoodPage}
-                desktop={DesktopFoodPage}
-              />
-            }
-          />
-          <Route
-            path="/gan-toi"
-            element={
-              <ResponsiveClientPage
-                mobile={MobileNearbyPage}
-                desktop={DesktopNearbyPage}
-              />
-            }
-          />
-          <Route
-            path="/quet-qr"
-            element={
-              <ResponsiveClientPage
-                mobile={MobileQrScannerPage}
-                desktop={DesktopQrScannerPage}
-              />
-            }
-          />
+        {/* Client page and features */}
+        <Route element={<ClientProviders />}>
+          <Route element={<ClientLayout />}>
+            <Route
+              path="/"
+              element={
+                <ResponsiveClientPage
+                  mobile={MobilePlacesPage}
+                  desktop={DesktopPlacesPage}
+                />
+              }
+            />
+            <Route
+              path="/mon-an"
+              element={
+                <ResponsiveClientPage
+                  mobile={MobileFoodPage}
+                  desktop={DesktopFoodPage}
+                />
+              }
+            />
+            <Route
+              path="/gan-toi"
+              element={
+                <ResponsiveClientPage
+                  mobile={MobileNearbyPage}
+                  desktop={DesktopNearbyPage}
+                />
+              }
+            />
+            <Route
+              path="/quet-qr"
+              element={
+                <ResponsiveClientPage
+                  mobile={MobileQrScannerPage}
+                  desktop={DesktopQrScannerPage}
+                />
+              }
+            />
+          </Route>
         </Route>
 
+        {/* Admin page and features */}
         <Route element={<ProtectedRoute />}>
           <Route path="/quan-ly" element={<AdminLayout />}>
             {/* POI features */}
@@ -155,17 +169,11 @@ export default function App() {
                 element={<MenuItemRequestPage />}
               />
             </Route>
-            
+
             {/* admin user features */}
             <Route path="nguoi-dung">
-              <Route
-                path="danh-sach-nguoi-dung"
-                element={<AdminUsersPage />}
-              />
-              <Route
-                path="them-nguoi-dung"
-                element={<AdminUserCreatePage />}
-              />
+              <Route path="danh-sach-nguoi-dung" element={<AdminUsersPage />} />
+              <Route path="them-nguoi-dung" element={<AdminUserCreatePage />} />
             </Route>
           </Route>
         </Route>

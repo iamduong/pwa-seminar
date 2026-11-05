@@ -1,10 +1,12 @@
 import re
+from datetime import datetime
 
 from bson import ObjectId
 from core.dependency import MongoDB
 from core.pagination import Pagination
 from model.poi_model import PoiModel
 from repository.poi_repository import PoiRepository
+from schema.poi_dataset_schema import PoiDatasetItem
 from schema.poi_schema import FilterOwnerPoi, ViewOwnerPoi
 
 
@@ -30,6 +32,39 @@ class PoiService:
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
+
+    async def find_public_pois_changed_between(
+        self,
+        lang: str,
+        updated_after: datetime,
+        updated_before: datetime,
+    ) -> list[PoiDatasetItem]:
+        documents = await self.poi_repository.find_public_changed_between(
+            lang=lang,
+            updated_after=updated_after,
+            updated_before=updated_before,
+        )
+
+        return [
+            PoiDatasetItem(
+                id=str(document["_id"]),
+                category_id=str(document["category_id"]),
+                category_name=document["category_name"],
+                name=document["name"],
+                description=document["description"],
+                address=document["address"],
+                location=document["location"],
+                images=document["images"],
+                trigger_radius=document["trigger_radius"],
+                audio_priority=document["audio_priority"],
+                audio_status=document["audio_status"],
+                audio_url=document.get("audio_url"),
+                lang=document["lang"],
+                created_at=document["created_at"],
+                updated_at=document["updated_at"],
+            )
+            for document in documents
+        ]
 
     async def filter_owner_pois(
         self, filters: FilterOwnerPoi, owner_id: str

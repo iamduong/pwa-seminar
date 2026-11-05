@@ -27,7 +27,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "#components/ui/sidebar";
-import { useAuthorize } from "../../providers/AuthorizeProvider";
+import { useAuthorize } from "../../hooks/use-authorize";
 import { authorizeService } from "../../services/AuthorizeService";
 
 const navigationGroup = [

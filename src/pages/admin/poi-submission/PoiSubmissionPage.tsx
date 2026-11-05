@@ -26,7 +26,7 @@ import {
   TableRow,
 } from "#components/ui/table";
 import { getApiErrorMessage } from "#lib/api";
-import { useAuthorize } from "../../../providers/AuthorizeProvider";
+import { useAuthorize } from "../../../hooks/use-authorize";
 import { poiService } from "../../../services/PoiService";
 import type { Poi, PoiAudioStatus, PoiPagination } from "../../../types/Poi";
 

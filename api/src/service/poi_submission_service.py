@@ -1,5 +1,6 @@
 import re
 from datetime import UTC, datetime
+from resource.config import MY_MEMORY_LANGUAGES
 
 from bson import ObjectId
 from core.dependency import MongoDB
@@ -19,7 +20,7 @@ from schema.poi_submission_shema import (
     ReviewPoiSubmission,
     ViewPoiSubmission,
 )
-from resource.config import MY_MEMORY_LANGUAGES
+from service.content_dataset_version_service import ContentDatasetVersionService
 
 
 class PoiSubmissionService:
@@ -29,6 +30,7 @@ class PoiSubmissionService:
         self.poi_category_repository = PoiCategoryRepository(db)
         self.poi_repository = PoiRepository(db)
         self.poi_task_repository = PoiTaskRepository(db)
+        self.content_dataset_version_service = ContentDatasetVersionService(db)
 
     def _to_view(self, model: PoiSubmissionModel) -> ViewPoiSubmission:
         return ViewPoiSubmission(
@@ -164,6 +166,7 @@ class PoiSubmissionService:
                 audio_priority=body.audio_priority,
             )
             result = await self.poi_repository.insert_item(poi.to_dump())
+            await self.content_dataset_version_service.rotate_poi_etag()
             submission.poi_id = result.inserted_id
 
             processes = [

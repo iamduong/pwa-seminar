@@ -1,16 +1,13 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 
-import App from './App'
-import { AuthorizeProvider } from './providers/AuthorizeProvider'
-import { LanguageProvider } from './providers/LanguageProvider'
+import App from "./App";
+import { AuthorizeProvider } from "./providers/AuthorizeProvider";
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <LanguageProvider>
-      <AuthorizeProvider>
-        <App />
-      </AuthorizeProvider>
-    </LanguageProvider>
+    <AuthorizeProvider>
+      <App />
+    </AuthorizeProvider>
   </StrictMode>,
-)
+);

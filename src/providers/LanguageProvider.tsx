@@ -1,39 +1,53 @@
-import { useCallback, useMemo, useState, type ReactNode } from "react"
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 
+import { LOCALSTORAGE_LANGUAGE_KEY } from "../assets/config";
 import {
-  LANGUAGE_STORAGE_KEY,
   LanguageContext,
   isLanguageCode,
+  supportedLanguages,
   type LanguageCode,
-} from "./language-context"
+} from "./contexts/language-context";
 
 function getInitialLanguage(): LanguageCode {
-  const savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY)
-  if (isLanguageCode(savedLanguage)) return savedLanguage
+  const savedLanguage = localStorage.getItem(LOCALSTORAGE_LANGUAGE_KEY);
+  if (isLanguageCode(savedLanguage)) return savedLanguage;
 
   const browserLanguage = navigator.languages
-    .map((language) => language.split("-")[0])
-    .find(isLanguageCode)
+    .map((language) => {
+      const normalizedLanguage = language.toLowerCase();
+      const baseLanguage = normalizedLanguage.split("-")[0];
 
-  return browserLanguage ?? "vi"
+      return supportedLanguages.find((item) => {
+        const supportedLanguage = item.code.toLowerCase();
+        return (
+          supportedLanguage === normalizedLanguage ||
+          supportedLanguage.startsWith(`${baseLanguage}-`)
+        );
+      })?.code;
+    })
+    .find((language): language is LanguageCode => language !== undefined);
+
+  return browserLanguage ?? "vi-VN";
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<LanguageCode>(getInitialLanguage)
+  const [language, setLanguageState] = useState<LanguageCode>(getInitialLanguage);
+  const [hasSelectedLanguage, setHasSelectedLanguage] = useState(() => isLanguageCode(localStorage.getItem(LOCALSTORAGE_LANGUAGE_KEY)));
 
   const setLanguage = useCallback((nextLanguage: LanguageCode) => {
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage)
-    setLanguageState(nextLanguage)
-  }, [])
+    localStorage.setItem(LOCALSTORAGE_LANGUAGE_KEY, nextLanguage);
+    setLanguageState(nextLanguage);
+    setHasSelectedLanguage(true);
+  }, []);
 
   const value = useMemo(
-    () => ({ language, setLanguage }),
-    [language, setLanguage],
-  )
+    () => ({ language, hasSelectedLanguage, setLanguage }),
+    [language, hasSelectedLanguage, setLanguage],
+  );
 
   return (
     <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
-  )
+  );
 }

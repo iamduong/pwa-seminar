@@ -20,7 +20,7 @@ import {
   SheetTrigger,
 } from "#components/ui/sheet"
 import { useLanguage } from "#hooks/use-language"
-import { supportedLanguages } from "../../../../providers/language-context"
+import { supportedLanguages } from "../../../../providers/contexts/language-context"
 
 export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
   const { language, setLanguage } = useLanguage()

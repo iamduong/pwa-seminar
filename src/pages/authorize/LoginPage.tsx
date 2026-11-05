@@ -14,7 +14,7 @@ import {
 import { Input } from "#components/ui/input";
 import { authorizeService } from "../../services/AuthorizeService";
 import { useQuery } from "#hooks/use-query";
-import { useAuthorize } from "../../providers/AuthorizeProvider";
+import { useAuthorize } from "../../hooks/use-authorize";
 
 interface LoginErrors {
   identifier?: string;

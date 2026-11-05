@@ -2,7 +2,7 @@ import { Loader2Icon } from "lucide-react"
 import { Navigate, Outlet, useLocation } from "react-router"
 
 import { Button } from "#components/ui/button"
-import { useAuthorize } from "../../providers/AuthorizeProvider"
+import { useAuthorize } from "../../hooks/use-authorize"
 
 export function ProtectedRoute() {
   const location = useLocation()
