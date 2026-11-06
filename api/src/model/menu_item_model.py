@@ -8,5 +8,6 @@ class MenuItemModel(Base):
     description: str | None = None
     price: float | None = None
     image_url: str | None = None
+    is_active: bool = False
     # Is menu is available for selling
     is_available: bool = True
