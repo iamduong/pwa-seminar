@@ -38,6 +38,7 @@ import MenuItemsPage from "./pages/admin/menu/MenuItemsPage";
 import MenuItemRequestPage from "./pages/admin/menu/MenuItemRequestPage";
 import { MobileClientAccessGate } from "./components/layout/client/mobile/MobileClientAccessGate";
 import { LanguageProvider } from "./providers/LanguageProvider";
+import MenuReviewPage from "./pages/admin/menu/MenuReviewPage";
 
 const ClientProviders = () => {
   return (
@@ -104,11 +105,14 @@ export default function App() {
             <Route path="dia-diem-poi">
               <Route path="danh-sach-poi" element={<PoiListPage />} />
               <Route path="them-poi" element={<PoiCreatePage />} />
+              <Route path=":poiId/mon-an" element={<MenuListPage />} />
+              <Route path=":poiId/mon-an/them" element={<MenuCreatePage />} />
+              <Route path=":poiId/mon-an/yeu-cau" element={<MenuReviewPage />} />
             </Route>
 
             {/* Culinary features */}
-            <Route path="danh-sach-thuc-don" element={<MenuListPage />} />
-            <Route path="them-thuc-don" element={<MenuCreatePage />} />
+            <Route path="danh-sach-thuc-don" element={<Navigate to="/quan-ly/dia-diem-poi/danh-sach-poi" replace />} />
+            <Route path="them-thuc-don" element={<Navigate to="/quan-ly/dia-diem-poi/danh-sach-poi" replace />} />
 
             {/* Poi owner registration features */}
             <Route path="don-dang-ky-chu-quan">

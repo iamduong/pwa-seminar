@@ -6,6 +6,12 @@ from core.pagination import Pagination
 from fastapi import APIRouter, Depends, Query
 from schema.poi_schema import FilterOwnerPoi, ViewOwnerPoi
 from service.poi_service import PoiService
+from schema.menu_item_schema import (
+    MenuItemCreate,
+    MenuItemFilter,
+    MenuItemView,
+)
+from service.menu_item_service import MenuItemService
 
 
 router = APIRouter(prefix="/pois", tags=["POI Controller"])
@@ -20,3 +26,73 @@ async def filter_my_pois(
     result = await poi_service.filter_owner_pois(params, principal.sub)
 
     return ApiResponse(success=True, message="Lấy POI của bạn thành công", data=result)
+
+
+@router.get("/{poi_id}/menu-items")
+async def list_poi_menu_items(
+    poi_id: str,
+    params: Annotated[MenuItemFilter, Query()],
+    principal: Annotated[
+        AccessTokenPayload,
+        Depends(require_permission("menu:read")),
+    ],
+    service: Annotated[MenuItemService, Depends()],
+) -> ApiResponse[Pagination[MenuItemView]]:
+    result = await service.list_by_poi(poi_id, params)
+
+    return ApiResponse(
+        success=True,
+        message="Lấy danh sách món ăn thành công",
+        data=result,
+    )
+
+
+@router.post("/{poi_id}/menu-items", status_code=201)
+async def create_poi_menu_item(
+    poi_id: str,
+    body: MenuItemCreate,
+    principal: Annotated[
+        AccessTokenPayload,
+        Depends(require_permission("menu:create")),
+    ],
+    service: Annotated[MenuItemService, Depends()],
+) -> ApiResponse[MenuItemView]:
+    result = await service.create_direct(poi_id, body)
+
+    return ApiResponse(
+        success=True,
+        message="Thêm món ăn thành công",
+        data=result,
+    )
+
+
+@router.get("")
+async def list_admin_pois(
+    params: Annotated[MenuItemFilter, Query()],
+    principal: Annotated[
+        AccessTokenPayload,
+        Depends(require_permission("poi:read")),
+    ],
+    service: Annotated[MenuItemService, Depends()],
+) -> ApiResponse[Pagination[dict[str, str]]]:
+    return ApiResponse(
+        success=True,
+        message="Lấy danh sách POI thành công",
+        data=await service.list_admin_pois(params),
+    )
+
+
+@router.get("/{poi_id}/summary")
+async def get_poi_summary(
+    poi_id: str,
+    principal: Annotated[
+        AccessTokenPayload,
+        Depends(require_permission("menu:read")),
+    ],
+    service: Annotated[MenuItemService, Depends()],
+) -> ApiResponse[dict[str, str]]:
+    return ApiResponse(
+        success=True,
+        message="Lấy thông tin POI thành công",
+        data=await service.get_poi_summary(poi_id),
+    )

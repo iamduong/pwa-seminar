@@ -24,7 +24,7 @@ async def filter_poi_category(
     return ApiResponse(success=True, message="Lấy danh mục POI thành công", data=result)
 
 
-@router.get("/poi/load-all")
+@router.get("/poi/load-all", response_model=ApiResponse[PoiDataset])
 async def bundle_poi(
     # Params
     lang: str,

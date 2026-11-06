@@ -8,5 +8,9 @@ class MenuItemModel(Base):
     description: str | None = None
     price: float | None = None
     image_url: str | None = None
-    # Is menu is available for selling
+
+    # Admin đã duyệt để hiển thị.
+    is_active: bool = False
+
+    # Món đang được bán.
     is_available: bool = True
