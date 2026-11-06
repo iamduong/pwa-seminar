@@ -3,7 +3,12 @@ from model.role_model import RoleModel
 from pymongo.asynchronous.database import AsyncDatabase
 
 super_admin_domain = PERMISSIONS
-admin_domain = []
+admin_domain = [
+    "poi:read",
+    "menu:read",
+    "menu:create",
+    "menu:review",
+]
 poi_owner_domain = [
     "owner:poi_read",
     "owner:poi_submit",

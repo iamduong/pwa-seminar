@@ -41,7 +41,7 @@ async def validate_session(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Phiên đăng nhập đã hết hạn",
         )
-    except jwt.InvalidTokenError, ValueError:
+    except (jwt.InvalidTokenError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Phiên đăng nhập không chính xác",

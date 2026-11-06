@@ -8,10 +8,11 @@ import { menuItemService } from "../../../services/MenuItemService";
 import type { MenuItemSubmission } from "../../../types/MenuItem";
 
 const statusLabels = {
+  processing: "Đang xử lý",
   pending: "Chờ duyệt",
   approved: "Đã duyệt",
   rejected: "Từ chối",
-} as const;
+} as const satisfies Record<MenuItemSubmission["status"], string>;
 
 export default function MenuItemsPage() {
   const [items, setItems] = useState<MenuItemSubmission[]>([]);
