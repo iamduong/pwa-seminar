@@ -180,10 +180,15 @@ export default function PoiSubmissionPage() {
         </div>
         <HybridMap
           className="h-120"
-          selectedLocation={selectedPoi?.coordinates ?? null}
-          selectedRadius={selectedPoi?.radius ?? null}
-          focusSelectedLocation
-          showGeolocation={false}
+          selectedLocation={
+            selectedPoi
+              ? {
+                  location: selectedPoi.coordinates,
+                  radius: selectedPoi.radius,
+                  isFocus: true,
+                }
+              : undefined
+          }
         />
       </div>
 

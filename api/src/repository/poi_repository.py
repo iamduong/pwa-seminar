@@ -16,20 +16,19 @@ class PoiRepository:
     async def find_public_changed_between(
         self,
         lang: str,
-        updated_after: datetime,
-        updated_before: datetime,
+        updated_after: datetime | None,
     ) -> list[dict]:
+        match_conditions = {
+            "is_active": True,
+            "deleted_at": None,
+        }
+        if updated_after is not None:
+            match_conditions["updated_at"] = {"$gt": updated_after}
+
         cursor = await self.collection.aggregate(
             [
                 {
-                    "$match": {
-                        "is_active": True,
-                        "deleted_at": None,
-                        "updated_at": {
-                            "$gt": updated_after,
-                            "$lte": updated_before,
-                        },
-                    }
+                    "$match": match_conditions,
                 },
                 {
                     "$lookup": {

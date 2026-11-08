@@ -24,5 +24,5 @@ class PoiDatasetItem(BaseModel):
 
 class PoiDataset(BaseModel):
     etag: str
-    updated_after: datetime
+    updated_after: datetime | None
     pois: list[PoiDatasetItem]

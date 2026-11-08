@@ -332,9 +332,8 @@ const PoiSubmissionRegisterPage = () => {
         <div className="xl:sticky xl:top-6 xl:self-start">
           <HybridMap
             className="h-210"
-            selectedLocation={location}
-            selectedRadius={radius}
-            onLocationSelect={handleLocationSelect}
+            selectedLocation={{ location: location ?? undefined, radius }}
+            onClickMap={handleLocationSelect}
           />
         </div>
       </form>

@@ -1,4 +1,4 @@
 export type GeoPoint = {
     type: string;
-    coordinates: number[];
+    coordinates: [number, number];
 }

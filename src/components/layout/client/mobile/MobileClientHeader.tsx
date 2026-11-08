@@ -4,8 +4,7 @@ import { useLocation } from "react-router"
 const mobilePageTitles: Record<string, string> = {
   "/": "Địa điểm",
   "/mon-an": "Món ăn",
-  "/gan-toi": "Gần tôi",
-  "/quet-qr": "Quét QR",
+  "/dia-diem": "Khám phá địa điểm",
 }
 
 export const MobileClientHeader = () => {
