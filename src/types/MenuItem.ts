@@ -23,3 +23,17 @@ export type MenuItemPayload = {
   price?: number;
   image_url?: string;
 };
+
+export type MenuItemCreatePayload = {
+  name: string;
+  description: string | null;
+  price: number | null;
+  image_url: string | null;
+  is_available: boolean;
+};
+
+export type AdminPoi = {
+  id: string;
+  name: string;
+  address: string;
+};

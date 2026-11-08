@@ -56,11 +56,10 @@ class PoiTaskService:
         total_item = await self.poi_task_repository.count_filter(condition)
 
         tasks = await self.poi_task_repository.find_pagination(
-            condition, 
-            filters.page, 
+            condition,
+            filters.page,
             filters.page_size
         )
-
         total_page = (
             total_item + filters.page_size - 1
         ) // filters.page_size
@@ -107,4 +106,3 @@ class PoiTaskService:
             self._to_view(task)
             for task in tasks
         ]
-

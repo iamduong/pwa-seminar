@@ -14,7 +14,11 @@ async def list_my_pois(
     principal: Annotated[AccessTokenPayload, Depends(require_permission("owner:menu_read"))],
     service: Annotated[MenuItemService, Depends()],
 ) -> ApiResponse[list[dict[str, str]]]:
-    return ApiResponse(success=True, message="Lấy địa điểm thành công", data=await service.list_owned_pois(principal.sub))
+    return ApiResponse(
+        success=True,
+        message="Lấy địa điểm thành công",
+        data=await service.list_owned_pois(principal.sub),
+    )
 
 
 @router.get("/mine")
@@ -22,7 +26,11 @@ async def list_my_items(
     principal: Annotated[AccessTokenPayload, Depends(require_permission("owner:menu_read"))],
     service: Annotated[MenuItemService, Depends()],
 ) -> ApiResponse[list[MenuItemView]]:
-    return ApiResponse(success=True, message="Lấy thực đơn thành công", data=await service.list_self(principal.sub))
+    return ApiResponse(
+        success=True,
+        message="Lấy thực đơn thành công",
+        data=await service.list_self(principal.sub),
+    )
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
@@ -32,7 +40,25 @@ async def create_menu_item(
     body: MenuItemSave,
     service: Annotated[MenuItemService, Depends()],
 ) -> ApiResponse[MenuItemView]:
-    return ApiResponse(success=True, message="Đã thêm món ăn, chờ duyệt", data=await service.create(principal.sub, body))
+    return ApiResponse(
+        success=True,
+        message="Đã thêm món ăn, chờ duyệt",
+        data=await service.create(principal.sub, body),
+    )
+
+
+@router.post("/by-poi/{poi_id}/{item_id}/approve")
+async def approve_menu_item(
+    poi_id: str,
+    item_id: str,
+    principal: Annotated[AccessTokenPayload, Depends(require_permission("menu:review"))],
+    service: Annotated[MenuItemService, Depends()],
+) -> ApiResponse[MenuItemView]:
+    return ApiResponse(
+        success=True,
+        message="Duyệt món ăn thành công",
+        data=await service.approve_item(poi_id, item_id),
+    )
 
 
 @router.get("/{item_id}")
@@ -41,7 +67,11 @@ async def get_menu_item(
     principal: Annotated[AccessTokenPayload, Depends(require_permission("owner:menu_read"))],
     service: Annotated[MenuItemService, Depends()],
 ) -> ApiResponse[MenuItemView]:
-    return ApiResponse(success=True, message="Lấy món ăn thành công", data=await service.get_owned(principal.sub, item_id))
+    return ApiResponse(
+        success=True,
+        message="Lấy món ăn thành công",
+        data=await service.get_owned(principal.sub, item_id),
+    )
 
 
 @router.put("/{item_id}")
@@ -51,4 +81,8 @@ async def update_menu_item(
     body: MenuItemSave,
     service: Annotated[MenuItemService, Depends()],
 ) -> ApiResponse[MenuItemView]:
-    return ApiResponse(success=True, message="Đã lưu món ăn, chờ duyệt lại", data=await service.update(principal.sub, item_id, body))
+    return ApiResponse(
+        success=True,
+        message="Đã lưu món ăn, chờ duyệt lại",
+        data=await service.update(principal.sub, item_id, body),
+    )
