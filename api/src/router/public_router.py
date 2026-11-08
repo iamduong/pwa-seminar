@@ -9,8 +9,18 @@ from schema.poi_dataset_schema import PoiDataset
 from service.content_dataset_version_service import ContentDatasetVersionService
 from service.poi_category_service import PoiCategoryService
 from service.poi_service import PoiService
+from service.menu_item_service import MenuItemService
+from schema.menu_item_schema import MenuItemView
 
 router = APIRouter(prefix="/public", tags=["Category Controller"])
+
+
+@router.get("/pois/{poi_id}/menu-items")
+async def list_public_menu(
+    poi_id: str,
+    service: Annotated[MenuItemService, Depends()],
+) -> ApiResponse[list[MenuItemView]]:
+    return ApiResponse(success=True, message="Lấy thực đơn thành công", data=await service.list_public(poi_id))
 
 
 @router.get("/categories")
@@ -24,7 +34,7 @@ async def filter_poi_category(
     return ApiResponse(success=True, message="Lấy danh mục POI thành công", data=result)
 
 
-@router.get("/poi/load-all")
+@router.get("/poi/load-all", response_model=None)
 async def bundle_poi(
     # Params
     lang: str,

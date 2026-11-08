@@ -8,6 +8,7 @@ PERMISSIONS: list[str] = [
     "menu:create",
     "menu:update",
     "menu:delete",
+    "menu:review",
     # ---------
     "user:read",
     "user:create",

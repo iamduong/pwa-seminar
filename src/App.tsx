@@ -37,6 +37,7 @@ import MenuItemRequestPage from "./pages/admin/menu/MenuItemRequestPage";
 import { MobileClientAccessGate } from "./components/layout/client/mobile/MobileClientAccessGate";
 import { LanguageProvider } from "./providers/LanguageProvider";
 import { PoiDataProvider } from "./providers/PoiDataProvider";
+import MenuReviewPage from "./pages/admin/menu/MenuReviewPage";
 
 const ClientProviders = () => {
   return (
@@ -89,11 +90,14 @@ export default function App() {
             <Route path="dia-diem-poi">
               <Route path="danh-sach-poi" element={<PoiListPage />} />
               <Route path="them-poi" element={<PoiCreatePage />} />
+              <Route path=":poiId/mon-an" element={<MenuListPage />} />
+              <Route path=":poiId/mon-an/them" element={<MenuCreatePage />} />
+              <Route path=":poiId/mon-an/yeu-cau" element={<MenuReviewPage />} />
             </Route>
 
             {/* Culinary features */}
-            <Route path="danh-sach-thuc-don" element={<MenuListPage />} />
-            <Route path="them-thuc-don" element={<MenuCreatePage />} />
+            <Route path="danh-sach-thuc-don" element={<Navigate to="/quan-ly/dia-diem-poi/danh-sach-poi" replace />} />
+            <Route path="them-thuc-don" element={<Navigate to="/quan-ly/dia-diem-poi/danh-sach-poi" replace />} />
 
             {/* Poi owner registration features */}
             <Route path="don-dang-ky-chu-quan">
@@ -149,6 +153,7 @@ export default function App() {
                 element={<OwnerPoiSubmissionsPage />}
               />
               <Route path="thuc-don-cua-toi" element={<MenuItemsPage />} />
+              <Route path="thuc-don-cua-toi/:id/chinh-sua" element={<MenuItemRequestPage />} />
               <Route
                 path="gui-yeu-cau-thuc-don"
                 element={<MenuItemRequestPage />}
