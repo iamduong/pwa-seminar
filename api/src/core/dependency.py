@@ -5,9 +5,9 @@ from core.provider.postgres import get_postgres
 from core.security import TokenType, decode_token
 from fastapi import Depends, HTTPException, Request, status
 from pydantic import BaseModel
-from pymongo.asynchronous.database import AsyncDatabase
+from sqlalchemy.ext.asyncio import AsyncSession
 
-PostgresDB = Annotated[AsyncDatabase, Depends(get_postgres)]
+PostgresDB = Annotated[AsyncSession, Depends(get_postgres)]
 
 
 class AccessTokenPayload(BaseModel):
@@ -26,8 +26,6 @@ async def validate_session(
 ) -> AccessTokenPayload:
 
     token = request.cookies.get("access_token")
-    print(f"Token in session request: {token}")
-
     if token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Chưa đăng nhập hệ thống"

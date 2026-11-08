@@ -4,11 +4,9 @@ from enum import Enum
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from geoalchemy2 import Geography
-from geoalchemy2.elements import WKBElement
 from model.base.base import Base
 from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
@@ -42,10 +40,7 @@ class PoiModel(Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     address: Mapped[str] = mapped_column(Text, nullable=False)
-    location: Mapped[WKBElement] = mapped_column(
-        Geography(geometry_type="POINT", srid=4326, spatial_index=True),
-        nullable=False,
-    )
+    location: Mapped[dict] = mapped_column(JSONB, nullable=False)
     images: Mapped[list[str]] = mapped_column(
         ARRAY(String),
         default=list,

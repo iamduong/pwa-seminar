@@ -12,6 +12,7 @@ setting = get_setting()
 
 engine = create_async_engine(
     setting.POSTGRES_ENDPOINT,
+    echo=True,
     pool_pre_ping=True,
 )
 

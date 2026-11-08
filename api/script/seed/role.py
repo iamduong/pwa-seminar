@@ -1,45 +1,27 @@
 from core.permission import PERMISSIONS
 from model.role_model import RoleModel
-from pymongo.asynchronous.database import AsyncDatabase
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-super_admin_domain = PERMISSIONS
-admin_domain = [
-    "poi:read",
-    "menu:read",
-    "menu:create",
-    "menu:review",
-]
-poi_owner_domain = [
-    "owner:poi_read",
-    "owner:poi_submit",
-    "owner:menu_read",
-    "owner:menu_submit",
-]
-user_domain = [
-    "owner_registration:register",
-    "owner_registration:read_self",
-    "owner_registration:resubmit",
+
+ROLE_FIXTURES = [
+    ("super_admin", PERMISSIONS, 0),
+    ("admin", ["poi:read", "menu:read", "menu:create", "menu:review", "owner_registration:read", "owner_registration:review", "poi_submission:read", "poi_submission:review"], 1),
+    ("poi_owner", ["owner:poi_read", "owner:poi_submit", "owner:menu_read", "owner:menu_submit"], 10),
+    ("user", ["owner_registration:register", "owner_registration:read_self", "owner_registration:resubmit"], 100),
 ]
 
 
-async def init_role(db: AsyncDatabase):
-    collection = db["role"]
-
-    roles: list[RoleModel] = [
-        RoleModel(
-            name="super_admin",
-            permissions=super_admin_domain,
-            is_system=True,
-            priority=0,
-        ),
-        RoleModel(name="admin", permissions=admin_domain, is_system=True, priority=1),
-        RoleModel(
-            name="poi_owner", permissions=poi_owner_domain, is_system=True, priority=10
-        ),
-        RoleModel(name="user", permissions=user_domain, is_system=True, priority=100),
-    ]
-
-    documents = [role.model_dump(by_alias=True) for role in roles]
-    result = await collection.insert_many(documents=documents)
-
-    print(result.inserted_ids)
+async def init_role(session: AsyncSession) -> dict[str, RoleModel]:
+    roles: dict[str, RoleModel] = {}
+    for name, permissions, priority in ROLE_FIXTURES:
+        role = (await session.scalars(select(RoleModel).where(RoleModel.name == name))).first()
+        if role is None:
+            role = RoleModel(name=name, permissions=permissions, is_system=True, priority=priority)
+            session.add(role)
+        else:
+            role.permissions, role.priority, role.is_system, role.deleted_at = permissions, priority, True, None
+        roles[name] = role
+    await session.flush()
+    print(f"roles: {len(roles)} fixtures ready")
+    return roles

@@ -1,4 +1,4 @@
-import { InfoIcon, NavigationIcon, XIcon } from "lucide-react";
+import { InfoIcon, NavigationIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { Button } from "#components/ui/button";
@@ -21,7 +21,6 @@ export function PoiMapPreviewCard({ poi, onClose }: PoiMapPreviewCardProps) {
         onClick={onClose}
         aria-label="Đóng thông tin địa điểm"
       >
-        {/* <XIcon className="size-3" aria-hidden="true" /> */}
         Đóng địa điểm này
       </button>
 

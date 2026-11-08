@@ -15,9 +15,6 @@ class Setting(BaseSettings):
     PII_ENCRYPTION_KEY: str
     PII_VERSION: str
 
-    MONGO_ENDPOINT: str
-    MONGO_DATABASE: str
-
     POSTGRES_ENDPOINT: str
     POSTGRES_DATABASE: str
 

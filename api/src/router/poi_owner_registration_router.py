@@ -80,9 +80,14 @@ async def register_poi_owner(
 # - Admin approve or reject -> approve -> done
 # - Admin reject
 # - Register again
-@router.post("/re-register", dependencies=[])
-async def re_register_poi_owner() -> ApiResponse[ViewPoiOwnerRegistration]:
-    pass
+@router.post("/re-register")
+async def re_register_poi_owner(
+    principal: Annotated[AccessTokenPayload, Depends(require_permission("owner_registration:register"))],
+    body: RegisterPoiOwnerRegistration,
+    service: Annotated[PoiOwnerRegistrationService, Depends()],
+) -> ApiResponse[dict]:
+    result = await service.register_poi_owner(principal.sub, body.model_dump())
+    return ApiResponse(success=True, message="Gửi lại đơn đăng ký thành công", data=result)
 
 
 # Get self poi owner registrations

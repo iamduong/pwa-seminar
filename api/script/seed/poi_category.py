@@ -1,25 +1,24 @@
 from model.poi_category_model import PoiCategoryModel
-from pymongo.asynchronous.database import AsyncDatabase
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+CATEGORY_NAMES = [
+    "Ẩm thực đường phố", "Nhà hàng", "Quán ăn địa phương", "Cà phê",
+    "Đồ uống", "Tráng miệng và ăn vặt", "Tiệm bánh",
+    "Chợ và khu ẩm thực", "Đặc sản địa phương",
+]
 
 
-async def init_poi_category(db: AsyncDatabase):
-    collection = db["poi_category"]
-
-    poi_categories: list[PoiCategoryModel] = [
-        PoiCategoryModel(name="Ẩm thực đường phố"),
-        PoiCategoryModel(name="Nhà hàng"),
-        PoiCategoryModel(name="Quán ăn địa phương"),
-        PoiCategoryModel(name="Cà phê"),
-        PoiCategoryModel(name="Đồ uống"),
-        PoiCategoryModel(name="Tráng miệng và ăn vặt"),
-        PoiCategoryModel(name="Tiệm bánh"),
-        PoiCategoryModel(name="Chợ và khu ẩm thực"),
-        PoiCategoryModel(name="Đặc sản địa phương"),
-    ]
-
-    documents = [
-        poi_category.model_dump(by_alias=True) for poi_category in poi_categories
-    ]
-    result = await collection.insert_many(documents=documents)
-
-    print(result.inserted_ids)
+async def init_poi_category(session: AsyncSession) -> list[PoiCategoryModel]:
+    categories = []
+    for name in CATEGORY_NAMES:
+        model = (await session.scalars(select(PoiCategoryModel).where(PoiCategoryModel.name == name))).first()
+        if model is None:
+            model = PoiCategoryModel(name=name, is_active=True)
+            session.add(model)
+        else:
+            model.is_active, model.deleted_at = True, None
+        categories.append(model)
+    await session.flush()
+    print(f"poi_categories: {len(categories)} fixtures ready")
+    return categories

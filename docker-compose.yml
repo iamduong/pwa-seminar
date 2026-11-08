@@ -1,12 +1,21 @@
 services:
-  mongodb:
-    image: mongo:8
-    container_name: pwa-seminar-mongodb
+  postgres:
+    image: postgres:18
+    container_name: postgres-container
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-namduongit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+      POSTGRES_DB: ${POSTGRES_DB:-pwa-seminar}
     ports:
-      - "27017:27017"
+      - "5432:5432"
     volumes:
-      - mongodb_data:/data/db
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:8
@@ -18,5 +27,6 @@ services:
       - redis_data:/data
 
 volumes:
-  mongodb_data:
+  postgres_data:
+    name: postgres-data
   redis_data:

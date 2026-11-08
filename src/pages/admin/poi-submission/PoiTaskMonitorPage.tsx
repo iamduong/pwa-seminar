@@ -162,8 +162,6 @@ export default function PoiTaskMonitorPage() {
 
   const loadTasks = useCallback(
     async (signal?: AbortSignal) => {
-      setLoading(true);
-
       try {
         const response = await poiTaskService.GetPoiTasks(
           {
@@ -196,8 +194,14 @@ export default function PoiTaskMonitorPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    void loadTasks(controller.signal);
-    return () => controller.abort();
+    const timeoutId = window.setTimeout(() => {
+      void loadTasks(controller.signal);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [loadTasks]);
 
   useEffect(() => {
@@ -231,17 +235,6 @@ export default function PoiTaskMonitorPage() {
       source.close();
     };
   }, [filter]);
-
-  useEffect(() => {
-    if (tasks.length === 0) {
-      if (selectedTaskId !== null) setSelectedTaskId(null);
-      return;
-    }
-
-    if (!tasks.some((task) => task.id === selectedTaskId)) {
-      setSelectedTaskId(tasks[0].id);
-    }
-  }, [selectedTaskId, tasks]);
 
   const toggleProcesses = (taskId: string) => {
     setExpandedTaskIds((current) => {
@@ -322,7 +315,10 @@ export default function PoiTaskMonitorPage() {
               type="button"
               className="ml-auto rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
               disabled={loading}
-              onClick={() => void loadTasks()}
+              onClick={() => {
+                setLoading(true);
+                void loadTasks();
+              }}
               aria-label="Làm mới danh sách tác vụ"
             >
               <RefreshCwIcon
@@ -337,7 +333,10 @@ export default function PoiTaskMonitorPage() {
               Trạng thái
               <select
                 value={filter}
-                onChange={(event) => setFilter(event.target.value as TaskFilter)}
+                onChange={(event) => {
+                  setLoading(true);
+                  setFilter(event.target.value as TaskFilter);
+                }}
                 className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm text-foreground outline-none focus:ring-3 focus:ring-ring/30"
               >
                 <option value="all">Tất cả</option>

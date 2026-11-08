@@ -1,9 +1,8 @@
 import asyncio
 from contextlib import asynccontextmanager
 
-from bson.errors import InvalidId
 from core.api_response import ApiResponse
-from core.provider.mongo import close_mongo, connect_mongo, get_mongo
+from core.provider.postgres import SessionFactory, close_postgres, connect_postgres
 from core.provider.redis import close_redis, connect_redis
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -18,25 +17,22 @@ from util.worker import process_worker
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await connect_mongo()
+    await connect_postgres()
     await connect_redis()
 
-    database = get_mongo()
-    # Init content_dataset_version if not exists
-    await ContentDatasetVersionService(database).initialize()
+    async with SessionFactory() as database:
+        await ContentDatasetVersionService(database).initialize()
 
     stop_event = asyncio.Event()
-    worker_task = asyncio.create_task(process_worker(database, stop_event))
+    worker_task = asyncio.create_task(process_worker(SessionFactory, stop_event))
 
     try:
         yield
     finally:
         stop_event.set()
-        try:
-            await worker_task
-        finally:
-            await close_mongo()
-            await close_redis()
+        await worker_task
+        await close_redis()
+        await close_postgres()
 
 
 origins = [
@@ -102,16 +98,6 @@ async def validation_exception_handler(
         status_code=422,
         content=response.model_dump(mode="json"),
     )
-
-
-# Validation ObjectId exception
-@app.exception_handler(InvalidId)
-async def bson_id_exception_handler(_request: Request, _exc: InvalidId) -> JSONResponse:
-    response = ApiResponse[None](
-        success=False, message="Dữ liệu đầu vào không chính xác"
-    )
-
-    return JSONResponse(status_code=400, content=response.model_dump(mode="json"))
 
 
 # Fallback server exception

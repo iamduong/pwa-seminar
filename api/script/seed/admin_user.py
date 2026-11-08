@@ -1,123 +1,38 @@
 from datetime import UTC, datetime
-from random import randint
 
+import bcrypt
 from model.admin_user_model import AdminUserModel
-from pymongo.asynchronous.database import AsyncDatabase
+from model.role_model import RoleModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+PASSWORD = "Admin@123"
+USER_FIXTURES = [
+    ("Nguyễn Admin", "admin@dev.com", "0388858383", "super_admin", True),
+    ("Nguyễn Chủ Quán", "owner@dev.com", "0388858384", "poi_owner", True),
+    ("Lâm Vinh Đạt", "lamvinhdat@gmail.com", "0969297300", "user", False),
+    ("Trần Thanh Quy", "thanhquyfu@gmail.com", "0969297301", "user", False),
+    ("Nguyễn Minh Anh", "nguyenminhanh@gmail.com", "0969297302", "user", False),
+    ("Lê Hoàng Nam", "lehoangnam@gmail.com", "0969297303", "user", False),
+    ("Phạm Thu Hà", "phamthuha@gmail.com", "0969297304", "user", False),
+]
 
 
-async def init_admin_user(db: AsyncDatabase):
-    collection = db["admin_user"]
-    user_role = await db["role"].find_one({"name": "user", "is_system": True})
-    if user_role is None:
-        raise RuntimeError("User role must be seeded before admin users")
-
-    admin_users: list[AdminUserModel] = [
-        AdminUserModel(
-            full_name="Lâm Vinh Đạt",
-            email="lamvinhdat@gmail.com",
-            phone="0969297300",
-            password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-            is_active=True,
-            is_poi_owner_verified=False,
-            id_card_encrypted=f"v1:fake-id-card-encrypted-{randint(1, 1000)}",
-            pii_collected_at=datetime.now(UTC),
-        ),
-        AdminUserModel(
-            full_name="Trần Thanh Quy",
-            email="thanhquyfu@gmail.com",
-            phone="0969297301",
-            password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-            is_active=True,
-            is_poi_owner_verified=False,
-            id_card_encrypted=f"v1:fake-id-card-encrypted-{randint(1, 1000)}",
-            pii_collected_at=datetime.now(UTC),
-        ),
-        AdminUserModel(
-            full_name="Nguyễn Minh Anh",
-            email="nguyenminhanh@gmail.com",
-            phone="0969297302",
-            password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-            is_active=True,
-            is_poi_owner_verified=False,
-            id_card_encrypted=f"v1:fake-id-card-encrypted-{randint(1, 1000)}",
-            pii_collected_at=datetime.now(UTC),
-        ),
-        AdminUserModel(
-            full_name="Lê Hoàng Nam",
-            email="lehoangnam@gmail.com",
-            phone="0969297303",
-            password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-            is_active=True,
-            is_poi_owner_verified=False,
-            id_card_encrypted=f"v1:fake-id-card-encrypted-{randint(1, 1000)}",
-            pii_collected_at=datetime.now(UTC),
-        ),
-        AdminUserModel(
-            full_name="Phạm Thu Hà",
-            email="phamthuha@gmail.com",
-            phone="0969297304",
-            password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-            is_active=True,
-            is_poi_owner_verified=False,
-            id_card_encrypted=f"v1:fake-id-card-encrypted-{randint(1, 1000)}",
-            pii_collected_at=datetime.now(UTC),
-        ),
-        AdminUserModel(
-            full_name="Võ Đức Huy",
-            email="voduchuy@gmail.com",
-            phone="0969297305",
-            password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-            is_active=True,
-            is_poi_owner_verified=False,
-            id_card_encrypted=f"v1:fake-id-card-encrypted-{randint(1, 1000)}",
-            pii_collected_at=datetime.now(UTC),
-        ),
-        AdminUserModel(
-            full_name="Đặng Ngọc Mai",
-            email="dangngocmai@gmail.com",
-            phone="0969297306",
-            password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-            is_active=True,
-            is_poi_owner_verified=False,
-            id_card_encrypted=f"v1:fake-id-card-encrypted-{randint(1, 1000)}",
-            pii_collected_at=datetime.now(UTC),
-        ),
-        AdminUserModel(
-            full_name="Bùi Quốc Bảo",
-            email="buiquocbao@gmail.com",
-            phone="0969297307",
-            password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-            is_active=True,
-            is_poi_owner_verified=False,
-            id_card_encrypted=f"v1:fake-id-card-encrypted-{randint(1, 1000)}",
-            pii_collected_at=datetime.now(UTC),
-        ),
-        AdminUserModel(
-            full_name="Đỗ Khánh Linh",
-            email="dokhanhlinh@gmail.com",
-            phone="0969297308",
-            password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-            is_active=True,
-            is_poi_owner_verified=False,
-            id_card_encrypted=f"v1:fake-id-card-encrypted-{randint(1, 1000)}",
-            pii_collected_at=datetime.now(UTC),
-        ),
-        AdminUserModel(
-            full_name="Hoàng Gia Phúc",
-            email="hoanggiaphuc@gmail.com",
-            phone="0969297309",
-            password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-            is_active=True,
-            is_poi_owner_verified=False,
-            id_card_encrypted=f"v1:fake-id-card-encrypted-{randint(1, 1000)}",
-            pii_collected_at=datetime.now(UTC),
-        ),
-    ]
-
-    for admin_user in admin_users:
-        admin_user.role_id = user_role["_id"]
-
-    documents = [admin_user.model_dump(by_alias=True) for admin_user in admin_users]
-    result = await collection.insert_many(documents=documents)
-
-    print(result.inserted_ids)
+async def init_admin_user(session: AsyncSession, roles: dict[str, RoleModel]) -> dict[str, AdminUserModel]:
+    users = {}
+    password_hash = bcrypt.hashpw(PASSWORD.encode(), bcrypt.gensalt()).decode()
+    for full_name, email, phone, role_name, verified in USER_FIXTURES:
+        user = (await session.scalars(select(AdminUserModel).where(AdminUserModel.email == email))).first()
+        if user is None:
+            user = AdminUserModel(
+                full_name=full_name, email=email, phone=phone, password_hash=password_hash,
+                is_active=True, is_poi_owner_verified=verified, role_id=roles[role_name].id,
+                pii_collected_at=datetime.now(UTC) if verified else None,
+            )
+            session.add(user)
+        else:
+            user.role_id, user.is_active, user.deleted_at = roles[role_name].id, True, None
+        users[email] = user
+    await session.flush()
+    print(f"admin_users: {len(users)} fixtures ready (password: {PASSWORD})")
+    return users
