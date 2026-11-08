@@ -1,9 +1,10 @@
 from datetime import datetime
 
-from model.poi_task_model import PoiTaskModel
+from bson import ObjectId
+from model.poi_task_model import PoiTaskModel, PoiTaskStatus
 from pymongo.asynchronous.database import AsyncDatabase
 from pymongo.results import InsertOneResult
-from pymongo import ASCENDING, DESCENDING
+from pymongo import ASCENDING, DESCENDING, ReturnDocument
 
 
 class PoiTaskRepository:
@@ -12,6 +13,37 @@ class PoiTaskRepository:
 
     async def insert_item(self, document: dict) -> InsertOneResult:
         return await self.collection.insert_one(document)
+
+    async def retry_failed(
+        self,
+        task_id: ObjectId,
+        task: PoiTaskModel,
+    ) -> PoiTaskModel | None:
+        document = await self.collection.find_one_and_update(
+            {
+                "_id": task_id,
+                "status": PoiTaskStatus.FAILED.value,
+                "deleted_at": None,
+            },
+            {
+                "$set": {
+                    "status": PoiTaskStatus.QUEUED.value,
+                    "retry_count": task.retry_count,
+                    "progress_percent": task.progress_percent,
+                    "step_language": None,
+                    "processes": [
+                        process.model_dump(mode="json")
+                        for process in task.processes
+                    ],
+                    "events": [event.model_dump() for event in task.events],
+                    "updated_at": task.updated_at,
+                }
+            },
+            return_document=ReturnDocument.AFTER,
+        )
+        if document is None:
+            return None
+        return PoiTaskModel.model_validate(document)
 
     async def count_filter(
         self,

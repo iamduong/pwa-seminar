@@ -20,6 +20,8 @@ class ViewPoiTask(BaseModel):
     target_languages: list[str]
     step_language: str | None
     activation_requested: bool
+    retry_count: int
+    max_retries: int
     events: list[Event]
     processes: list[Process]
     created_at: datetime

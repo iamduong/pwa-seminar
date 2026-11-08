@@ -89,3 +89,17 @@ async def get_poi_task_by_id(
         message="Lấy tiến trình POI thành công",
         data=result,
     )
+
+
+@router.post("/{task_id}/retry")
+async def retry_poi_task(
+    task_id: str,
+    service: Annotated[PoiTaskService, Depends()],
+) -> ApiResponse[ViewPoiTask]:
+    result = await service.retry_poi_task(task_id)
+
+    return ApiResponse(
+        success=True,
+        message="Đã đưa tiến trình POI vào hàng đợi retry",
+        data=result,
+    )

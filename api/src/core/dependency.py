@@ -1,13 +1,13 @@
 from typing import Annotated, Literal
 
 import jwt
-from core.provider.mongo import get_mongo
+from core.provider.postgres import get_postgres
 from core.security import TokenType, decode_token
 from fastapi import Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from pymongo.asynchronous.database import AsyncDatabase
 
-MongoDB = Annotated[AsyncDatabase, Depends(get_mongo)]
+PostgresDB = Annotated[AsyncDatabase, Depends(get_postgres)]
 
 
 class AccessTokenPayload(BaseModel):

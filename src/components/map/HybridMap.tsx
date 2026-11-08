@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  GeolocateControl,
   Map,
   setWorkerUrl,
   type StyleSpecification,
@@ -34,6 +35,7 @@ const HybridMap = ({
 
   initialCenter = DEFAULT_MAP_CENTER,
   initialZoom = DEFAULT_MAP_ZOOM,
+  isSupportLocation= false,
 
   selectedLocation,
   // action when click to map
@@ -91,17 +93,17 @@ const HybridMap = ({
     mapRef.current = map;
 
     // ! Button click to go to self locationm (GPS)
-    // if (showGeolocation) {
-    //   const geolocateControl = new GeolocateControl({
-    //     positionOptions: {
-    //       enableHighAccuracy: true,
-    //     },
-    //     trackUserLocation: true,
-    //     showUserLocation: true,
-    //   });
+    if (isSupportLocation) {
+      const geolocateControl = new GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true,
+        },
+        trackUserLocation: true,
+        showUserLocation: true,
+      });
 
-    //   map.addControl(geolocateControl, "top-right");
-    // }
+      map.addControl(geolocateControl, "top-right");
+    }
 
     // ! Clickable to active action
     if (onClickMapRef.current) {

@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from bson import ObjectId
 from core.dependency import MongoDB
 from core.pagination import Pagination
 from fastapi import HTTPException, status
-from model.poi_task_model import PoiTaskModel, PoiTaskStatus
+from model.poi_task_model import Event, PoiTaskModel, PoiTaskStatus, ProcessStatus
 from repository.poi_task_repository import PoiTaskRepository
 from schema.poi_task_schema import FilterPoiTask, ViewPoiTask
 
@@ -25,6 +25,8 @@ class PoiTaskService:
             target_languages=task.target_languages,
             step_language=task.step_language,
             activation_requested=task.activation_requested,
+            retry_count=task.retry_count,
+            max_retries=task.max_retries,
             events=task.events,
             processes=task.processes,
             created_at=task.created_at,
@@ -93,6 +95,66 @@ class PoiTaskService:
             )
 
         return self._to_view(task)
+
+    async def retry_poi_task(
+        self,
+        task_id: str,
+    ) -> ViewPoiTask:
+        object_id = ObjectId(task_id)
+        task = await self.poi_task_repository.find_one(
+            {
+                "_id": object_id,
+                "deleted_at": None,
+            }
+        )
+
+        if task is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Không tìm thấy tiến trình POI",
+            )
+        if task.status != PoiTaskStatus.FAILED:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Chỉ có thể retry tiến trình đã thất bại",
+            )
+
+        for process in task.processes:
+            if process.translation_status == ProcessStatus.FAILED:
+                process.translation_status = ProcessStatus.PENDING
+            if process.audio_status == ProcessStatus.FAILED:
+                process.audio_status = ProcessStatus.PENDING
+            process.error_message = None
+
+        completed_steps = sum(
+            process.translation_status == ProcessStatus.DONE
+            for process in task.processes
+        ) + sum(
+            process.audio_status == ProcessStatus.DONE
+            for process in task.processes
+        )
+        total_steps = max(len(task.target_languages) * 2, 1)
+        now = datetime.now(UTC)
+        task.status = PoiTaskStatus.QUEUED
+        task.retry_count = 0
+        task.progress_percent = min(completed_steps * 100 // total_steps, 100)
+        task.step_language = None
+        task.updated_at = now
+        task.events.append(
+            Event(message="Retry thủ công; task được đưa lại vào hàng đợi", started_at=now)
+        )
+
+        retried_task = await self.poi_task_repository.retry_failed(
+            object_id,
+            task,
+        )
+        if retried_task is None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Trạng thái tiến trình đã thay đổi, vui lòng tải lại",
+            )
+
+        return self._to_view(retried_task)
 
     async def find_updated_after(
         self,

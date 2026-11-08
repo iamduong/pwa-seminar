@@ -1,111 +1,51 @@
-from datetime import datetime
+from uuid import UUID
 
-from bson import ObjectId
 from model.role_model import RoleModel
-from pymongo.asynchronous.database import AsyncDatabase
-from pymongo.results import InsertManyResult, InsertOneResult, UpdateResult
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class RoleRepository:
-    def __init__(self, db: AsyncDatabase):
-        self.collection = db["role"]
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
-    # Find document
-    async def find_one(self, search: dict) -> RoleModel | None:
-        document = await self.collection.find_one(search)
+    async def get_by_id(self, role_id: UUID) -> RoleModel | None:
+        """Get one active role by its UUID."""
+        role = await self.session.get(RoleModel, role_id)
 
-        if document is None:
+        if role is not None and role.deleted_at is not None:
             return None
 
-        return RoleModel.model_validate(document)
+        return role
 
-    async def find_search(self, search: dict) -> list[RoleModel]:
-        cursor = self.collection.find(search)
-        documents = await cursor.to_list(length=None)
+    async def add(self, role: RoleModel) -> RoleModel:
+        """Add and persist a new role."""
+        self.session.add(role)
+        await self.session.commit()
+        return role
 
-        return [RoleModel.model_validate(document) for document in documents]
-
-    async def count_filter(self, search: dict) -> int:
-        return await self.collection.count_documents(search)
-
-    async def find_pagination(
+    async def update(
         self,
-        page: int,
-        page_size: int,
-        search: dict,
-    ) -> list[RoleModel]:
-        cursor = (
-            self.collection.find(search)
-            .sort(
-                [
-                    ("priority", 1),
-                    ("_id", 1),
-                ]
-            )
-            .skip((page - 1) * page_size)
-            .limit(page_size)
-        )
+        role_id: UUID,
+        *,
+        name: str | None = None,
+        permissions: list[str] | None = None,
+        is_system: bool | None = None,
+        priority: int | None = None,
+    ) -> RoleModel | None:
+        """Update and persist an active role."""
+        role = await self.get_by_id(role_id)
 
-        documents = await cursor.to_list(length=page_size)
+        if role is None:
+            return None
 
-        return [RoleModel.model_validate(document) for document in documents]
+        if name is not None:
+            role.name = name
+        if permissions is not None:
+            role.permissions = permissions
+        if is_system is not None:
+            role.is_system = is_system
+        if priority is not None:
+            role.priority = priority
 
-    # Insert document
-    async def insert_item(self, document: dict) -> InsertOneResult:
-        return await self.collection.insert_one(document)
-
-    async def insert_items(self, documents: list[dict]) -> InsertManyResult:
-        return await self.collection.insert_many(documents)
-
-    # Update document
-    async def update_by_id(
-        self,
-        role_id: ObjectId,
-        document: dict,
-    ) -> UpdateResult:
-        return await self.collection.update_one(
-            {
-                "_id": role_id,
-                "deleted_at": None,
-            },
-            {
-                "$set": document,
-            },
-        )
-
-    # Soft delete document
-    async def delete_by_id(
-        self,
-        role_id: ObjectId,
-        deleted_at: datetime,
-    ) -> UpdateResult:
-        return await self.collection.update_one(
-            {
-                "_id": role_id,
-                "deleted_at": None,
-            },
-            {
-                "$set": {
-                    "deleted_at": deleted_at,
-                    "updated_at": deleted_at,
-                },
-            },
-        )
-
-    async def restore_by_id(
-        self,
-        role_id: ObjectId,
-        restored_at: datetime,
-    ) -> UpdateResult:
-        return await self.collection.update_one(
-            {
-                "_id": role_id,
-                "deleted_at": {"$ne": None},
-            },
-            {
-                "$set": {
-                    "deleted_at": None,
-                    "updated_at": restored_at,
-                },
-            },
-        )
+        await self.session.commit()
+        return role

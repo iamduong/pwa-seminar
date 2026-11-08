@@ -18,6 +18,9 @@ class Setting(BaseSettings):
     MONGO_ENDPOINT: str
     MONGO_DATABASE: str
 
+    POSTGRES_ENDPOINT: str
+    POSTGRES_DATABASE: str
+
     REDIS_HOST: str
     REDIS_PORT: int
     REDIS_DB: int

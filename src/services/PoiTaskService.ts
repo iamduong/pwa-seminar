@@ -34,6 +34,14 @@ class PoiTaskService {
     return response.data;
   }
 
+  async RetryPoiTask(taskId: string) {
+    const response = await api.post<ApiResponse<PoiTask>>(
+      `/poi-tasks/${taskId}/retry`,
+    );
+
+    return response.data;
+  }
+
   GetPoiTaskStreamUrl() {
     const baseUrl = import.meta.env.VITE_API_BASE_URL || "/api";
     return `${baseUrl.replace(/\/$/, "")}/poi-tasks/stream`;
