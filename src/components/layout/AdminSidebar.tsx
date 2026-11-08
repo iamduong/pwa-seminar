@@ -115,14 +115,13 @@ const navigationGroup = [
         href: "/quan-ly/chuc-nang-chu-quan/don-dang-ky-poi",
         permissions: ["owner:poi_read"],
       },
-      // !NOT IMPLEMENT
       {
         title: "Thực đơn của tôi",
         href: "/quan-ly/chuc-nang-chu-quan/thuc-don-cua-toi",
         permissions: ["owner:menu_read"],
       },
       {
-        title: "Gửi yêu cầu thực đơn",
+        title: "Thêm món ăn",
         href: "/quan-ly/chuc-nang-chu-quan/gui-yeu-cau-thuc-don",
         permissions: ["owner:menu_submit"],
       },

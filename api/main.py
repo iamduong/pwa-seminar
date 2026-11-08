@@ -139,6 +139,7 @@ from router.poi_registration_router import router as poi_registration_router
 from router.poi_router import router as poi_router
 from router.public_router import router as public_router
 from router.role_router import router as role_router
+from router.poi_task_router import router as poi_task_router
 
 app.include_router(public_router)
 app.include_router(authorize_router)
@@ -148,3 +149,4 @@ app.include_router(poi_registration_router)
 app.include_router(poi_router)
 app.include_router(admin_user_router)
 app.include_router(menu_item_router)
+app.include_router(poi_task_router)
