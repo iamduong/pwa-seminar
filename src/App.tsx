@@ -164,6 +164,7 @@ export default function App() {
                 element={<OwnerPoiSubmissionsPage />}
               />
               <Route path="thuc-don-cua-toi" element={<MenuItemsPage />} />
+              <Route path="thuc-don-cua-toi/:id/chinh-sua" element={<MenuItemRequestPage />} />
               <Route
                 path="gui-yeu-cau-thuc-don"
                 element={<MenuItemRequestPage />}
