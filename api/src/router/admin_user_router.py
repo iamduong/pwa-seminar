@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from core.api_response import ApiResponse
-from core.dependency import MongoDB, require_permission
+from core.dependency import require_permission
 from core.pagination import Pagination
 from fastapi import APIRouter, Depends, Query, status
 
@@ -19,11 +19,6 @@ router = APIRouter(
 )
 
 
-# Dependency khởi tạo AdminUserService
-def get_admin_user_service(db: MongoDB) -> AdminUserService:
-    return AdminUserService(db)
-
-
 # Lấy danh sách người dùng có phân trang và bộ lọc
 @router.get(
     "",
@@ -31,9 +26,7 @@ def get_admin_user_service(db: MongoDB) -> AdminUserService:
 )
 async def filter_admin_user(
     params: Annotated[FilterAdminUser, Query()],
-    admin_user_service: Annotated[
-        AdminUserService, Depends(get_admin_user_service)
-    ],
+    admin_user_service: Annotated[AdminUserService, Depends()],
 ) -> ApiResponse[Pagination[ViewAdminUser]]:
 
     result = await admin_user_service.filter_admin_user(params)
@@ -51,9 +44,7 @@ async def filter_admin_user(
 )
 async def create_admin_user(
     body: CreateAdminUser,
-    admin_user_service: Annotated[
-        AdminUserService, Depends(get_admin_user_service)
-    ],
+    admin_user_service: Annotated[AdminUserService, Depends()],
 ) -> ApiResponse[ViewAdminUser]:
     result = await admin_user_service.create_admin_user(body)
 
@@ -62,4 +53,3 @@ async def create_admin_user(
         message="Tạo người dùng thành công",
         data=result,
     )
-

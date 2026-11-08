@@ -1,47 +1,25 @@
 from datetime import datetime
 
+from core.dependency import PostgresDB
 from model.content_dataset_version_model import ContentDatasetVersionModel
-from pymongo import ReturnDocument
-from pymongo.asynchronous.database import AsyncDatabase
+from sqlalchemy import select
 
 
 class ContentDatasetVersionRepository:
-    def __init__(self, db: AsyncDatabase):
-        self.collection = db["content_dataset_version"]
+    def __init__(self, context: PostgresDB):
+        self.context = context
 
-    async def implement_index(self) -> None:
-        await self.collection.create_index("key_query", unique=True)
+    async def find_by_key(self, key: str) -> ContentDatasetVersionModel | None:
+        return (await self.context.scalars(select(ContentDatasetVersionModel).where(ContentDatasetVersionModel.key_query == key, ContentDatasetVersionModel.deleted_at.is_(None)))).first()
 
-    async def find_one(self, search: dict) -> ContentDatasetVersionModel | None:
-        document = await self.collection.find_one(search)
-
-        if document is None:
-            return None
-
-        return ContentDatasetVersionModel.model_validate(document)
-
-    async def upsert(
-        self,
-        key_query: str,
-        etag: str,
-        updated_at: datetime,
-    ) -> ContentDatasetVersionModel:
-        document = await self.collection.find_one_and_update(
-            {"key_query": key_query},
-            {
-                "$set": {
-                    "etag": etag,
-                    "updated_at": updated_at,
-                    "deleted_at": None,
-                },
-                "$setOnInsert": {
-                    "key_query": key_query,
-                    "created_at": updated_at,
-                },
-            },
-            # Allow insert document if not exists
-            upsert=True,
-            return_document=ReturnDocument.AFTER,
-        )
-
-        return ContentDatasetVersionModel.model_validate(document)
+    async def upsert(self, key_query: str, etag: str, updated_at: datetime) -> ContentDatasetVersionModel:
+        model = await self.find_by_key(key_query)
+        if model is None:
+            model = ContentDatasetVersionModel(key_query=key_query, etag=etag)
+            self.context.add(model)
+        else:
+            model.etag = etag
+            model.updated_at = updated_at
+        await self.context.commit()
+        await self.context.refresh(model)
+        return model

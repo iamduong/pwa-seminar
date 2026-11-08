@@ -1,66 +1,53 @@
-from datetime import UTC, datetime
+from uuid import UUID
 
-from bson import ObjectId
+from core.dependency import PostgresDB
 from model.menu_item_model import MenuItemModel
-from pymongo import ReturnDocument
-from pymongo.asynchronous.database import AsyncDatabase
-from pymongo.results import InsertOneResult, UpdateResult
+from sqlalchemy import func, select
 
 
 class MenuItemRepository:
-    def __init__(self, db: AsyncDatabase):
-        self.collection = db["menu_item"]
+    def __init__(self, context: PostgresDB):
+        self.context = context
 
-    async def find_one(self, search: dict) -> MenuItemModel | None:
-        document = await self.collection.find_one(search)
-        return MenuItemModel.model_validate(document) if document is not None else None
+    async def find_by_id(self, item_id: UUID) -> MenuItemModel | None:
+        return (await self.context.scalars(select(MenuItemModel).where(MenuItemModel.id == item_id, MenuItemModel.deleted_at.is_(None)))).one_or_none()
 
-    async def find_many(
-        self,
-        search: dict,
-        skip: int = 0,
-        limit: int | None = None,
-    ) -> list[MenuItemModel]:
-        cursor = self.collection.find(search).sort([("created_at", -1), ("_id", -1)]).skip(skip)
+    async def find_pending_duplicate(self, poi_id: UUID, name: str) -> MenuItemModel | None:
+        return (await self.context.scalars(select(MenuItemModel).where(MenuItemModel.poi_id == poi_id, func.lower(MenuItemModel.name) == name.lower(), MenuItemModel.is_active.is_(False), MenuItemModel.deleted_at.is_(None)))).first()
+
+    async def find_many(self, *, poi_ids: list[UUID] | None = None, poi_id: UUID | None = None, is_active: bool | None = None, is_available: bool | None = None, keyword: str | None = None, offset: int = 0, limit: int | None = None):
+        conditions = [MenuItemModel.deleted_at.is_(None)]
+        if poi_ids is not None:
+            conditions.append(MenuItemModel.poi_id.in_(poi_ids))
+        if poi_id is not None:
+            conditions.append(MenuItemModel.poi_id == poi_id)
+        if is_active is not None:
+            conditions.append(MenuItemModel.is_active == is_active)
+        if is_available is not None:
+            conditions.append(MenuItemModel.is_available == is_available)
+        if keyword:
+            conditions.append(MenuItemModel.name.ilike(f"%{keyword.strip()}%"))
+        statement = select(MenuItemModel).where(*conditions).order_by(MenuItemModel.created_at.desc(), MenuItemModel.id.desc()).offset(offset)
         if limit is not None:
-            cursor = cursor.limit(limit)
-        documents = await cursor.to_list(length=limit)
-        return [MenuItemModel.model_validate(document) for document in documents]
+            statement = statement.limit(limit)
+        return list((await self.context.scalars(statement)).all())
 
-    async def count(self, search: dict) -> int:
-        return await self.collection.count_documents(search)
+    async def count(self, *, poi_id: UUID, is_active: bool | None = None, keyword: str | None = None) -> int:
+        conditions = [MenuItemModel.poi_id == poi_id, MenuItemModel.deleted_at.is_(None)]
+        if is_active is not None:
+            conditions.append(MenuItemModel.is_active == is_active)
+        if keyword:
+            conditions.append(MenuItemModel.name.ilike(f"%{keyword.strip()}%"))
+        return (await self.context.scalar(select(func.count()).select_from(MenuItemModel).where(*conditions))) or 0
 
-    async def insert_item(self, document: dict) -> InsertOneResult:
-        return await self.collection.insert_one(document)
+    async def insert(self, item: MenuItemModel) -> MenuItemModel:
+        self.context.add(item)
+        await self.context.commit()
+        await self.context.refresh(item)
+        return item
 
-    async def update_item(
-        self,
-        id: ObjectId,
-        poi_id: ObjectId,
-        document: dict,
-    ) -> UpdateResult:
-        return await self.collection.update_one(
-            {"_id": id, "poi_id": poi_id, "deleted_at": None},
-            {"$set": document},
-        )
-
-    async def upsert_from_submission(self, item: MenuItemModel) -> MenuItemModel:
-        await self.collection.update_one(
-            {"_id": item.id},
-            {"$setOnInsert": item.to_dump()},
-            upsert=True,
-        )
-        document = await self.collection.find_one({"_id": item.id})
-        return MenuItemModel.model_validate(document)
-
-    async def approve(
-        self,
-        poi_id: ObjectId,
-        item_id: ObjectId,
-    ) -> MenuItemModel | None:
-        document = await self.collection.find_one_and_update(
-            {"_id": item_id, "poi_id": poi_id, "deleted_at": None},
-            {"$set": {"is_active": True, "updated_at": datetime.now(UTC)}},
-            return_document=ReturnDocument.AFTER,
-        )
-        return MenuItemModel.model_validate(document) if document is not None else None
+    async def save(self, item: MenuItemModel) -> MenuItemModel:
+        item = await self.context.merge(item)
+        await self.context.commit()
+        await self.context.refresh(item)
+        return item

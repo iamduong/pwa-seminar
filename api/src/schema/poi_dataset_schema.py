@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from model.poi_model import AudioStatus, GeoPointModel
+from model.poi_model import AudioStatus
 from pydantic import BaseModel
+from schema.geo_schema import GeoPoint
 
 
 class PoiDatasetItem(BaseModel):
@@ -11,7 +12,7 @@ class PoiDatasetItem(BaseModel):
     name: str
     description: str
     address: str
-    location: GeoPointModel
+    location: GeoPoint
     images: list[str]
     trigger_radius: float
     audio_priority: int

@@ -1,315 +1,241 @@
 import asyncio
 from datetime import UTC, datetime
+from uuid import UUID
 
 from model.poi_localization_model import AudioStatus as LocalizationAudioStatus
+from model.poi_localization_model import PoiLocalizationModel
 from model.poi_model import AudioStatus as PoiAudioStatus
 from model.poi_model import PoiModel
-from model.poi_task_model import Event, PoiTaskModel, PoiTaskStatus, ProcessStatus
-from pydantic import ValidationError
-from pymongo import ReturnDocument
-from pymongo.asynchronous.database import AsyncDatabase
-from pymongo.errors import PyMongoError
+from model.poi_task_event_model import PoiTaskEventModel
+from model.poi_task_model import PoiTaskModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.orm import selectinload
 from util.audio import AudioGenerationError, ensure_audio_directory, generate_audio
 from util.translator import TranslationError, translate_poi
 
 POLL_INTERVAL_SECONDS = 2
 
 
-async def process_worker(database: AsyncDatabase, stop_event: asyncio.Event):
-    print("Worker started")
-    poi_task_collection = database["poi_task"]
-    poi_collection = database["poi"]
-    localization_collection = database["poi_localization"]
+def _event(task_id: UUID, message: str, language: str | None = None) -> PoiTaskEventModel:
+    return PoiTaskEventModel(task_id=task_id, message=message, language=language, started_at=datetime.now(UTC))
 
+
+def _task_query():
+    return select(PoiTaskModel).options(
+        selectinload(PoiTaskModel.events), selectinload(PoiTaskModel.processes)
+    )
+
+
+async def process_worker(
+    session_factory: async_sessionmaker[AsyncSession], stop_event: asyncio.Event
+) -> None:
+    print("PostgreSQL POI worker started")
     await ensure_audio_directory()
+    async with session_factory() as session:
+        await _recover_tasks(session)
 
     while not stop_event.is_set():
-        started_at = datetime.now(UTC)
-        poi_task_document = await poi_task_collection.find_one_and_update(
-            {"status": PoiTaskStatus.QUEUED.value},
-            {
-                "$set": {
-                    "status": PoiTaskStatus.RUNNING.value,
-                    "updated_at": started_at,
-                },
-                "$push": {
-                    "events": _event(
-                        "Khởi động tiến trình xử lý POI",
-                        started_at=started_at,
-                    )
-                },
-            },
-            return_document=ReturnDocument.AFTER,
-        )
-
-        if poi_task_document is None:
+        task_id = await _claim_task(session_factory)
+        if task_id is None:
             try:
                 await asyncio.wait_for(stop_event.wait(), timeout=POLL_INTERVAL_SECONDS)
             except TimeoutError:
                 pass
             continue
-
         try:
-            poi_task = PoiTaskModel.model_validate(poi_task_document)
-            poi_document = await poi_collection.find_one({"_id": poi_task.poi_id})
-            if poi_document is None:
-                raise ValueError(f"Không tìm thấy POI {poi_task.poi_id}")
+            async with session_factory() as session:
+                task = await _get_task(session, task_id)
+                if task is None:
+                    continue
+                poi = await session.get(PoiModel, task.poi_id)
+                if poi is None or poi.deleted_at is not None:
+                    raise ValueError(f"Không tìm thấy POI {task.poi_id}")
+                await process_poi_task(session, task, poi, stop_event)
+        except Exception as error:
+            print(f"Không thể xử lý task {task_id}: {error}")
+            async with session_factory() as session:
+                await _retry_or_fail(session, task_id, f"Xử lý task thất bại: {error}")
+    print("PostgreSQL POI worker stopped")
 
-            poi = PoiModel.model_validate(poi_document)
-            print(f"Found poi_task {poi_task.id}")
-            await process_poi_task(
-                poi_task,
-                poi,
-                poi_task_collection,
-                poi_collection,
-                localization_collection,
-                stop_event,
-            )
-            print(f"Done poi_task {poi_task.id}")
-        except (ValidationError, PyMongoError, ValueError) as error:
-            print(f"Không thể xử lý task {poi_task_document.get('_id')}: {error}")
-            await poi_task_collection.update_one(
-                {"_id": poi_task_document["_id"]},
-                {
-                    "$set": {
-                        "status": PoiTaskStatus.FAILED.value,
-                        "updated_at": datetime.now(UTC),
-                    },
-                    "$push": {"events": _event(f"Xử lý task thất bại: {error}")},
-                },
-            )
 
-    print("Worker stopped")
+async def _claim_task(session_factory: async_sessionmaker[AsyncSession]) -> UUID | None:
+    async with session_factory() as session:
+        task = (
+            await session.scalars(
+                _task_query()
+                .where(PoiTaskModel.status == "queued", PoiTaskModel.deleted_at.is_(None))
+                .order_by(PoiTaskModel.created_at, PoiTaskModel.id)
+                .with_for_update(skip_locked=True)
+                .limit(1)
+            )
+        ).first()
+        if task is None:
+            return None
+        task.status = "running"
+        task.events.append(_event(task.id, "Khởi động tiến trình xử lý POI"))
+        await session.commit()
+        return task.id
+
+
+async def _get_task(session: AsyncSession, task_id: UUID) -> PoiTaskModel | None:
+    return (
+        await session.scalars(
+            _task_query().where(PoiTaskModel.id == task_id, PoiTaskModel.deleted_at.is_(None))
+        )
+    ).one_or_none()
 
 
 async def process_poi_task(
-    task: PoiTaskModel,
-    poi: PoiModel,
-    task_collection,
-    poi_collection,
-    localization_collection,
-    stop_event: asyncio.Event,
+    session: AsyncSession, task: PoiTaskModel, poi: PoiModel, stop_event: asyncio.Event
 ) -> None:
     total_steps = max(len(task.target_languages) * 2, 1)
-    completed_steps = 0
+    completed_steps = _count_completed_steps(task)
     has_error = False
 
     for language in task.target_languages:
         if stop_event.is_set():
-            await task_collection.update_one(
-                {"_id": task.id},
-                {
-                    "$set": {
-                        "status": PoiTaskStatus.QUEUED.value,
-                        "step_language": None,
-                        "updated_at": datetime.now(UTC),
-                    },
-                    "$push": {
-                        "events": _event(
-                            "Worker dừng; task được đưa lại vào hàng đợi",
-                            language,
-                        )
-                    },
-                },
-            )
+            task.status, task.step_language = "queued", None
+            task.events.append(_event(task.id, "Worker dừng; task được đưa lại vào hàng đợi", language))
+            await session.commit()
             return
 
-        process = next(
-            (item for item in task.processes if item.language == language), None
-        )
+        process = next((item for item in task.processes if item.language == language), None)
         if process is None:
             has_error = True
-            completed_steps += 2
-            await _append_event(
-                task_collection,
-                task.id,
-                f"Không tìm thấy process cho ngôn ngữ {language}",
-                language,
-            )
+            task.events.append(_event(task.id, f"Không tìm thấy process cho ngôn ngữ {language}", language))
+            await session.commit()
             continue
 
-        await task_collection.update_one(
-            {"_id": task.id},
-            {
-                "$set": {
-                    "step_language": language,
-                    "updated_at": datetime.now(UTC),
-                },
-                "$push": {"events": _event("Bắt đầu dịch nội dung", language)},
-            },
-        )
+        localization = await _find_localization(session, poi.id, language)
+        translated: dict[str, str] | None = None
+        if process.translation_status == "done" and localization:
+            translated = {"category": localization.category, "name": localization.name, "description": localization.description}
+        elif process.translation_status == "done":
+            process.translation_status = "pending"
+            completed_steps = max(completed_steps - 1, 0)
 
-        try:
-            translated = await translate_poi(poi, language)
-            process.translation_status = ProcessStatus.DONE
-            process.error_message = None
-            completed_steps += 1
-
-            now = datetime.now(UTC)
-            await localization_collection.update_one(
-                {"poi_id": poi.id, "lang": language},
-                {
-                    "$set": {
-                        **translated,
-                        "audio_status": LocalizationAudioStatus.PROCESSING.value,
-                        "updated_at": now,
-                    },
-                    "$setOnInsert": {
-                        "poi_id": poi.id,
-                        "lang": language,
-                        "created_at": now,
-                        "deleted_at": None,
-                    },
-                },
-                upsert=True,
-            )
-            await _append_event(
-                task_collection,
-                task.id,
-                "Dịch nội dung thành công",
-                language,
-            )
-        except (PyMongoError, TranslationError) as error:
-            has_error = True
-            completed_steps += 2
-            process.translation_status = ProcessStatus.FAILED
-            process.audio_status = ProcessStatus.FAILED
-            process.error_message = str(error)
-            await _append_event(
-                task_collection,
-                task.id,
-                f"Dịch nội dung thất bại: {error}",
-                language,
-            )
-            await _save_progress(task_collection, task, completed_steps, total_steps)
-            continue
-
-        await _save_progress(task_collection, task, completed_steps, total_steps)
-
-        try:
-            audio_url, was_created = await generate_audio(
-                poi.description,
-                translated["description"],
-                language,
-            )
-            process.audio_status = ProcessStatus.DONE
-            process.audio_url = audio_url
-            process.error_message = None
-            completed_steps += 1
-
-            await localization_collection.update_one(
-                {"poi_id": poi.id, "lang": language},
-                {
-                    "$set": {
-                        "audio_url": audio_url,
-                        "audio_status": LocalizationAudioStatus.READY.value,
-                        "updated_at": datetime.now(UTC),
-                    }
-                },
-            )
-            action = "Tạo" if was_created else "Tái sử dụng"
-            await _append_event(
-                task_collection,
-                task.id,
-                f"{action} file âm thanh thành công: {audio_url}",
-                language,
-            )
-        except (AudioGenerationError, PyMongoError) as error:
-            has_error = True
-            completed_steps += 1
-            process.audio_status = ProcessStatus.FAILED
-            process.error_message = str(error)
-            await localization_collection.update_one(
-                {"poi_id": poi.id, "lang": language},
-                {
-                    "$set": {
-                        "audio_status": LocalizationAudioStatus.FAILED.value,
-                        "updated_at": datetime.now(UTC),
-                    }
-                },
-            )
-            await _append_event(
-                task_collection,
-                task.id,
-                f"Tạo âm thanh thất bại: {error}",
-                language,
-            )
-
-        await _save_progress(task_collection, task, completed_steps, total_steps)
-
-    final_status = PoiTaskStatus.FAILED if has_error else PoiTaskStatus.DONE
-    poi_audio_status = PoiAudioStatus.FAILED if has_error else PoiAudioStatus.READY
-    finished_at = datetime.now(UTC)
-
-    await task_collection.update_one(
-        {"_id": task.id},
-        {
-            "$set": {
-                "status": final_status.value,
-                "progress_percent": 100,
-                "step_language": None,
-                "updated_at": finished_at,
-            },
-            "$push": {
-                "events": _event(
-                    "Xử lý POI thất bại" if has_error else "Xử lý POI hoàn tất",
-                    started_at=finished_at,
+        if process.translation_status != "done":
+            task.step_language = language
+            task.events.append(_event(task.id, "Bắt đầu dịch nội dung", language))
+            await session.commit()
+            try:
+                translated = await translate_poi(poi, language)
+                localization = localization or PoiLocalizationModel(
+                    poi_id=poi.id, lang=language, category=translated["category"],
+                    name=translated["name"], description=translated["description"]
                 )
-            },
-        },
-    )
+                localization.category = translated["category"]
+                localization.name = translated["name"]
+                localization.description = translated["description"]
+                localization.audio_status = LocalizationAudioStatus.PROCESSING.value
+                session.add(localization)
+                process.translation_status, process.error_message = "done", None
+                completed_steps += 1
+                task.events.append(_event(task.id, "Dịch nội dung thành công", language))
+            except TranslationError as error:
+                has_error = True
+                process.translation_status = process.audio_status = "failed"
+                process.error_message = str(error)
+                task.events.append(_event(task.id, f"Dịch nội dung thất bại: {error}", language))
+                await _save_progress(session, task, completed_steps, total_steps)
+                continue
+            await _save_progress(session, task, completed_steps, total_steps)
 
-    poi_update = {
-        "audio_status": poi_audio_status.value,
-        "updated_at": finished_at,
-    }
+        if process.audio_status == "done":
+            continue
+        try:
+            assert translated is not None
+            audio_url, was_created = await generate_audio(poi.description, translated["description"], language)
+            process.audio_status, process.audio_url, process.error_message = "done", audio_url, None
+            completed_steps += 1
+            if localization is not None:
+                localization.audio_url = audio_url
+                localization.audio_status = LocalizationAudioStatus.READY.value
+            action = "Tạo" if was_created else "Tái sử dụng"
+            task.events.append(_event(task.id, f"{action} file âm thanh thành công: {audio_url}", language))
+        except AudioGenerationError as error:
+            has_error = True
+            completed_steps += 1
+            process.audio_status, process.error_message = "failed", str(error)
+            if localization is not None:
+                localization.audio_status = LocalizationAudioStatus.FAILED.value
+            task.events.append(_event(task.id, f"Tạo âm thanh thất bại: {error}", language))
+        await _save_progress(session, task, completed_steps, total_steps)
+
+    if has_error and task.retry_count < task.max_retries:
+        _reset_failed_processes(task)
+        task.retry_count += 1
+        task.status, task.step_language = "queued", None
+        task.progress_percent = min(_count_completed_steps(task) * 100 // total_steps, 100)
+        task.events.append(_event(task.id, f"Tự động retry lần {task.retry_count}/{task.max_retries}"))
+        poi.audio_status = PoiAudioStatus.PROCESSING.value
+        await session.commit()
+        return
+
+    task.status = "failed" if has_error else "done"
+    task.progress_percent, task.step_language = 100, None
+    poi.audio_status = PoiAudioStatus.FAILED.value if has_error else PoiAudioStatus.READY.value
     if not has_error and task.activation_requested:
-        poi_update["is_active"] = True
-    await poi_collection.update_one({"_id": poi.id}, {"$set": poi_update})
+        poi.is_active = True
+    task.events.append(_event(task.id, "Xử lý POI thất bại" if has_error else "Xử lý POI hoàn tất"))
+    await session.commit()
 
 
-def _event(
-    message: str,
-    language: str | None = None,
-    started_at: datetime | None = None,
-) -> dict:
-    return Event(
-        message=message,
-        language=language,
-        started_at=started_at or datetime.now(UTC),
-    ).model_dump()
+async def _find_localization(session: AsyncSession, poi_id: UUID, language: str):
+    return (
+        await session.scalars(
+            select(PoiLocalizationModel).where(
+                PoiLocalizationModel.poi_id == poi_id,
+                PoiLocalizationModel.lang == language,
+                PoiLocalizationModel.deleted_at.is_(None),
+            )
+        )
+    ).first()
 
 
-async def _append_event(
-    task_collection,
-    task_id,
-    message: str,
-    language: str | None = None,
-) -> None:
-    await task_collection.update_one(
-        {"_id": task_id},
-        {
-            "$set": {"updated_at": datetime.now(UTC)},
-            "$push": {"events": _event(message, language)},
-        },
-    )
+def _count_completed_steps(task: PoiTaskModel) -> int:
+    return sum(x.translation_status == "done" for x in task.processes) + sum(x.audio_status == "done" for x in task.processes)
 
 
-async def _save_progress(
-    task_collection,
-    task: PoiTaskModel,
-    completed_steps: int,
-    total_steps: int,
-) -> None:
-    await task_collection.update_one(
-        {"_id": task.id},
-        {
-            "$set": {
-                "processes": [
-                    process.model_dump(mode="json") for process in task.processes
-                ],
-                "progress_percent": min(completed_steps * 100 // total_steps, 100),
-                "updated_at": datetime.now(UTC),
-            }
-        },
-    )
+def _reset_failed_processes(task: PoiTaskModel) -> None:
+    for process in task.processes:
+        if process.translation_status == "failed":
+            process.translation_status = "pending"
+        if process.audio_status == "failed":
+            process.audio_status = "pending"
+        process.error_message = None
+
+
+async def _save_progress(session, task, completed_steps, total_steps) -> None:
+    task.progress_percent = min(completed_steps * 100 // total_steps, 100)
+    await session.commit()
+
+
+async def _retry_or_fail(session: AsyncSession, task_id: UUID, message: str) -> None:
+    task = await _get_task(session, task_id)
+    if task is None:
+        return
+    task.events.append(_event(task.id, message))
+    if task.retry_count < task.max_retries:
+        _reset_failed_processes(task)
+        task.retry_count += 1
+        task.status = "queued"
+        task.events.append(_event(task.id, f"Tự động retry lần {task.retry_count}/{task.max_retries}"))
+    else:
+        task.status = "failed"
+    task.step_language = None
+    await session.commit()
+
+
+async def _recover_tasks(session: AsyncSession) -> None:
+    tasks = list((await session.scalars(_task_query().where(PoiTaskModel.status.in_(["running", "failed"]), PoiTaskModel.deleted_at.is_(None)))).all())
+    for task in tasks:
+        if task.status == "failed" and task.retry_count >= task.max_retries:
+            continue
+        _reset_failed_processes(task)
+        if task.status == "failed":
+            task.retry_count += 1
+        task.status, task.step_language = "queued", None
+        task.events.append(_event(task.id, "Khôi phục task bị gián đoạn"))
+    await session.commit()

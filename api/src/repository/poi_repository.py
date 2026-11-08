@@ -1,101 +1,61 @@
 from datetime import datetime
+from uuid import UUID
 
+from core.dependency import PostgresDB
+from model.poi_localization_model import PoiLocalizationModel
 from model.poi_model import PoiModel
-from pymongo import ASCENDING, DESCENDING
-from pymongo.asynchronous.database import AsyncDatabase
-from pymongo.results import InsertOneResult
+from sqlalchemy import func, or_, select
+
+
+def attach_location(model):
+    model.location_geojson = model.location or {"type": "Point", "coordinates": [0, 0]}
+    return model
 
 
 class PoiRepository:
-    def __init__(self, db: AsyncDatabase):
-        self.collection = db["poi"]
+    def __init__(self, context: PostgresDB):
+        self.context = context
 
-    async def insert_item(self, document: dict) -> InsertOneResult:
-        return await self.collection.insert_one(document)
+    async def find_by_id(self, poi_id: UUID, *, active: bool | None = None) -> PoiModel | None:
+        conditions = [PoiModel.id == poi_id, PoiModel.deleted_at.is_(None)]
+        if active is not None:
+            conditions.append(PoiModel.is_active == active)
+        model = (await self.context.scalars(select(PoiModel).where(*conditions))).first()
+        return attach_location(model) if model else None
 
-    async def find_public_changed_between(
-        self,
-        lang: str,
-        updated_after: datetime | None,
-    ) -> list[dict]:
-        match_conditions = {
-            "is_active": True,
-            "deleted_at": None,
-        }
+    async def find_owned(self, owner_id: UUID, poi_id: UUID | None = None) -> list[PoiModel]:
+        conditions = [PoiModel.owner_id == owner_id, PoiModel.deleted_at.is_(None)]
+        if poi_id is not None:
+            conditions.append(PoiModel.id == poi_id)
+        models = (await self.context.scalars(select(PoiModel).where(*conditions).order_by(PoiModel.name))).all()
+        return [attach_location(model) for model in models]
+
+    async def find_pagination(self, page: int, page_size: int, *, owner_id: UUID | None = None, keyword: str | None = None):
+        conditions = [PoiModel.deleted_at.is_(None)]
+        if owner_id is not None:
+            conditions.append(PoiModel.owner_id == owner_id)
+        if keyword:
+            pattern = f"%{keyword.strip()}%"
+            conditions.append(or_(PoiModel.name.ilike(pattern), PoiModel.address.ilike(pattern)))
+        models = (await self.context.scalars(select(PoiModel).where(*conditions).order_by(PoiModel.created_at.desc()).offset((page - 1) * page_size).limit(page_size))).all()
+        total = await self.context.scalar(select(func.count()).select_from(PoiModel).where(*conditions))
+        return [attach_location(model) for model in models], total or 0
+
+    async def find_public_changed(self, lang: str, updated_after: datetime | None):
+        conditions = [PoiModel.is_active.is_(True), PoiModel.deleted_at.is_(None)]
         if updated_after is not None:
-            match_conditions["updated_at"] = {"$gt": updated_after}
-
-        cursor = await self.collection.aggregate(
-            [
-                {
-                    "$match": match_conditions,
-                },
-                {
-                    "$lookup": {
-                        "from": "poi_localization",
-                        "let": {"poi_id": "$_id"},
-                        "pipeline": [
-                            {
-                                "$match": {
-                                    "$expr": {
-                                        "$and": [
-                                            {"$eq": ["$poi_id", "$$poi_id"]},
-                                            {"$eq": ["$lang", lang]},
-                                            {"$eq": ["$deleted_at", None]},
-                                        ]
-                                    }
-                                }
-                            },
-                            {"$limit": 1},
-                        ],
-                        "as": "localizations",
-                    }
-                },
-                {
-                    "$set": {
-                        "localization": {"$first": "$localizations"},
-                    }
-                },
-                {
-                    "$set": {
-                        "category_name": {
-                            "$ifNull": ["$localization.category", "$category_name"]
-                        },
-                        "name": {"$ifNull": ["$localization.name", "$name"]},
-                        "description": {
-                            "$ifNull": ["$localization.description", "$description"]
-                        },
-                        "audio_url": "$localization.audio_url",
-                        "lang": lang,
-                    }
-                },
-                {"$unset": ["localizations", "localization"]},
-                {"$sort": {"updated_at": ASCENDING, "_id": ASCENDING}},
-            ]
+            conditions.append(PoiModel.updated_at > updated_after)
+        statement = (
+            select(PoiModel, PoiLocalizationModel)
+            .join(PoiLocalizationModel, (PoiLocalizationModel.poi_id == PoiModel.id) & (PoiLocalizationModel.lang == lang), isouter=True)
+            .where(*conditions).order_by(PoiModel.updated_at, PoiModel.id)
         )
+        return list((await self.context.execute(statement)).all())
 
-        return await cursor.to_list()
+    async def insert(self, poi: PoiModel) -> PoiModel:
+        self.context.add(poi)
+        await self.context.flush()
+        return poi
 
-    async def count_filter(self, pipeline: list[dict]) -> int:
-        cursor = await self.collection.aggregate([*pipeline, {"$count": "total"}])
-        documents = await cursor.to_list()
-
-        if not documents:
-            return 0
-
-        return documents[0]["total"]
-
-    async def find_pagination(
-        self, pipeline: list[dict], page: int, page_size: int
-    ) -> list[PoiModel]:
-        cursor = await self.collection.aggregate(
-            [
-                *pipeline,
-                {"$sort": {"created_at": DESCENDING, "_id": DESCENDING}},
-                {"$skip": (page - 1) * page_size},
-                {"$limit": page_size},
-            ]
-        )
-        documents = await cursor.to_list()
-
-        return [PoiModel.model_validate(document) for document in documents]
+    async def list_admin(self, page: int, page_size: int, keyword: str | None = None):
+        return await self.find_pagination(page, page_size, keyword=keyword)

@@ -35,7 +35,7 @@ import type {
 } from "../../../types/PoiSubmission";
 
 const LIST_PATH = "/quan-ly/don-dang-ky-poi/danh-sach-don-poi";
-const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const STATUS_LABELS: Record<PoiSubmissionStatus, string> = {
   pending: "Chờ duyệt",
@@ -74,7 +74,7 @@ function getMapCoordinates(submission: PoiSubmission): MapCoordinates | null {
 
 export default function PoiSubmissionDetailPage() {
   const { id = "" } = useParams();
-  const hasValidId = OBJECT_ID_PATTERN.test(id);
+  const hasValidId = UUID_PATTERN.test(id);
   const [submission, setSubmission] = useState<PoiSubmission | null>(null);
   const [adminNote, setAdminNote] = useState("");
   const [activationRequested, setActivationRequested] = useState(false);

@@ -4,15 +4,15 @@ from typing import Annotated
 from core.api_response import ApiResponse
 from core.pagination import Pagination
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
+from schema.menu_item_schema import MenuItemView
 from schema.poi_category_schema import FilterPoiCategory, ViewPoiCategory
 from schema.poi_dataset_schema import PoiDataset
 from service.content_dataset_version_service import ContentDatasetVersionService
+from service.menu_item_service import MenuItemService
 from service.poi_category_service import PoiCategoryService
 from service.poi_service import PoiService
-from service.menu_item_service import MenuItemService
-from schema.menu_item_schema import MenuItemView
 
-router = APIRouter(prefix="/public", tags=["Category Controller"])
+router = APIRouter(prefix="/public", tags=["Public Controller"])
 
 
 @router.get("/pois/{poi_id}/menu-items")
@@ -20,7 +20,11 @@ async def list_public_menu(
     poi_id: str,
     service: Annotated[MenuItemService, Depends()],
 ) -> ApiResponse[list[MenuItemView]]:
-    return ApiResponse(success=True, message="Lấy thực đơn thành công", data=await service.list_public(poi_id))
+    return ApiResponse(
+        success=True,
+        message="Lấy thực đơn thành công",
+        data=await service.list_public(poi_id),
+    )
 
 
 @router.get("/categories")
@@ -77,8 +81,3 @@ async def bundle_poi(
             pois=pois,
         ),
     )
-
-
-@router.get("/dashboard-features")
-async def dashboard_feature():
-    pass

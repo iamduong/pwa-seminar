@@ -1,244 +1,84 @@
-import re
-from datetime import UTC, datetime
 from resource.config import MY_MEMORY_LANGUAGES
 
-from bson import ObjectId
-from core.dependency import MongoDB
+from core.dependency import PostgresDB
+from core.identifier import parse_uuid
 from core.pagination import Pagination
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 from model.poi_model import PoiModel
-from model.poi_submission_model import PoiSubmissionModel, PoiSubmissionStatus
-from model.poi_task_model import PoiTaskModel, PoiTaskStatus, PoiTaskType, Process
+from model.poi_submission_model import PoiSubmissionModel
+from model.poi_task_model import PoiTaskModel
+from model.poi_task_process_model import PoiTaskProcessModel
 from repository.admin_user_repository import AdminUserRepository
 from repository.poi_category_repository import PoiCategoryRepository
 from repository.poi_repository import PoiRepository
 from repository.poi_submission_repository import PoiSubmissionRepository
 from repository.poi_task_repository import PoiTaskRepository
-from schema.poi_submission_shema import (
-    FilterPoiSubmission,
-    RegisterPoiSubmission,
-    ReviewPoiSubmission,
-    ViewPoiSubmission,
-)
+from schema.poi_submission_shema import FilterPoiSubmission, RegisterPoiSubmission, ReviewPoiSubmission, ViewPoiSubmission
 from service.content_dataset_version_service import ContentDatasetVersionService
 
 
+def point_value(location):
+    return location.model_dump()
+
+
 class PoiSubmissionService:
-    def __init__(self, db: MongoDB):
-        self.poi_submission_repository = PoiSubmissionRepository(db)
-        self.admin_user_repository = AdminUserRepository(db)
-        self.poi_category_repository = PoiCategoryRepository(db)
-        self.poi_repository = PoiRepository(db)
-        self.poi_task_repository = PoiTaskRepository(db)
-        self.content_dataset_version_service = ContentDatasetVersionService(db)
+    def __init__(self, db: PostgresDB):
+        self.db = db
+        self.repository = PoiSubmissionRepository(db)
+        self.users = AdminUserRepository(db)
+        self.categories = PoiCategoryRepository(db)
+        self.pois = PoiRepository(db)
+        self.tasks = PoiTaskRepository(db)
+        self.versions = ContentDatasetVersionService(db)
 
-    def _to_view(self, model: PoiSubmissionModel) -> ViewPoiSubmission:
-        return ViewPoiSubmission(
-            id=str(model.id),
-            owner_id=str(model.owner_id),
-            poi_id=str(model.poi_id) if model.poi_id is not None else None,
-            submission_type=model.submission_type,
-            category_id=str(model.category_id),
-            category_name=model.category_name,
-            name=model.name,
-            description=model.description,
-            address=model.address,
-            location=model.location,
-            images=model.images,
-            trigger_radius=model.trigger_radius,
-            owner_note=model.owner_note,
-            status=model.status,
-            admin_note=model.admin_note,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
-        )
+    @staticmethod
+    def _view(model):
+        return ViewPoiSubmission(id=str(model.id), owner_id=str(model.owner_id), poi_id=str(model.poi_id) if model.poi_id else None, submission_type=model.submission_type, category_id=str(model.category_id), category_name=model.category_name, name=model.name, description=model.description, address=model.address, location=model.location_geojson, images=model.images, trigger_radius=model.trigger_radius, owner_note=model.owner_note, status=model.status, admin_note=model.admin_note, created_at=model.created_at, updated_at=model.updated_at)
 
-    # Filter poi submission
-    async def filter_poi_submission(
-        self, filters: FilterPoiSubmission
-    ) -> Pagination[ViewPoiSubmission]:
-        return await self._filter_poi_submission(filters)
+    async def _filter(self, filters, owner_id=None):
+        category_id = parse_uuid(filters.category_id, "Mã danh mục") if filters.category_id else None
+        items, total = await self.repository.find_pagination(filters.page, filters.page_size, owner_id=owner_id, keyword=filters.q, address=filters.address, category_id=category_id, status=filters.status.value if filters.status else None)
+        return Pagination[ViewPoiSubmission](page=filters.page, page_size=filters.page_size, total_item=total, total_page=(total + filters.page_size - 1) // filters.page_size, data=[self._view(x) for x in items])
 
-    async def filter_owner_poi_submission(
-        self, filters: FilterPoiSubmission, owner_id: str
-    ) -> Pagination[ViewPoiSubmission]:
-        return await self._filter_poi_submission(filters, ObjectId(owner_id))
+    async def filter_poi_submission(self, filters: FilterPoiSubmission):
+        return await self._filter(filters)
 
-    async def _filter_poi_submission(
-        self, filters: FilterPoiSubmission, owner_id: ObjectId | None = None
-    ) -> Pagination[ViewPoiSubmission]:
-        conditions: list[dict] = [{"deleted_at": None}]
+    async def filter_owner_poi_submission(self, filters: FilterPoiSubmission, owner_id: str):
+        return await self._filter(filters, parse_uuid(owner_id, "Mã chủ quán"))
 
-        if owner_id is not None:
-            conditions.append({"owner_id": owner_id})
+    async def get_poi_submission_by_id(self, submission_id: str):
+        model = await self.repository.find_by_id(parse_uuid(submission_id, "Mã đăng ký POI"))
+        if model is None:
+            raise HTTPException(404, "Không tìm thấy đăng ký POI")
+        return self._view(model)
 
-        if filters.q:
-            keyword = re.escape(filters.q.strip())
-            if keyword:
-                conditions.append(
-                    {
-                        "$or": [
-                            {"name": {"$regex": keyword, "$options": "i"}},
-                            {"address": {"$regex": keyword, "$options": "i"}},
-                        ]
-                    }
-                )
+    async def register_poi_submission(self, body: RegisterPoiSubmission, user_id: str):
+        owner_id = parse_uuid(user_id, "Mã chủ quán")
+        user = await self.users.find_by_id(owner_id)
+        if user is None or not user.is_active:
+            raise HTTPException(404, "Không tìm thấy tài khoản đang hoạt động")
+        category = await self.categories.find_by_id(parse_uuid(body.category_id, "Mã danh mục"))
+        if category is None or not category.is_active:
+            raise HTTPException(404, "Không tìm thấy danh mục POI")
+        model = PoiSubmissionModel(owner_id=owner_id, category_id=category.id, category_name=category.name, name=body.name.strip(), description=body.description.strip(), address=body.address.strip(), location=point_value(body.location), images=body.images, trigger_radius=body.trigger_radius, owner_note=body.owner_note.strip(), admin_note=None)
+        model = await self.repository.insert(model)
+        model.location_geojson = body.location.model_dump()
+        return self._view(model)
 
-        if filters.address:
-            address = re.escape(filters.address.strip())
-            if address:
-                conditions.append({"address": {"$regex": address, "$options": "i"}})
-
-        if filters.category_id:
-            conditions.append({"category_id": ObjectId(filters.category_id)})
-
-        if filters.status:
-            conditions.append({"status": filters.status.value})
-
-        pipeline = [{"$match": {"$and": conditions}}]
-        total_item = await self.poi_submission_repository.count_filter(pipeline)
-        submissions = await self.poi_submission_repository.find_pagination(
-            pipeline, filters.page, filters.page_size
-        )
-        total_page = (total_item + filters.page_size - 1) // filters.page_size
-
-        return Pagination[ViewPoiSubmission](
-            page=filters.page,
-            page_size=filters.page_size,
-            total_item=total_item,
-            total_page=total_page,
-            data=[self._to_view(submission) for submission in submissions],
-        )
-
-    # Get poi submission by id
-    async def get_poi_submission_by_id(
-        self, poi_submission_id: str
-    ) -> ViewPoiSubmission:
-        submission = await self.poi_submission_repository.find_one(
-            {
-                "_id": ObjectId(poi_submission_id),
-                "deleted_at": None,
-            }
-        )
-
-        if submission is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Không tìm thấy đăng ký POI",
-            )
-
-        return self._to_view(submission)
-
-    # Reiview poi submission
-    async def review_poi_submission(
-        self, poi_submission_id: str, body: ReviewPoiSubmission
-    ) -> ViewPoiSubmission:
-        submission = await self.poi_submission_repository.find_one(
-            {
-                "_id": ObjectId(poi_submission_id),
-                "status": "pending",
-            }
-        )
-
-        if not submission:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Không tìm thấy đơn hoặc đơn đã xử lý",
-            )
-
-        updated_at = datetime.now(UTC)
-        submission.status = body.status
-        submission.admin_note = body.admin_note
-        submission.updated_at = updated_at
-
-        if body.status == PoiSubmissionStatus.APPROVED:
-            poi = PoiModel(
-                owner_id=submission.owner_id,
-                category_id=submission.category_id,
-                category_name=submission.category_name,
-                name=submission.name,
-                description=submission.description,
-                address=submission.address,
-                location=submission.location,
-                images=submission.images,
-                trigger_radius=submission.trigger_radius,
-                activation_requested=body.activation_requested,
-                audio_priority=body.audio_priority,
-            )
-            result = await self.poi_repository.insert_item(poi.to_dump())
-            await self.content_dataset_version_service.rotate_poi_etag()
-            submission.poi_id = result.inserted_id
-
-            processes = [
-                Process(
-                    language=language,
-                )
-                for language in MY_MEMORY_LANGUAGES
-            ]
-
-            poi_task = PoiTaskModel(
-                poi_id=result.inserted_id,
-                type=PoiTaskType.CREATE,
-                status=PoiTaskStatus.QUEUED,
-                progress_percent=0,
-                target_languages=MY_MEMORY_LANGUAGES,
-                step_language=None,
-                activation_requested=body.activation_requested,
-                events=[],
-                processes=processes,
-            )
-
-            await self.poi_task_repository.insert_item(poi_task.to_dump())
-
-        submission_update = submission.to_dump()
-        submission_update.pop("_id")
-
-        await self.poi_submission_repository.update_by_id(
-            submission.id, submission_update
-        )
-
-        return self._to_view(submission)
-
-    # Register new poi submission and wait for reviewing
-    async def register_poi_submission(
-        self, body: RegisterPoiSubmission, user_id: str
-    ) -> ViewPoiSubmission:
-        owner_id = ObjectId(user_id)
-        admin_user = await self.admin_user_repository.find_one(
-            {"_id": owner_id, "deleted_at": None}
-        )
-
-        if admin_user is None or not admin_user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Không tìm thấy tài khoản đang hoạt động",
-            )
-
-        category_id = ObjectId(body.category_id)
-        category = await self.poi_category_repository.find_one(
-            {"_id": category_id, "is_active": True, "deleted_at": None}
-        )
-
-        if category is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Không tìm thấy danh mục POI",
-            )
-
-        submission = PoiSubmissionModel(
-            owner_id=owner_id,
-            category_id=category.id,
-            category_name=category.name,
-            name=body.name.strip(),
-            description=body.description.strip(),
-            address=body.address.strip(),
-            location=body.location,
-            images=body.images,
-            trigger_radius=body.trigger_radius,
-            owner_note=body.owner_note.strip(),
-            admin_note=None,
-        )
-        result = await self.poi_submission_repository.insert_item(submission.to_dump())
-        submission.id = result.inserted_id
-
-        return self._to_view(submission)
+    async def review_poi_submission(self, submission_id: str, body: ReviewPoiSubmission):
+        model = await self.repository.find_by_id(parse_uuid(submission_id, "Mã đăng ký POI"), pending=True)
+        if model is None:
+            raise HTTPException(404, "Không tìm thấy đơn hoặc đơn đã xử lý")
+        model.status, model.admin_note = body.status, body.admin_note
+        if body.status == "approved":
+            poi = PoiModel(owner_id=model.owner_id, category_id=model.category_id, category_name=model.category_name, name=model.name, description=model.description, address=model.address, location=model.location, images=model.images, trigger_radius=model.trigger_radius, activation_requested=body.activation_requested, audio_priority=body.audio_priority)
+            await self.pois.insert(poi)
+            model.poi_id = poi.id
+            task = PoiTaskModel(poi_id=poi.id, type="create", status="queued", progress_percent=0, target_languages=MY_MEMORY_LANGUAGES, step_language=None, activation_requested=body.activation_requested, retry_count=0, max_retries=3)
+            task.processes = [PoiTaskProcessModel(language=language) for language in MY_MEMORY_LANGUAGES]
+            await self.tasks.insert(task)
+        await self.repository.save(model)
+        if body.status == "approved":
+            await self.versions.rotate_poi_etag()
+        refreshed = await self.repository.find_by_id(model.id)
+        return self._view(refreshed)

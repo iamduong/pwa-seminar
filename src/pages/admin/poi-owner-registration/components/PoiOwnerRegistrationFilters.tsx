@@ -62,9 +62,9 @@ export function PoiOwnerRegistrationFilters({
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="registration-status">Trạng thái</Label>
-          <Select
+        <div className="">
+          <Label className="mb-1.5" htmlFor="registration-status">Trạng thái</Label>
+          <Select 
             value={value.status}
             onValueChange={(status) =>
               status &&

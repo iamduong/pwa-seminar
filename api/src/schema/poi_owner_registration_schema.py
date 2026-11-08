@@ -20,16 +20,8 @@ class ViewPoiOwnerRegistration(BaseModel):
 class FilterPoiOwnerRegistration(BaseModel):
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=20, ge=1, le=100)
-
     q: str | None = Field(default=None, max_length=100)
-    status: (
-        Literal[
-            PoiOwnerRegistrationStatus.PENDING,
-            PoiOwnerRegistrationStatus.APPROVED,
-            PoiOwnerRegistrationStatus.REJECTED,
-        ]
-        | None
-    ) = None
+    status: Literal["pending", "approved", "rejected"] | None = None
 
 
 class RegisterPoiOwnerRegistration(BaseModel):
@@ -40,20 +32,13 @@ class RegisterPoiOwnerRegistration(BaseModel):
 
 
 class ReviewPoiPOwnerRegistration(BaseModel):
-    status: Literal[
-        PoiOwnerRegistrationStatus.APPROVED, PoiOwnerRegistrationStatus.REJECTED
-    ]
+    status: Literal["approved", "rejected"]
     admin_note: str | None = None
 
     @model_validator(mode="after")
     def require_rejection_reason(self):
-        if (
-            self.status == PoiOwnerRegistrationStatus.REJECTED
-            and not (self.admin_note or "").strip()
-        ):
+        if self.status == "rejected" and not (self.admin_note or "").strip():
             raise ValueError("Yêu cầu có lý do từ chối")
-
         if self.admin_note is not None:
             self.admin_note = self.admin_note.strip()
-
         return self

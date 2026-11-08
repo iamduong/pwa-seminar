@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from model.poi_model import AudioStatus, GeoPointModel
+from model.poi_model import AudioStatus
 from pydantic import BaseModel, Field
+from schema.geo_schema import GeoPoint
 
 
 class FilterOwnerPoi(BaseModel):
@@ -17,7 +18,7 @@ class ViewOwnerPoi(BaseModel):
     name: str
     description: str
     address: str
-    location: GeoPointModel
+    location: GeoPoint
     images: list[str]
     trigger_radius: float
     is_active: bool

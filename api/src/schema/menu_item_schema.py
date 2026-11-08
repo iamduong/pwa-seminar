@@ -18,7 +18,6 @@ class MenuItemSave(BaseModel):
 
 class MenuItemCreate(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
-
     name: str = Field(min_length=2, max_length=120)
     description: str | None = Field(default=None, max_length=1000)
     price: float | None = Field(default=None, ge=0, allow_inf_nan=False)

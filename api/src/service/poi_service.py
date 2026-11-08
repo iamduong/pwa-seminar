@@ -1,100 +1,28 @@
-import re
 from datetime import datetime
 
-from bson import ObjectId
-from core.dependency import MongoDB
+from core.dependency import PostgresDB
+from core.identifier import parse_uuid
 from core.pagination import Pagination
-from model.poi_model import PoiModel
 from repository.poi_repository import PoiRepository
 from schema.poi_dataset_schema import PoiDatasetItem
 from schema.poi_schema import FilterOwnerPoi, ViewOwnerPoi
 
 
 class PoiService:
-    def __init__(self, db: MongoDB):
-        self.poi_repository = PoiRepository(db)
+    def __init__(self, db: PostgresDB):
+        self.repository = PoiRepository(db)
 
-    def _to_owner_view(self, model: PoiModel) -> ViewOwnerPoi:
-        return ViewOwnerPoi(
-            id=str(model.id),
-            category_id=str(model.category_id),
-            category_name=model.category_name,
-            name=model.name,
-            description=model.description,
-            address=model.address,
-            location=model.location,
-            images=model.images,
-            trigger_radius=model.trigger_radius,
-            is_active=model.is_active,
-            activation_requested=model.activation_requested,
-            audio_priority=model.audio_priority,
-            audio_status=model.audio_status,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
-        )
+    @staticmethod
+    def _owner_view(model):
+        return ViewOwnerPoi(id=str(model.id), category_id=str(model.category_id), category_name=model.category_name, name=model.name, description=model.description, address=model.address, location=model.location_geojson, images=model.images, trigger_radius=model.trigger_radius, is_active=model.is_active, activation_requested=model.activation_requested, audio_priority=model.audio_priority, audio_status=model.audio_status, created_at=model.created_at, updated_at=model.updated_at)
 
-    async def find_public_pois_changed_between(
-        self,
-        lang: str,
-        updated_after: datetime | None,
-    ) -> list[PoiDatasetItem]:
-        documents = await self.poi_repository.find_public_changed_between(
-            lang=lang,
-            updated_after=updated_after,
-        )
+    async def filter_owner_pois(self, filters: FilterOwnerPoi, owner_id: str):
+        items, total = await self.repository.find_pagination(filters.page, filters.page_size, owner_id=parse_uuid(owner_id, "Mã chủ quán"), keyword=filters.q)
+        return Pagination[ViewOwnerPoi](page=filters.page, page_size=filters.page_size, total_item=total, total_page=(total + filters.page_size - 1) // filters.page_size, data=[self._owner_view(x) for x in items])
 
-        return [
-            PoiDatasetItem(
-                id=str(document["_id"]),
-                category_id=str(document["category_id"]),
-                category_name=document["category_name"],
-                name=document["name"],
-                description=document["description"],
-                address=document["address"],
-                location=document["location"],
-                images=document["images"],
-                trigger_radius=document["trigger_radius"],
-                audio_priority=document["audio_priority"],
-                audio_status=document["audio_status"],
-                audio_url=document.get("audio_url"),
-                lang=document["lang"],
-                created_at=document["created_at"],
-                updated_at=document["updated_at"],
-            )
-            for document in documents
-        ]
-
-    async def filter_owner_pois(
-        self, filters: FilterOwnerPoi, owner_id: str
-    ) -> Pagination[ViewOwnerPoi]:
-        conditions: list[dict] = [
-            {"owner_id": ObjectId(owner_id)},
-            {"deleted_at": None},
-        ]
-
-        if filters.q:
-            keyword = re.escape(filters.q.strip())
-            if keyword:
-                conditions.append(
-                    {
-                        "$or": [
-                            {"name": {"$regex": keyword, "$options": "i"}},
-                            {"address": {"$regex": keyword, "$options": "i"}},
-                        ]
-                    }
-                )
-
-        pipeline = [{"$match": {"$and": conditions}}]
-        total_item = await self.poi_repository.count_filter(pipeline)
-        pois = await self.poi_repository.find_pagination(
-            pipeline, filters.page, filters.page_size
-        )
-        total_page = (total_item + filters.page_size - 1) // filters.page_size
-
-        return Pagination[ViewOwnerPoi](
-            page=filters.page,
-            page_size=filters.page_size,
-            total_item=total_item,
-            total_page=total_page,
-            data=[self._to_owner_view(poi) for poi in pois],
-        )
+    async def find_public_pois_changed_between(self, lang: str, updated_after: datetime | None):
+        rows = await self.repository.find_public_changed(lang, updated_after)
+        result = []
+        for poi, localization in rows:
+            result.append(PoiDatasetItem(id=str(poi.id), category_id=str(poi.category_id), category_name=localization.category if localization else poi.category_name, name=localization.name if localization else poi.name, description=localization.description if localization else poi.description, address=poi.address, location=poi.location, images=poi.images, trigger_radius=poi.trigger_radius, audio_priority=poi.audio_priority, audio_status=localization.audio_status if localization else poi.audio_status, audio_url=localization.audio_url if localization else None, lang=lang, created_at=poi.created_at, updated_at=poi.updated_at))
+        return result

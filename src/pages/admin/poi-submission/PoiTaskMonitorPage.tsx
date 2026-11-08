@@ -16,6 +16,7 @@ import {
   LoaderCircleIcon,
   MapPinIcon,
   RefreshCwIcon,
+  RotateCcwIcon,
 } from "lucide-react";
 
 import {
@@ -154,14 +155,13 @@ export default function PoiTaskMonitorPage() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [streamConnected, setStreamConnected] = useState(false);
+  const [retryingTaskId, setRetryingTaskId] = useState<string | null>(null);
 
   const selectedTask =
     tasks.find((task) => task.id === selectedTaskId) ?? tasks[0] ?? null;
 
   const loadTasks = useCallback(
     async (signal?: AbortSignal) => {
-      setLoading(true);
-
       try {
         const response = await poiTaskService.GetPoiTasks(
           {
@@ -194,8 +194,14 @@ export default function PoiTaskMonitorPage() {
 
   useEffect(() => {
     const controller = new AbortController();
-    void loadTasks(controller.signal);
-    return () => controller.abort();
+    const timeoutId = window.setTimeout(() => {
+      void loadTasks(controller.signal);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [loadTasks]);
 
   useEffect(() => {
@@ -230,17 +236,6 @@ export default function PoiTaskMonitorPage() {
     };
   }, [filter]);
 
-  useEffect(() => {
-    if (tasks.length === 0) {
-      if (selectedTaskId !== null) setSelectedTaskId(null);
-      return;
-    }
-
-    if (!tasks.some((task) => task.id === selectedTaskId)) {
-      setSelectedTaskId(tasks[0].id);
-    }
-  }, [selectedTaskId, tasks]);
-
   const toggleProcesses = (taskId: string) => {
     setExpandedTaskIds((current) => {
       const next = new Set(current);
@@ -248,6 +243,29 @@ export default function PoiTaskMonitorPage() {
       else next.add(taskId);
       return next;
     });
+  };
+
+  const retryTask = async (taskId: string) => {
+    setRetryingTaskId(taskId);
+    try {
+      const response = await poiTaskService.RetryPoiTask(taskId);
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Không thể retry tiến trình.");
+      }
+      setTasks((current) =>
+        sortTasks([
+          response.data!,
+          ...current.filter((task) => task.id !== taskId),
+        ]).filter((task) => matchesFilter(task, filter)),
+      );
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Không thể retry tiến trình.",
+      );
+    } finally {
+      setRetryingTaskId(null);
+    }
   };
 
   return (
@@ -297,7 +315,10 @@ export default function PoiTaskMonitorPage() {
               type="button"
               className="ml-auto rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
               disabled={loading}
-              onClick={() => void loadTasks()}
+              onClick={() => {
+                setLoading(true);
+                void loadTasks();
+              }}
               aria-label="Làm mới danh sách tác vụ"
             >
               <RefreshCwIcon
@@ -312,7 +333,10 @@ export default function PoiTaskMonitorPage() {
               Trạng thái
               <select
                 value={filter}
-                onChange={(event) => setFilter(event.target.value as TaskFilter)}
+                onChange={(event) => {
+                  setLoading(true);
+                  setFilter(event.target.value as TaskFilter);
+                }}
                 className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-2.5 text-sm text-foreground outline-none focus:ring-3 focus:ring-ring/30"
               >
                 <option value="all">Tất cả</option>
@@ -441,6 +465,23 @@ export default function PoiTaskMonitorPage() {
                 >
                   {STATUS_META[selectedTask.status].label}
                 </span>
+                {selectedTask.status === "failed" && (
+                  <button
+                    type="button"
+                    onClick={() => void retryTask(selectedTask.id)}
+                    disabled={retryingTaskId === selectedTask.id}
+                    className="ml-2 flex items-center gap-1.5 rounded-md border border-neutral-700 px-2 py-1 text-xs text-neutral-200 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <RotateCcwIcon
+                      className={cn(
+                        "size-3.5",
+                        retryingTaskId === selectedTask.id && "animate-spin",
+                      )}
+                      aria-hidden="true"
+                    />
+                    Retry
+                  </button>
+                )}
               </CodeBlockHeader>
 
               <div className="border-b border-neutral-800 bg-neutral-900/70 px-4 py-4">
@@ -467,6 +508,11 @@ export default function PoiTaskMonitorPage() {
                     value={
                       selectedTask.status === "queued" ? "Đang chờ" : "Worker nền"
                     }
+                  />
+                  <MonitorMeta
+                    icon={<RotateCcwIcon className="size-4" aria-hidden="true" />}
+                    label="Tự động retry"
+                    value={`${selectedTask.retry_count}/${selectedTask.max_retries}`}
                   />
                 </div>
               </div>

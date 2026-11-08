@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  GeolocateControl,
   Map,
   setWorkerUrl,
   type StyleSpecification,
@@ -34,6 +35,7 @@ const HybridMap = ({
 
   initialCenter = DEFAULT_MAP_CENTER,
   initialZoom = DEFAULT_MAP_ZOOM,
+  isSupportLocation = false,
 
   selectedLocation,
   // action when click to map
@@ -51,6 +53,7 @@ const HybridMap = ({
 
   const initialCenterRef = useRef(initialCenter);
   const initialZoomRef = useRef(initialZoom);
+  const isSupportLocationRef = useRef(isSupportLocation);
 
   // ! Action when click to map
   const onClickMapRef = useRef(onClickMap);
@@ -91,17 +94,17 @@ const HybridMap = ({
     mapRef.current = map;
 
     // ! Button click to go to self locationm (GPS)
-    // if (showGeolocation) {
-    //   const geolocateControl = new GeolocateControl({
-    //     positionOptions: {
-    //       enableHighAccuracy: true,
-    //     },
-    //     trackUserLocation: true,
-    //     showUserLocation: true,
-    //   });
+    if (isSupportLocationRef.current) {
+      const geolocateControl = new GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true,
+        },
+        trackUserLocation: true,
+        showUserLocation: true,
+      });
 
-    //   map.addControl(geolocateControl, "top-right");
-    // }
+      map.addControl(geolocateControl, "top-right");
+    }
 
     // ! Clickable to active action
     if (onClickMapRef.current) {
@@ -149,7 +152,6 @@ const HybridMap = ({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    console.log(poiMarkers)
     const markers = drawPoiMarkers(map, poiMarkers, (poiMarker) => {
       const reduceMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)",

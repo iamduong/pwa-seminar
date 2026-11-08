@@ -1,14 +1,26 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from model.poi_task_event_model import PoiTaskEventModel
+from model.poi_task_model import PoiTaskStatus, PoiTaskType
+from model.poi_task_process_model import PoiTaskProcessModel
+from pydantic import BaseModel, ConfigDict, Field
 
-from model.poi_task_model import (
-    Event,
-    PoiTaskStatus,
-    PoiTaskType,
-    Process,
-)
+
+class EventView(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    message: str
+    language: str | None
+    started_at: datetime
+
+
+class ProcessView(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    language: str
+    translation_status: str
+    audio_status: str
+    audio_url: str | None
+    error_message: str | None
 
 
 class ViewPoiTask(BaseModel):
@@ -20,8 +32,10 @@ class ViewPoiTask(BaseModel):
     target_languages: list[str]
     step_language: str | None
     activation_requested: bool
-    events: list[Event]
-    processes: list[Process]
+    retry_count: int
+    max_retries: int
+    events: list[EventView]
+    processes: list[ProcessView]
     created_at: datetime
     updated_at: datetime
 

@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import Literal
 
-from model.poi_model import GeoPointModel
 from model.poi_submission_model import PoiSubmissionStatus, PoiSubmissionType
 from pydantic import BaseModel, Field
+from schema.geo_schema import GeoPoint
 
 
 class ViewPoiSubmission(BaseModel):
@@ -16,7 +16,7 @@ class ViewPoiSubmission(BaseModel):
     name: str
     description: str
     address: str
-    location: GeoPointModel
+    location: GeoPoint
     images: list[str]
     trigger_radius: int
     owner_note: str
@@ -36,10 +36,10 @@ class FilterPoiSubmission(BaseModel):
 
 
 class ReviewPoiSubmission(BaseModel):
-    status: Literal[PoiSubmissionStatus.APPROVED, PoiSubmissionStatus.REJECTED]
+    status: Literal["approved", "rejected"]
     admin_note: str
-    activation_requested: bool = Field(default=True)
-    audio_priority: int = Field(100)
+    activation_requested: bool = True
+    audio_priority: int = 100
 
 
 class RegisterPoiSubmission(BaseModel):
@@ -47,7 +47,7 @@ class RegisterPoiSubmission(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     description: str = Field(min_length=1, max_length=5000)
     address: str = Field(min_length=1, max_length=500)
-    location: GeoPointModel
+    location: GeoPoint
     images: list[str] = Field(default_factory=list, max_length=10)
     trigger_radius: int = Field(default=30, ge=10, le=500)
     owner_note: str = Field(default="", max_length=1000)

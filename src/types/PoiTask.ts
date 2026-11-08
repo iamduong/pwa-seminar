@@ -28,6 +28,8 @@ export type PoiTask = {
   target_languages: string[];
   step_language: string | null;
   activation_requested: boolean;
+  retry_count: number;
+  max_retries: number;
   events: PoiTaskEvent[];
   processes: PoiTaskProcess[];
   created_at: string;

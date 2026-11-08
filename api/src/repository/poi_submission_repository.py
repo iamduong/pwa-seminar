@@ -1,48 +1,51 @@
-from bson import ObjectId
+from uuid import UUID
+
+from core.dependency import PostgresDB
 from model.poi_submission_model import PoiSubmissionModel
-from pymongo import DESCENDING
-from pymongo.asynchronous.database import AsyncDatabase
-from pymongo.results import InsertOneResult
+from sqlalchemy import func, or_, select
+
+
+def _attach_location(model):
+    model.location_geojson = model.location or {"type": "Point", "coordinates": [0, 0]}
+    return model
 
 
 class PoiSubmissionRepository:
-    def __init__(self, db: AsyncDatabase):
-        self.collection = db["poi_submission"]
+    def __init__(self, context: PostgresDB):
+        self.context = context
 
-    async def find_one(self, search: dict) -> PoiSubmissionModel | None:
-        document = await self.collection.find_one(search)
+    async def find_by_id(self, submission_id: UUID, *, pending: bool = False):
+        conditions = [PoiSubmissionModel.id == submission_id, PoiSubmissionModel.deleted_at.is_(None)]
+        if pending:
+            conditions.append(PoiSubmissionModel.status == "pending")
+        model = (await self.context.scalars(select(PoiSubmissionModel).where(*conditions))).first()
+        return _attach_location(model) if model else None
 
-        if document is None:
-            return None
+    async def find_pagination(self, page: int, page_size: int, *, owner_id: UUID | None = None, keyword: str | None = None, address: str | None = None, category_id: UUID | None = None, status: str | None = None):
+        conditions = [PoiSubmissionModel.deleted_at.is_(None)]
+        if owner_id is not None:
+            conditions.append(PoiSubmissionModel.owner_id == owner_id)
+        if keyword:
+            pattern = f"%{keyword.strip()}%"
+            conditions.append(or_(PoiSubmissionModel.name.ilike(pattern), PoiSubmissionModel.address.ilike(pattern)))
+        if address:
+            conditions.append(PoiSubmissionModel.address.ilike(f"%{address.strip()}%"))
+        if category_id is not None:
+            conditions.append(PoiSubmissionModel.category_id == category_id)
+        if status:
+            conditions.append(PoiSubmissionModel.status == status)
+        models = (await self.context.scalars(select(PoiSubmissionModel).where(*conditions).order_by(PoiSubmissionModel.created_at.desc()).offset((page - 1) * page_size).limit(page_size))).all()
+        total = await self.context.scalar(select(func.count()).select_from(PoiSubmissionModel).where(*conditions))
+        return [_attach_location(model) for model in models], total or 0
 
-        return PoiSubmissionModel.model_validate(document)
+    async def insert(self, model):
+        self.context.add(model)
+        await self.context.commit()
+        await self.context.refresh(model)
+        return model
 
-    async def count_filter(self, pipeline: list[dict]) -> int:
-        cursor = await self.collection.aggregate([*pipeline, {"$count": "total"}])
-        documents = await cursor.to_list()
-
-        if not documents:
-            return 0
-
-        return documents[0]["total"]
-
-    async def find_pagination(
-        self, pipeline: list[dict], page: int, page_size: int
-    ) -> list[PoiSubmissionModel]:
-        cursor = await self.collection.aggregate(
-            [
-                *pipeline,
-                {"$sort": {"created_at": DESCENDING, "_id": DESCENDING}},
-                {"$skip": (page - 1) * page_size},
-                {"$limit": page_size},
-            ]
-        )
-        documents = await cursor.to_list()
-
-        return [PoiSubmissionModel.model_validate(document) for document in documents]
-
-    async def insert_item(self, document: dict) -> InsertOneResult:
-        return await self.collection.insert_one(document)
-
-    async def update_by_id(self, id: ObjectId, document: dict):
-        return await self.collection.update_one({"_id": id}, {"$set": document})
+    async def save(self, model):
+        model = await self.context.merge(model)
+        await self.context.commit()
+        await self.context.refresh(model)
+        return model

@@ -1,72 +1,82 @@
-import asyncio
-from datetime import UTC, datetime
+"""Create PostgreSQL tables and insert idempotent development fixtures.
 
-import core.provider.mongo as client
-from core.setting import get_setting
-from model.admin_user_model import AdminUserModel
-from model.role_model import RoleModel
-from pydantic import ValidationError
+Run from ``api``: ``.venv/bin/python script/collection.py``
+"""
+
+import asyncio
+import sys
+from pathlib import Path
+from uuid import uuid4
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "script"))
+
+import model  # noqa: F401 - register every SQLAlchemy mapper
+from core.provider.postgres import SessionFactory, close_postgres, engine
+from model.base.base import Base
+from model.content_dataset_version_model import ContentDatasetVersionModel
+from model.poi_owner_registration_model import PoiOwnerRegistrationModel
 from seed.admin_user import init_admin_user
+from seed.menu_item import init_menu_items
 from seed.poi_category import init_poi_category
 from seed.role import init_role
+from sqlalchemy import select
 
-setting = get_setting()
+
+async def create_tables() -> None:
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+    print("PostgreSQL tables are ready")
 
 
-async def init_collection():
-    await client.connect_mongo()
-    if client.mongo_client is None:
-        raise RuntimeError("MongoDB is not loaded")
+async def seed_data() -> None:
+    async with SessionFactory() as session:
+        roles = await init_role(session)
+        users = await init_admin_user(session, roles)
+        categories = await init_poi_category(session)
+        owner = users["owner@dev.com"]
+        await init_menu_items(session, categories[0], owner)
 
-    # Create collection
-    db = client.get_mongo()
+        registration = (
+            await session.scalars(
+                select(PoiOwnerRegistrationModel).where(
+                    PoiOwnerRegistrationModel.user_id == owner.id
+                )
+            )
+        ).first()
+        if registration is None:
+            session.add(
+                PoiOwnerRegistrationModel(
+                    user_id=owner.id,
+                    business_name="Ẩm thực Sài Gòn Demo",
+                    business_address="Quận 1, TP.HCM",
+                    note="Dữ liệu mẫu",
+                    admin_note="Đã duyệt bởi script seed",
+                    status="approved",
+                )
+            )
 
-    await db.create_collection("role")
-    await db.create_collection("admin_user")
+        version = (
+            await session.scalars(
+                select(ContentDatasetVersionModel).where(
+                    ContentDatasetVersionModel.key_query == "poi"
+                )
+            )
+        ).first()
+        if version is None:
+            session.add(ContentDatasetVersionModel(key_query="poi", etag=uuid4().hex))
+        await session.commit()
+    print("Sample data seeded successfully")
 
-    await db.create_collection("poi_owner_registration")
-    await db.create_collection("poi_category")
-    await db.create_collection("poi_submission")
-    await db.create_collection("poi")
-    await db.create_collection("poi_task")
-    await db.create_collection("poi_localization")
 
-    print("Init collection successfully")
-
-    # Insert seeds
-    await init_role(db)
-    await init_admin_user(db)
-    await init_poi_category(db)
-
-    # Insert defaul admin_user for testing
-    role_collection = db["role"]
-    admin_user_collection = db["admin_user"]
-
+async def main() -> None:
     try:
-        role_document = await role_collection.find_one({"name": "super_admin"})
-        if role_document is None:
-            raise ValueError("Failed")
-
-        role_model = RoleModel.model_validate(role_document)
-
-        await admin_user_collection.insert_one(
-            AdminUserModel(
-                full_name="Nguyễn Admin",
-                email="admin@dev.com",
-                phone="03888583835",
-                password_hash="$2b$12$cN1cQ.LSTm8x6c8ve1.n8exx25jrdgOqykCrrzFhqJNyFSalEygRK",
-                is_active=True,
-                is_poi_owner_verified=True,
-                id_card_encrypted="",
-                pii_collected_at=datetime.now(UTC),
-                role_id=role_model.id,
-            ).to_dump()
-        )
-
-        print("Insert default admin is successful")
-
-    except ValueError, ValidationError:
-        print("Insert default admin user is failed")
+        await create_tables()
+        await seed_data()
+    finally:
+        await close_postgres()
 
 
-asyncio.run(init_collection())
+if __name__ == "__main__":
+    asyncio.run(main())

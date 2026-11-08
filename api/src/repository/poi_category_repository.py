@@ -1,44 +1,19 @@
+from core.dependency import PostgresDB
 from model.poi_category_model import PoiCategoryModel
-from pymongo import ASCENDING
-from pymongo.asynchronous.database import AsyncDatabase
+from sqlalchemy import func, select
 
 
 class PoiCategoryRepository:
-    def __init__(self, db: AsyncDatabase):
-        self.collection = db["poi_category"]
+    def __init__(self, context: PostgresDB):
+        self.context = context
 
-    # Find document
-    async def find_one(self, search: dict) -> PoiCategoryModel | None:
-        document = await self.collection.find_one(search)
+    async def find_by_id(self, category_id):
+        return (await self.context.scalars(select(PoiCategoryModel).where(PoiCategoryModel.id == category_id, PoiCategoryModel.deleted_at.is_(None)))).one_or_none()
 
-        if document is None:
-            return None
-
-        return PoiCategoryModel.model_validate(document)
-
-    # Find document by pagination
-    async def count_filter(self, pipeline: list[dict]) -> int:
-        pipeline = [*pipeline, {"$count": "total"}]
-
-        cursor = await self.collection.aggregate(pipeline)
-        documents = await cursor.to_list()
-
-        if not documents:
-            return 0
-
-        return documents[0]["total"]
-
-    async def find_pagination(
-        self, pipeline: list[dict], page: int, page_size: int
-    ) -> list[PoiCategoryModel]:
-        pipeline = [
-            *pipeline,
-            {"$sort": {"_id": ASCENDING}},
-            {"$skip": (page - 1) * page_size},
-            {"$limit": page_size},
-        ]
-
-        cursor = await self.collection.aggregate(pipeline)
-        documents = await cursor.to_list()
-
-        return [PoiCategoryModel.model_validate(document) for document in documents]
+    async def find_pagination(self, page: int, page_size: int, keyword: str | None = None):
+        conditions = [PoiCategoryModel.deleted_at.is_(None), PoiCategoryModel.is_active.is_(True)]
+        if keyword:
+            conditions.append(PoiCategoryModel.name.ilike(f"%{keyword.strip()}%"))
+        items = await self.context.scalars(select(PoiCategoryModel).where(*conditions).order_by(PoiCategoryModel.name).offset((page - 1) * page_size).limit(page_size))
+        total = await self.context.scalar(select(func.count()).select_from(PoiCategoryModel).where(*conditions))
+        return list(items.all()), total or 0

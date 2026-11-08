@@ -1,16 +1,30 @@
-from bson import ObjectId
-from schema.contract.base_contact import Base
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from uuid import UUID
+
+from sqlalchemy import Boolean, Float, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from model.base.base import Base
+
+if TYPE_CHECKING:
+    from model.poi_model import PoiModel
 
 
 class MenuItemModel(Base):
-    poi_id: ObjectId
-    name: str
-    description: str | None = None
-    price: float | None = None
-    image_url: str | None = None
+    __tablename__ = "menu_items"
 
-    # Admin đã duyệt để hiển thị.
-    is_active: bool = False
+    poi_id: Mapped[UUID] = mapped_column(
+        ForeignKey("pois.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_available: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    # Món đang được bán.
-    is_available: bool = True
+    # Relationship
+    poi: Mapped[PoiModel] = relationship(back_populates="menu_items")

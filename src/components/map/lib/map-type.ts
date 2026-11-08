@@ -17,6 +17,7 @@ export interface HybridMapProps {
 
   initialCenter?: MapCoordinates;
   initialZoom?: number;
+  isSupportLocation?: boolean;
 
   poiMarkers?: PoiMarker[];
 

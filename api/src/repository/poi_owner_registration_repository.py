@@ -1,75 +1,122 @@
-from bson import ObjectId
-from model.poi_owner_registration_model import PoiOwnerRegistrationModel
-from pymongo.asynchronous.database import AsyncDatabase
-from pymongo.results import (
-    DeleteResult,
-    InsertManyResult,
-    InsertOneResult,
-    UpdateResult,
+from datetime import UTC, datetime
+from uuid import UUID
+
+from core.dependency import PostgresDB
+from model.poi_owner_registration_model import (
+    PoiOwnerRegistrationModel,
+    PoiOwnerRegistrationStatus,
 )
+from sqlalchemy import func, or_, select, update
 
 
-class PoiOwnerRegistrationReposioty:
-    def __init__(self, db: AsyncDatabase):
-        self.collection = db["poi_owner_registration"]
+class PoiOwnerRegistrationRepository:
+    def __init__(self, context: PostgresDB):
+        self.context = context
 
-    # Find document
-    async def find_one(self, search: dict) -> PoiOwnerRegistrationModel | None:
-        document = await self.collection.find_one(search)
+    async def find_by_id(
+        self, registration_id: UUID
+    ) -> PoiOwnerRegistrationModel | None:
+        statement = select(PoiOwnerRegistrationModel).where(
+            PoiOwnerRegistrationModel.id == registration_id,
+            PoiOwnerRegistrationModel.deleted_at.is_(None),
+        )
+        result = await self.context.scalars(statement)
 
-        if document is None:
-            return None
+        return result.one_or_none()
 
-        return PoiOwnerRegistrationModel.model_validate(document)
-
-    async def find_many(self, search: dict) -> list[PoiOwnerRegistrationModel]:
-        cursor = self.collection.find(search).sort("created_at", -1)
-        documents = await cursor.to_list(length=None)
-        return [
-            PoiOwnerRegistrationModel.model_validate(document)
-            for document in documents
-        ]
-
-    # Find document by pagination
-    async def count_filter(self, pipeline: list[dict]) -> int:
-        pipeline = [*pipeline, {"$count": "total"}]
-
-        cursor = await self.collection.aggregate(pipeline)
-        documents = await cursor.to_list()
-
-        if not documents:
-            return 0
-
-        return documents[0]["total"]
+    async def find_by_user(self, user_id: UUID) -> list[PoiOwnerRegistrationModel]:
+        result = await self.context.scalars(
+            select(PoiOwnerRegistrationModel).where(
+                PoiOwnerRegistrationModel.user_id == user_id,
+                PoiOwnerRegistrationModel.deleted_at.is_(None),
+            ).order_by(PoiOwnerRegistrationModel.created_at.desc())
+        )
+        return list(result.all())
 
     async def find_pagination(
-        self, pipeline: list[dict], page: int, page_size: int
-    ) -> list[PoiOwnerRegistrationModel]:
-        pipeline = [
-            *pipeline,
-            {"$sort": {"_id": 1}},
-            {"$skip": (page - 1) * page_size},
-            {"$limit": page_size},
-        ]
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        *,
+        status: PoiOwnerRegistrationStatus | str | None = None,
+        keyword: str | None = None,
+    ) -> tuple[list[PoiOwnerRegistrationModel], int]:
+        if page < 1:
+            raise ValueError("page must be greater than or equal to 1")
+        if page_size < 1:
+            raise ValueError("page_size must be greater than or equal to 1")
 
-        cursor = await self.collection.aggregate(pipeline)
-        documents = await cursor.to_list()
+        conditions = [PoiOwnerRegistrationModel.deleted_at.is_(None)]
 
-        return [
-            PoiOwnerRegistrationModel.model_validate(document) for document in documents
-        ]
+        if status is not None:
+            status_value = (
+                status.value
+                if isinstance(status, PoiOwnerRegistrationStatus)
+                else status
+            )
+            conditions.append(PoiOwnerRegistrationModel.status == status_value)
 
-    # Insert document
-    async def insert_item(self, document: dict) -> InsertOneResult:
-        return await self.collection.insert_one(document)
+        if keyword and (normalized_keyword := keyword.strip()):
+            pattern = f"%{normalized_keyword}%"
+            conditions.append(
+                or_(
+                    PoiOwnerRegistrationModel.business_name.ilike(pattern),
+                    PoiOwnerRegistrationModel.business_address.ilike(pattern),
+                )
+            )
 
-    async def insert_items(self, documents: list[dict]) -> InsertManyResult:
-        pass
+        statement = (
+            select(PoiOwnerRegistrationModel)
+            .where(*conditions)
+            .order_by(PoiOwnerRegistrationModel.created_at.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        count_statement = (
+            select(func.count())
+            .select_from(PoiOwnerRegistrationModel)
+            .where(*conditions)
+        )
 
-    # Update document
-    async def update_by_id(self, id: ObjectId, document: dict) -> UpdateResult:
-        return await self.collection.update_one({"_id": id}, {"$set": document})
+        result = await self.context.scalars(statement)
+        total = await self.context.scalar(count_statement)
 
-    # Delete document
-    async def delete_by_id(self, id: ObjectId, document: dict) -> DeleteResult:
-        pass
+        return list(result.all()), total or 0
+
+    async def update(
+        self, model: PoiOwnerRegistrationModel
+    ) -> PoiOwnerRegistrationModel:
+        managed_model = await self.context.merge(model)
+        await self.context.commit()
+        await self.context.refresh(managed_model)
+
+        return managed_model
+
+    udpate = update
+
+    async def insert(
+        self, model: PoiOwnerRegistrationModel
+    ) -> PoiOwnerRegistrationModel:
+        self.context.add(model)
+        await self.context.commit()
+        await self.context.refresh(model)
+
+        return model
+
+    async def soft_delete(
+        self, registration_id: UUID
+    ) -> PoiOwnerRegistrationModel | None:
+        statement = (
+            update(PoiOwnerRegistrationModel)
+            .where(
+                PoiOwnerRegistrationModel.id == registration_id,
+                PoiOwnerRegistrationModel.deleted_at.is_(None),
+            )
+            .values(deleted_at=datetime.now(UTC))
+            .returning(PoiOwnerRegistrationModel)
+        )
+        result = await self.context.scalars(statement)
+        deleted_model = result.one_or_none()
+
+        await self.context.commit()
+        return deleted_model

@@ -1,7 +1,15 @@
-from enum import Enum
+from __future__ import annotations
 
-from bson import ObjectId
-from schema.contract.base_contact import Base
+from enum import Enum
+from typing import TYPE_CHECKING
+from uuid import UUID
+
+from model.base.base import Base
+from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+if TYPE_CHECKING:
+    from model.poi_model import PoiModel
 
 
 class AudioStatus(str, Enum):
@@ -12,12 +20,22 @@ class AudioStatus(str, Enum):
 
 
 class PoiLocalizationModel(Base):
-    poi_id: ObjectId
+    __tablename__ = "poi_localizations"
 
-    lang: str
-    category: str
-    name: str
-    description: str
+    poi_id: Mapped[UUID] = mapped_column(
+        ForeignKey("pois.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    lang: Mapped[str] = mapped_column(String(10), nullable=False)
+    category: Mapped[str] = mapped_column(String(150), nullable=False)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    audio_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    audio_status: Mapped[str] = mapped_column(
+        String(30),
+        default=AudioStatus.PENDING.value,
+        nullable=False,
+    )
 
-    audio_url: str | None = None
-    audio_status: AudioStatus = AudioStatus.PENDING
+    # Relationship
+    poi: Mapped[PoiModel] = relationship(back_populates="localizations")

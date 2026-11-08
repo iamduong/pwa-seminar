@@ -1,70 +1,88 @@
-from bson import ObjectId
+from datetime import UTC, datetime
+from uuid import UUID
+
+from core.dependency import PostgresDB
 from model.admin_user_model import AdminUserModel
-from pymongo.asynchronous.database import AsyncDatabase
-from pymongo.results import (
-    DeleteResult,
-    InsertManyResult,
-    InsertOneResult,
-    UpdateResult,
-)
+from sqlalchemy import func, or_, select, update
 
 
 class AdminUserRepository:
-    def __init__(self, db: AsyncDatabase):
-        self.collection = db["admin_user"]
+    def __init__(self, context: PostgresDB):
+        self.context = context
 
-    # Find document
-    async def find_one(self, search: dict) -> AdminUserModel | None:
-        document = await self.collection.find_one(search)
-
-        if document is None:
-            return None
-
-        return AdminUserModel.model_validate(document)
-
-    async def find_search(self, search: dict) -> list[AdminUserModel]:
-        cursor = self.collection.find(search)
-        documents = await cursor.to_list(length=None)
-        return [AdminUserModel.model_validate(document) for document in documents]
-
-    async def count_filter(self, search: dict) -> int:
-        return await self.collection.count_documents(search)
-
-    async def find_pagination(
-        self, page: int, page_size: int, search: dict, sort_by: str, sort_order: str
-    ):
-        skip = (page - 1) * page_size
-
-        sort_direction = -1 if sort_order.lower() == "desc" else 1
-
-        cursor = (
-            self.collection.find(search)
-            .sort(sort_by, sort_direction)
-            .skip(skip)
-            .limit(page_size)
+    async def find_by_id(self, id: UUID) -> AdminUserModel | None:
+        statement = select(AdminUserModel).where(
+            AdminUserModel.id == id, AdminUserModel.deleted_at.is_(None)
         )
 
-        documents = await cursor.to_list(length=page_size)
+        result = await self.context.scalars(statement)
 
-        return [
-            AdminUserModel.model_validate(document)
-            for document in documents
-        ]
+        return result.one_or_none()
 
-    # Insert document
-    async def insert_item(self, document: dict) -> InsertOneResult:
-        return await self.collection.insert_one(document)
+    async def find_by_email_or_phone(self, email: str, phone: str) -> AdminUserModel | None:
+        result = await self.context.scalars(
+            select(AdminUserModel).where(
+                AdminUserModel.deleted_at.is_(None),
+                or_(AdminUserModel.email == email, AdminUserModel.phone == phone),
+            )
+        )
+        return result.first()
 
-    async def insert_items(self, documents: list[dict]) -> InsertManyResult:
-        pass
+    async def find_by_identifier(self, identifier: str) -> AdminUserModel | None:
+        result = await self.context.scalars(
+            select(AdminUserModel).where(
+                AdminUserModel.deleted_at.is_(None),
+                or_(AdminUserModel.email == identifier.lower(), AdminUserModel.phone == identifier),
+            )
+        )
+        return result.first()
 
-    # Update document
-    async def update_by_id(self, id: ObjectId, document: dict) -> UpdateResult:
-        return await self.collection.update_one({"_id": id}, {"$set": document})
+    async def find_pagination(
+        self, page: int, page_size: int, *, keyword: str | None = None,
+        is_active: bool | None = None, is_poi_owner_verified: bool | None = None,
+    ) -> tuple[list[AdminUserModel], int]:
+        conditions = [AdminUserModel.deleted_at.is_(None)]
+        if keyword:
+            pattern = f"%{keyword.strip()}%"
+            conditions.append(or_(AdminUserModel.full_name.ilike(pattern), AdminUserModel.email.ilike(pattern), AdminUserModel.phone.ilike(pattern)))
+        if is_active is not None:
+            conditions.append(AdminUserModel.is_active == is_active)
+        if is_poi_owner_verified is not None:
+            conditions.append(AdminUserModel.is_poi_owner_verified == is_poi_owner_verified)
+        items = await self.context.scalars(
+            select(AdminUserModel).where(*conditions).order_by(AdminUserModel.full_name, AdminUserModel.id).offset((page - 1) * page_size).limit(page_size)
+        )
+        total = await self.context.scalar(select(func.count()).select_from(AdminUserModel).where(*conditions))
+        return list(items.all()), total or 0
 
-    # Delete document
-    async def delete_by_id(self, id: ObjectId, document: dict) -> DeleteResult:
-        pass
+    async def update(self, model: AdminUserModel) -> AdminUserModel:
+        managed_model = await self.context.merge(model)
+        await self.context.commit()
+        await self.context.refresh(managed_model)
 
-    async def count_search(self, search: dict) -> int:
-        return await self.collection.count_documents(search)
+        return managed_model
+
+    udpate = update
+
+    async def insert(self, model: AdminUserModel) -> AdminUserModel:
+        self.context.add(model)
+        await self.context.commit()
+        await self.context.refresh(model)
+
+        return model
+
+    async def soft_delete(self, id: UUID) -> AdminUserModel | None:
+        statement = (
+            update(AdminUserModel)
+            .where(
+                AdminUserModel.id == id,
+                AdminUserModel.deleted_at.is_(None),
+            )
+            .values(deleted_at=datetime.now(UTC))
+            .returning(AdminUserModel)
+        )
+        result = await self.context.scalars(statement)
+        deleted_model = result.one_or_none()
+
+        await self.context.commit()
+        return deleted_model

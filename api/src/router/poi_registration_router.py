@@ -16,7 +16,7 @@ router = APIRouter(prefix="/poi-registrations", tags=["Poi Registration Controll
 
 
 # Get all poi registration
-@router.get("", dependencies=[])
+@router.get("", dependencies=[Depends(require_permission("poi_submission:read"))])
 async def filter_poi_registration(
     params: Annotated[FilterPoiSubmission, Query()],
     poi_submission_service: Annotated[PoiSubmissionService, Depends()],
@@ -46,7 +46,7 @@ async def filter_my_poi_registration(
 
 
 # Get poi registration by id
-@router.get("/{poi_submission_id}", dependencies=[])
+@router.get("/{poi_submission_id}", dependencies=[Depends(require_permission("poi_submission:read"))])
 async def get_poi_registration_by_id(
     poi_submission_id: str,
     poi_submission_service: Annotated[PoiSubmissionService, Depends()],
@@ -61,7 +61,7 @@ async def get_poi_registration_by_id(
 
 
 # Review poi registration
-@router.post("/review/{poi_submission_id}", dependencies=[])
+@router.post("/review/{poi_submission_id}", dependencies=[Depends(require_permission("poi_submission:review"))])
 async def review_poi_registration(
     poi_submission_id: str,
     body: ReviewPoiSubmission,
