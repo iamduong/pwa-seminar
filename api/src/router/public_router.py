@@ -28,16 +28,16 @@ async def filter_poi_category(
 async def bundle_poi(
     # Params
     lang: str,
-    updated_after: datetime,
     # Service
     content_dataset_version_service: Annotated[ContentDatasetVersionService, Depends()],
     poi_service: Annotated[PoiService, Depends()],
+    updated_after: datetime | None = None,
     # Header
     etag: str | None = Header(
         default=None,
         alias="Etag",
     ),
-) -> Response | ApiResponse[PoiDataset]:
+):
     content_dataset_version = await content_dataset_version_service.find_poi_version()
     if content_dataset_version is not None and content_dataset_version.etag == etag:
         return Response(status_code=status.HTTP_304_NOT_MODIFIED)
@@ -51,7 +51,11 @@ async def bundle_poi(
     pois = await poi_service.find_public_pois_changed_between(
         lang=lang,
         updated_after=updated_after,
-        updated_before=content_dataset_version.updated_at,
+    )
+    print(pois)
+    next_updated_after = max(
+        (poi.updated_at for poi in pois),
+        default=updated_after,
     )
 
     return ApiResponse[PoiDataset](
@@ -59,7 +63,7 @@ async def bundle_poi(
         message="Đồng bộ dữ liệu POI thành công",
         data=PoiDataset(
             etag=content_dataset_version.etag,
-            updated_after=content_dataset_version.updated_at,
+            updated_after=next_updated_after,
             pois=pois,
         ),
     )

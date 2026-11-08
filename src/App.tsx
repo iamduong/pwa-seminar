@@ -10,14 +10,12 @@ import { LoginPage } from "./pages/authorize/LoginPage";
 import { RegisterPage } from "./pages/authorize/RegisterPage";
 // Client pages
 import { ResponsiveClientPage } from "./pages/client/ResponsiveClientPage";
+import PoiDetailPage from "./pages/client/PoiDetailPage";
 import MobilePlacesPage from "./pages/client/mobile/MobilePlacesPage";
 import MobileFoodPage from "./pages/client/mobile/MobileFoodPage";
-import MobileNearbyPage from "./pages/client/mobile/MobileNearbyPage";
-import MobileQrScannerPage from "./pages/client/mobile/MobileQrScannerPage";
+import MobilePoiDirectoryPage from "./pages/client/mobile/MobilePoiDirectoryPage";
 import DesktopPlacesPage from "./pages/client/desktop/DesktopPlacesPage";
 import DesktopFoodPage from "./pages/client/desktop/DesktopFoodPage";
-import DesktopNearbyPage from "./pages/client/desktop/DesktopNearbyPage";
-import DesktopQrScannerPage from "./pages/client/desktop/DesktopQrScannerPage";
 // Admin page
 import PoiOwnerRegistrationsPage from "./pages/admin/poi-owner-registration/PoiOwnerRegistrationsPage";
 import RolesPage from "./pages/admin/roles/RolesPage";
@@ -38,11 +36,14 @@ import MenuItemsPage from "./pages/admin/menu/MenuItemsPage";
 import MenuItemRequestPage from "./pages/admin/menu/MenuItemRequestPage";
 import { MobileClientAccessGate } from "./components/layout/client/mobile/MobileClientAccessGate";
 import { LanguageProvider } from "./providers/LanguageProvider";
+import { PoiDataProvider } from "./providers/PoiDataProvider";
 
 const ClientProviders = () => {
   return (
     <LanguageProvider>
-      <MobileClientAccessGate />
+      <PoiDataProvider>
+        <MobileClientAccessGate />
+      </PoiDataProvider>
     </LanguageProvider>
   );
 };
@@ -76,24 +77,8 @@ export default function App() {
                 />
               }
             />
-            <Route
-              path="/gan-toi"
-              element={
-                <ResponsiveClientPage
-                  mobile={MobileNearbyPage}
-                  desktop={DesktopNearbyPage}
-                />
-              }
-            />
-            <Route
-              path="/quet-qr"
-              element={
-                <ResponsiveClientPage
-                  mobile={MobileQrScannerPage}
-                  desktop={DesktopQrScannerPage}
-                />
-              }
-            />
+            <Route path="/dia-diem" element={<MobilePoiDirectoryPage />} />
+            <Route path="/dia-diem/:id" element={<PoiDetailPage />} />
           </Route>
         </Route>
 

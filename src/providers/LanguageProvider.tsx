@@ -9,9 +9,12 @@ import {
 } from "./contexts/language-context";
 
 function getInitialLanguage(): LanguageCode {
+  console.log("navigator.languages:", navigator.languages);
+
   const savedLanguage = localStorage.getItem(LOCALSTORAGE_LANGUAGE_KEY);
   if (isLanguageCode(savedLanguage)) return savedLanguage;
 
+  // Check default language used
   const browserLanguage = navigator.languages
     .map((language) => {
       const normalizedLanguage = language.toLowerCase();

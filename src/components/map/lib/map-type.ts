@@ -1,28 +1,29 @@
-export type MapMode = "checking" | "online" | "offline"
+import type { PublicPoi } from "../../../types/Poi";
 
-export type MapCoordinates = [longitude: number, latitude: number]
+export type MapMode = "checking" | "online" | "offline";
 
-export interface MapPoi {
-  id: string
-  name: string
-  coordinates: MapCoordinates
-  address?: string
-}
+export type MapCoordinates = [longitude: number, latitude: number];
 
+export type SelectedLocation = {
+  location?: MapCoordinates;
+  radius?: number;
+  isFocus?: boolean;
+  zoom?: number;
+};
+
+export type PoiMarker = PublicPoi;
 export interface HybridMapProps {
   className?: string;
+
   initialCenter?: MapCoordinates;
   initialZoom?: number;
 
-  pois?: MapPoi[];
+  poiMarkers?: PoiMarker[];
 
-  showGeolocation?: boolean;
+  clientLocation?: MapCoordinates;
 
-  selectedLocation?: MapCoordinates | null;
-  selectedRadius?: number | null;
-  focusSelectedLocation?: boolean;
-  selectedLocationZoom?: number;
-  
-  onLocationSelect?: (coordinates: MapCoordinates) => void;
-  onPoiSelect?: (poi: MapPoi) => void;
+  selectedLocation?: SelectedLocation;
+
+  onClickMap?: (coordinates: MapCoordinates) => void;
+  onClickPoiMarker?: (poiMarker: PoiMarker) => void;
 }

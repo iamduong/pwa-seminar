@@ -307,9 +307,10 @@ export default function PoiSubmissionDetailPage() {
                 className="h-112"
                 initialCenter={coordinates}
                 initialZoom={16}
-                selectedLocation={coordinates}
-                selectedRadius={submission.trigger_radius}
-                showGeolocation={false}
+                selectedLocation={{
+                  location: coordinates,
+                  radius: submission.trigger_radius,
+                }}
               />
             ) : (
               <Alert variant="destructive">

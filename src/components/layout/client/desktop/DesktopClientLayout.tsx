@@ -1,8 +1,7 @@
 import {
-  LocateFixedIcon,
+  MapPinPenIcon,
   MapPinnedIcon,
   MapPinIcon,
-  QrCodeIcon,
   SoupIcon,
 } from "lucide-react"
 import { NavLink, Outlet, useLocation } from "react-router"
@@ -12,15 +11,13 @@ import { ClientMenu } from "#components/layout/client/shared/ClientMenu"
 const desktopNavigation = [
   { title: "Trang chủ", href: "/", icon: MapPinnedIcon },
   { title: "Món ăn", href: "/mon-an", icon: SoupIcon },
-  { title: "Gần tôi", href: "/gan-toi", icon: LocateFixedIcon },
-  { title: "Quét QR", href: "/quet-qr", icon: QrCodeIcon },
+  { title: "Địa điểm", href: "/dia-diem", icon: MapPinPenIcon },
 ]
 
 const desktopPageTitles: Record<string, string> = {
   "/": "Địa điểm",
   "/mon-an": "Món ăn",
-  "/gan-toi": "Gần tôi",
-  "/quet-qr": "Quét QR",
+  "/dia-diem": "Khám phá địa điểm",
 }
 
 export function DesktopClientLayout() {

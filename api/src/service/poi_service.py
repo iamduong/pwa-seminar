@@ -36,13 +36,11 @@ class PoiService:
     async def find_public_pois_changed_between(
         self,
         lang: str,
-        updated_after: datetime,
-        updated_before: datetime,
+        updated_after: datetime | None,
     ) -> list[PoiDatasetItem]:
         documents = await self.poi_repository.find_public_changed_between(
             lang=lang,
             updated_after=updated_after,
-            updated_before=updated_before,
         )
 
         return [

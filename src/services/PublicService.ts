@@ -1,6 +1,7 @@
 import api from "#lib/api";
 import type { ApiResponse } from "#lib/api";
-import  type { PoiCategoryPagination } from "../types/PoiCategory";
+import type { PoiBundle } from "../types/Poi";
+import type { PoiCategoryPagination } from "../types/PoiCategory";
 
 class PublicService {
     async GetPoiCategory(
@@ -20,6 +21,29 @@ class PublicService {
         );
         
         return response.data;
+    }
+
+    async BundlePoi(
+        lang: string,
+        updatedAfter: string | null,
+        etag?: string,
+        signal?: AbortSignal,
+    ): Promise<ApiResponse<PoiBundle> | null> {
+        const response = await api.get<ApiResponse<PoiBundle>>(
+            "/public/poi/load-all",
+            {
+                params: {
+                    lang,
+                    ...(updatedAfter ? { updated_after: updatedAfter } : {}),
+                },
+                headers: etag ? { Etag: etag } : undefined,
+                signal,
+                validateStatus: (status) =>
+                    (status >= 200 && status < 300) || status === 304,
+            },
+        );
+
+        return response.status === 304 ? null : response.data;
     }
 }
 
