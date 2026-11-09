@@ -3,6 +3,7 @@ import type { ApiResponse } from "#lib/api";
 
 import type {
   AdminUser,
+  AdminUserRoleOption,
   AdminUserPagination,
   FilterAdminUser,
 } from "../types/AdminUser";
@@ -12,9 +13,31 @@ export interface CreateAdminUserPayload {
   email: string;
   phone: string;
   password: string;
+  role_id: string;
+  is_active: boolean;
+}
+
+export interface UpdateAdminUserPayload {
+  full_name: string;
+  role_id: string;
+  is_active: boolean;
 }
 
 class AdminUserService {
+  async RoleOptions(signal?: AbortSignal) {
+    const response = await api.get<ApiResponse<AdminUserRoleOption[]>>("/admin-users/role-options", { signal });
+    return response.data;
+  }
+
+  async GetAdminUser(id: string, signal?: AbortSignal) {
+    const response = await api.get<ApiResponse<AdminUser>>(`/admin-users/${id}`, { signal });
+    return response.data;
+  }
+
+  async UpdateAdminUser(id: string, payload: UpdateAdminUserPayload) {
+    const response = await api.put<ApiResponse<AdminUser>>(`/admin-users/${id}`, payload);
+    return response.data;
+  }
   async PaginationAdminUser(
     params: FilterAdminUser,
     signal?: AbortSignal,

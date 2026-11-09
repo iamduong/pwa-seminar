@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+from uuid import UUID
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ViewAdminUser(BaseModel):
@@ -8,6 +9,13 @@ class ViewAdminUser(BaseModel):
     phone: str
     is_active: bool
     is_poi_owner_verified: bool
+    role_id: str | None
+    role_name: str | None
+
+
+class AdminUserRoleOption(BaseModel):
+    id: str
+    name: str
 
 
 class FilterAdminUser(BaseModel):
@@ -23,3 +31,18 @@ class CreateAdminUser(BaseModel):
     email: str = Field(min_length=5, max_length=150)
     phone: str = Field(min_length=10, max_length=15)
     password: str = Field(min_length=8, max_length=128)
+    role_id: UUID
+    is_active: bool = True
+
+    @field_validator("full_name", mode="before")
+    @classmethod
+    def strip_name(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
+class UpdateAdminUser(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    full_name: str = Field(min_length=2, max_length=100)
+    role_id: UUID
+    is_active: bool

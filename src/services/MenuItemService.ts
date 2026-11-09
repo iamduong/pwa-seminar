@@ -35,9 +35,9 @@ class MenuItemService {
     return response.data;
   }
 
-  async listPois(page = 1) {
+  async listPois(page = 1, pageSize = 20) {
     const response = await api.get<ApiResponse<Pagination<AdminPoi>>>("/pois", {
-      params: { page, page_size: 20 },
+      params: { page, page_size: pageSize },
     });
     return response.data;
   }
@@ -47,10 +47,10 @@ class MenuItemService {
     return response.data;
   }
 
-  async listByPoi(poiId: string, page = 1, isActive?: boolean) {
+  async listByPoi(poiId: string, page = 1, isActive?: boolean, pageSize = 20) {
     const response = await api.get<ApiResponse<Pagination<MenuItem>>>(
       `/pois/${poiId}/menu-items`,
-      { params: { page, page_size: 20, is_active: isActive } },
+      { params: { page, page_size: pageSize, is_active: isActive } },
     );
     return response.data;
   }

@@ -3,8 +3,9 @@ import {
   AlertCircleIcon,
   FileTextIcon,
   RefreshCwIcon,
+  UserPlusIcon,
 } from "lucide-react";
-import { useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 
 import { DataPagination } from "#components/DataPagination";
 import {
@@ -12,7 +13,8 @@ import {
   AlertDescription,
   AlertTitle,
 } from "#components/ui/alert";
-import { Button } from "#components/ui/button";
+import { Button, buttonVariants } from "#components/ui/button";
+import { useAuthorize } from "../../../hooks/use-authorize";
 import { getApiErrorMessage } from "#lib/api";
 
 import { adminUserService } from "../../../services/AdminUserService";
@@ -46,6 +48,7 @@ function parseBooleanFilter(
 }
 
 export default function AdminUsersPage() {
+  const { session } = useAuthorize();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = parsePositiveInteger(searchParams.get("page"), 1);
@@ -185,6 +188,8 @@ export default function AdminUsersPage() {
           </p>
         </div>
 
+        <div className="flex flex-wrap gap-2">
+        {session?.role?.permissions.includes("user:create") && <Link className={buttonVariants()} to="/quan-ly/nguoi-dung/them-nguoi-dung"><UserPlusIcon aria-hidden="true" />Thêm người dùng</Link>}
         <Button
           type="button"
           variant="outline"
@@ -198,6 +203,7 @@ export default function AdminUsersPage() {
           />
           Làm mới
         </Button>
+        </div>
       </header>
 
       {errorMessage ? (

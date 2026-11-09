@@ -5,6 +5,13 @@ export interface AdminUser {
     phone: string;
     is_active: boolean;
     is_poi_owner_verified: boolean;
+    role_id: string | null;
+    role_name: string | null;
+}
+
+export interface AdminUserRoleOption {
+    id: string;
+    name: string;
 }
 
 export interface FilterAdminUser {
