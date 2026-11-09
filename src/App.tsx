@@ -38,13 +38,17 @@ import { MobileClientAccessGate } from "./components/layout/client/mobile/Mobile
 import { LanguageProvider } from "./providers/LanguageProvider";
 import { PoiDataProvider } from "./providers/PoiDataProvider";
 import MenuReviewPage from "./pages/admin/menu/MenuReviewPage";
+import { UiBundleProvider } from "./providers/UiBundleProvider";
+import OwnerPoiDetailPage from "./pages/admin/poi-submission/OwnerPoiDetailPage";
 
 const ClientProviders = () => {
   return (
     <LanguageProvider>
-      <PoiDataProvider>
-        <MobileClientAccessGate />
-      </PoiDataProvider>
+      <UiBundleProvider>
+        <PoiDataProvider>
+          <MobileClientAccessGate />
+        </PoiDataProvider>
+      </UiBundleProvider>
     </LanguageProvider>
   );
 };
@@ -89,6 +93,10 @@ export default function App() {
             {/* POI features */}
             <Route path="dia-diem-poi">
               <Route path="danh-sach-poi" element={<PoiListPage />} />
+              <Route
+                path="danh-sach-poi/:id"
+                element={<OwnerPoiDetailPage mode="admin" />}
+              />
               <Route path="them-poi" element={<PoiCreatePage />} />
               <Route path=":poiId/mon-an" element={<MenuListPage />} />
               <Route path=":poiId/mon-an/them" element={<MenuCreatePage />} />
@@ -144,6 +152,7 @@ export default function App() {
             {/* poi owner features */}
             <Route path="chuc-nang-chu-quan">
               <Route path="poi-cua-toi" element={<PoiSubmissionPage />} />
+              <Route path="poi-cua-toi/:id" element={<OwnerPoiDetailPage />} />
               <Route
                 path="gui-yeu-cau-them-poi"
                 element={<PoiSubmissionRegisterPage />}

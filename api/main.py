@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from service.content_dataset_version_service import ContentDatasetVersionService
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from util.audio import AUDIO_DIRECTORY
+from util.image import IMAGE_DIRECTORY
 from util.worker import process_worker
 
 
@@ -44,6 +45,11 @@ app.mount(
     "/resource/audio",
     StaticFiles(directory=AUDIO_DIRECTORY, check_dir=False),
     name="audio",
+)
+app.mount(
+    "/resource/images",
+    StaticFiles(directory=IMAGE_DIRECTORY, check_dir=False),
+    name="images",
 )
 
 app.add_middleware(

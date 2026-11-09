@@ -1,6 +1,7 @@
 import { Marker, type Map } from "maplibre-gl";
 
 import type { PoiMarker } from "../lib/map-type";
+import { radiusMarker } from "./radiusMarker";
 
 const TWEMOJI_BASE_URL =
   "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg";
@@ -27,14 +28,18 @@ const categoriesDictionary: Record<string, string> = {
   "6aea88d28619345b689272c8": `${TWEMOJI_BASE_URL}/1f371.svg`,
 };
 
-function createMarkerElement(categoryId: string, onClick?: () => void) {
+function createMarkerElement(
+  categoryId: string,
+  ariaLabel: string,
+  onClick?: () => void,
+) {
   const wrapper = document.createElement("div");
   wrapper.style.position = "relative";
   wrapper.style.width = "48px";
   wrapper.style.height = "56px";
   wrapper.style.cursor = "pointer";
   wrapper.setAttribute("role", "button");
-  wrapper.setAttribute("aria-label", "Xem địa điểm");
+  wrapper.setAttribute("aria-label", ariaLabel);
   wrapper.tabIndex = 0;
   wrapper.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -85,15 +90,34 @@ export function drawPoiMarkers(
   map: Map,
   poiMarkers: PoiMarker[],
   onClickPoiMarker?: (poiMarker: PoiMarker) => void,
+  markerAriaLabel = "Xem địa điểm",
 ): Marker[] {
-  return poiMarkers.map((poiMarker) =>
-    new Marker({
-      element: createMarkerElement(poiMarker.category_id, () =>
-        onClickPoiMarker?.(poiMarker),
-      ),
-      anchor: "bottom",
-    })
-      .setLngLat(poiMarker.location.coordinates)
-      .addTo(map),
-  );
+  return poiMarkers.flatMap((poiMarker) => {
+    const markers: Marker[] = [];
+
+    if (poiMarker.trigger_radius > 0) {
+      markers.push(
+        radiusMarker(
+          map,
+          poiMarker.location.coordinates,
+          poiMarker.trigger_radius,
+        ),
+      );
+    }
+
+    markers.push(
+      new Marker({
+        element: createMarkerElement(
+          poiMarker.category_id,
+          markerAriaLabel,
+          () => onClickPoiMarker?.(poiMarker),
+        ),
+        anchor: "bottom",
+      })
+        .setLngLat(poiMarker.location.coordinates)
+        .addTo(map),
+    );
+
+    return markers;
+  });
 }

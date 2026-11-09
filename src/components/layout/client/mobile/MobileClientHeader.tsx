@@ -1,15 +1,24 @@
 import { MapPinIcon } from "lucide-react"
+import { useEffect } from "react"
 import { useLocation } from "react-router"
 
-const mobilePageTitles: Record<string, string> = {
-  "/": "Địa điểm",
-  "/mon-an": "Món ăn",
-  "/dia-diem": "Khám phá địa điểm",
+import { useUiBundle } from "#hooks/use-ui-bundle"
+
+const mobilePageTitleKeys: Record<string, string> = {
+  "/": "page.map.title",
+  "/mon-an": "page.food.title",
+  "/dia-diem": "page.places.title",
 }
 
 export const MobileClientHeader = () => {
   const location = useLocation()
-  const title = mobilePageTitles[location.pathname] ?? "Quan4 Tourism"
+  const { t } = useUiBundle()
+  const titleKey = mobilePageTitleKeys[location.pathname]
+  const title = titleKey ? t(titleKey) : "Quan4 Tourism"
+
+  useEffect(() => {
+    document.title = `${title} | Quan4 Tourism`
+  }, [title])
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-xl">

@@ -1,9 +1,13 @@
+import { useUiBundle } from "#hooks/use-ui-bundle"
+
 export default function MobileFoodPage() {
+  const { t } = useUiBundle()
+
   return (
     <section>
-      <h2 className="text-xl font-semibold tracking-tight">Món ăn</h2>
+      <h2 className="text-xl font-semibold tracking-tight">{t("page.food.title")}</h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Khám phá ẩm thực và các món ăn đặc trưng tại Quận 4.
+        {t("food.description")}
       </p>
     </section>
   )

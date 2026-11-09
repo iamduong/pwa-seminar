@@ -18,6 +18,7 @@ import HybridMap from "#components/map/HybridMap";
 import { poiSubmissionService } from "../../../services/PoiSubmissionService";
 import type { RegisterPoiSubmissionPayload } from "../../../types/PoiSubmission";
 import { useNavigate } from "react-router";
+import { poiService } from "../../../services/PoiService";
 
 type SelectedImage = {
   file: File;
@@ -99,7 +100,7 @@ const PoiSubmissionRegisterPage = () => {
         type: "Point",
         coordinates: location,
       },
-      images: selectedImages.map(() => "https://anh.com"),
+      images: [],
       trigger_radius: radius,
       owner_note: String(formData.get("owner_note") ?? ""),
     };
@@ -108,6 +109,15 @@ const PoiSubmissionRegisterPage = () => {
     let createdSubmissionId: string | null = null;
     await execute(
       async () => {
+        if (selectedImages.length > 0) {
+          const uploadResponse = await poiService.uploadImages(
+            selectedImages.map((image) => image.file),
+          );
+          if (!uploadResponse.success || !uploadResponse.data) {
+            throw new Error(uploadResponse.message || "Không thể tải ảnh POI.");
+          }
+          payload.images = uploadResponse.data;
+        }
         const response =
           await poiSubmissionService.RegisterPoiSubmission(payload);
         createdSubmissionId = response.data?.id ?? null;
@@ -281,8 +291,7 @@ const PoiSubmissionRegisterPage = () => {
               <ImagePlusIcon /> Chọn ảnh từ máy ({selectedImages.length}/10)
             </Button>
             <p className="text-xs text-muted-foreground">
-              Ảnh hiện chỉ được xem trước tại trình duyệt và chưa gửi lên
-              server.
+              Ảnh sẽ được tải lên khi gửi đơn. Tối đa 10 ảnh.
             </p>
             {selectedImages.length > 0 && (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

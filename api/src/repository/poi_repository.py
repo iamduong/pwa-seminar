@@ -5,6 +5,7 @@ from core.dependency import PostgresDB
 from model.poi_localization_model import PoiLocalizationModel
 from model.poi_model import PoiModel
 from sqlalchemy import func, or_, select
+from sqlalchemy.orm import selectinload
 
 
 def attach_location(model):
@@ -29,6 +30,33 @@ class PoiRepository:
             conditions.append(PoiModel.id == poi_id)
         models = (await self.context.scalars(select(PoiModel).where(*conditions).order_by(PoiModel.name))).all()
         return [attach_location(model) for model in models]
+
+    async def find_owned_detail(self, owner_id: UUID, poi_id: UUID) -> PoiModel | None:
+        model = (
+            await self.context.scalars(
+                select(PoiModel)
+                .options(selectinload(PoiModel.localizations))
+                .where(
+                    PoiModel.id == poi_id,
+                    PoiModel.owner_id == owner_id,
+                    PoiModel.deleted_at.is_(None),
+                )
+            )
+        ).one_or_none()
+        return attach_location(model) if model else None
+
+    async def find_detail(self, poi_id: UUID) -> PoiModel | None:
+        model = (
+            await self.context.scalars(
+                select(PoiModel)
+                .options(selectinload(PoiModel.localizations))
+                .where(
+                    PoiModel.id == poi_id,
+                    PoiModel.deleted_at.is_(None),
+                )
+            )
+        ).one_or_none()
+        return attach_location(model) if model else None
 
     async def find_pagination(self, page: int, page_size: int, *, owner_id: UUID | None = None, keyword: str | None = None):
         conditions = [PoiModel.deleted_at.is_(None)]

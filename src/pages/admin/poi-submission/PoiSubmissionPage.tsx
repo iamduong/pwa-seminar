@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   AlertCircleIcon,
+  EyeIcon,
   InboxIcon,
   MapIcon,
   MapPinnedIcon,
@@ -297,16 +298,30 @@ export default function PoiSubmissionPage() {
                       </TableCell>
                       <TableCell>{AUDIO_STATUS_LABELS[poi.audio_status]}</TableCell>
                       <TableCell className="pr-4 text-right">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={!coordinates}
-                          onClick={() => showPoiOnMap(poi)}
-                        >
-                          <MapIcon aria-hidden="true" />
-                          Bản đồ
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            render={
+                              <Link
+                                to={`/quan-ly/chuc-nang-chu-quan/poi-cua-toi/${poi.id}`}
+                              />
+                            }
+                          >
+                            <EyeIcon aria-hidden="true" />
+                            Chi tiết
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={!coordinates}
+                            onClick={() => showPoiOnMap(poi)}
+                          >
+                            <MapIcon aria-hidden="true" />
+                            Bản đồ
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

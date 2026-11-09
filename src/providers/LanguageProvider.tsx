@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { LOCALSTORAGE_LANGUAGE_KEY } from "../assets/config";
 import {
@@ -42,6 +42,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguageState(nextLanguage);
     setHasSelectedLanguage(true);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const value = useMemo(
     () => ({ language, hasSelectedLanguage, setLanguage }),

@@ -9,6 +9,7 @@ export default defineConfig({
     tailwindcss()
   ],
   server: {
+    // allowedHosts: ["livable-elsewhere-elyse.ngrok-free.dev"],
     proxy: {
       '/api': {
         target: 'http://localhost:8000',

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { useLanguage } from "#hooks/use-language";
+import { useUiBundle } from "#hooks/use-ui-bundle";
 import { getCachedPoi, savePoi } from "#lib/indexdb";
 import { publicService } from "../services/PublicService";
 import type { PublicPoi } from "../types/Poi";
@@ -14,6 +15,7 @@ type PoiSnapshot = {
 
 export function PoiDataProvider({ children }: { children: ReactNode }) {
   const { language } = useLanguage();
+  const { t } = useUiBundle();
   const [snapshot, setSnapshot] = useState<PoiSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -40,13 +42,13 @@ export function PoiDataProvider({ children }: { children: ReactNode }) {
 
         if (controller.signal.aborted || response === null) return;
         if (!response.success || !response.data) {
-          throw new Error(response.message || "Không thể đồng bộ dữ liệu POI.");
+          throw new Error(t("data.poiSyncError"));
         }
 
         const updated = await savePoi(
           language,
           response.data,
-          !cached || cached.updated_after == null,
+          true,
         );
 
         if (!controller.signal.aborted) {
@@ -57,7 +59,7 @@ export function PoiDataProvider({ children }: { children: ReactNode }) {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : "Không thể đồng bộ dữ liệu POI.",
+            : t("data.poiSyncError"),
         );
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -66,7 +68,7 @@ export function PoiDataProvider({ children }: { children: ReactNode }) {
 
     void syncPoiData();
     return () => controller.abort();
-  }, [language]);
+  }, [language, t]);
 
   const value = useMemo(
     () => ({

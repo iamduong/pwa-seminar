@@ -30,6 +30,20 @@ class PoiTaskRepository:
         result = await self.context.scalars(select(PoiTaskModel).options(*self._options()).where(PoiTaskModel.updated_at > updated_after, PoiTaskModel.deleted_at.is_(None)).order_by(PoiTaskModel.updated_at))
         return list(result.all())
 
+    async def find_latest_by_poi(self, poi_id: UUID):
+        return (
+            await self.context.scalars(
+                select(PoiTaskModel)
+                .options(*self._options())
+                .where(
+                    PoiTaskModel.poi_id == poi_id,
+                    PoiTaskModel.deleted_at.is_(None),
+                )
+                .order_by(PoiTaskModel.created_at.desc(), PoiTaskModel.id.desc())
+                .limit(1)
+            )
+        ).one_or_none()
+
     async def insert(self, task):
         self.context.add(task)
         await self.context.flush()

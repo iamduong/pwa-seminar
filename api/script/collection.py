@@ -21,6 +21,7 @@ from seed.admin_user import init_admin_user
 from seed.menu_item import init_menu_items
 from seed.poi_category import init_poi_category
 from seed.role import init_role
+from seed.ui_bundle import init_ui_bundles
 from sqlalchemy import select
 
 
@@ -37,6 +38,7 @@ async def seed_data() -> None:
         categories = await init_poi_category(session)
         owner = users["owner@dev.com"]
         await init_menu_items(session, categories[0], owner)
+        await init_ui_bundles(session)
 
         registration = (
             await session.scalars(

@@ -20,15 +20,18 @@ import {
   SheetTrigger,
 } from "#components/ui/sheet"
 import { useLanguage } from "#hooks/use-language"
+import { useUiBundle } from "#hooks/use-ui-bundle"
 import { supportedLanguages } from "../../../../providers/contexts/language-context"
 
 export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
   const { language, setLanguage } = useLanguage()
+  const { t } = useUiBundle()
   const [isOpen, setIsOpen] = useState(false)
   const [showLanguageOptions, setShowLanguageOptions] = useState(false)
   const selectedLanguage = supportedLanguages.find(
     (item) => item.code === language,
   )
+  const languageNames = new Intl.DisplayNames([language], { type: "language" })
 
   function handleOpenChange(open: boolean) {
     setIsOpen(open)
@@ -42,12 +45,12 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
           <button
             className={triggerClassName}
             type="button"
-            aria-label="Mở menu"
+            aria-label={t("menu.open")}
           />
         }
       >
         <MenuIcon className="size-5" aria-hidden="true" />
-        <span className="max-w-full truncate">Menu</span>
+        <span className="max-w-full truncate">{t("menu.label")}</span>
       </SheetTrigger>
 
       <SheetContent className="w-[min(86vw,22rem)]" side="right">
@@ -58,22 +61,22 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
                 className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-muted"
                 type="button"
                 onClick={() => setShowLanguageOptions(false)}
-                aria-label="Quay lại menu"
+                aria-label={t("menu.back")}
               >
                 <ArrowLeftIcon className="size-4" aria-hidden="true" />
               </button>
               <div>
-                <SheetTitle>Chọn ngôn ngữ</SheetTitle>
+                <SheetTitle>{t("language.select.title")}</SheetTitle>
                 <SheetDescription>
-                  Lựa chọn này sẽ được dùng cho giao diện ứng dụng sau này.
+                  {t("menu.language.description")}
                 </SheetDescription>
               </div>
             </div>
           ) : (
             <>
-              <SheetTitle>Tiện ích</SheetTitle>
+              <SheetTitle>{t("menu.utilities.title")}</SheetTitle>
               <SheetDescription>
-                Thiết lập ngôn ngữ hoặc truy cập trang dành cho chủ quán.
+                {t("menu.utilities.description")}
               </SheetDescription>
             </>
           )}
@@ -83,7 +86,7 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
           <div
             className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-4"
             role="radiogroup"
-            aria-label="Ngôn ngữ giao diện"
+            aria-label={t("menu.language.ariaLabel")}
           >
             {supportedLanguages.map((item) => {
               const isSelected = item.code === language
@@ -103,7 +106,9 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
                     {item.code}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold">{item.label}</span>
+                    <span className="block text-sm font-semibold">
+                      {languageNames.of(item.code) ?? item.label}
+                    </span>
                     <span className="block text-xs text-muted-foreground">
                       {item.nativeLabel}
                     </span>
@@ -126,7 +131,7 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
                 <LanguagesIcon className="size-5" aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">Ngôn ngữ</span>
+                <span className="block text-sm font-semibold">{t("menu.language.title")}</span>
                 <span className="block text-xs text-muted-foreground">
                   {selectedLanguage?.nativeLabel}
                 </span>
@@ -142,9 +147,9 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
                 <MapIcon className="size-5" aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">Bản đồ offline</span>
+                <span className="block text-sm font-semibold">{t("menu.offlineMap.title")}</span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  Tải bản đồ để sử dụng khi không có mạng
+                  {t("menu.offlineMap.description")}
                 </span>
               </span>
               <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -158,9 +163,9 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
                 <HeadphonesIcon className="size-5" aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">Audio offline</span>
+                <span className="block text-sm font-semibold">{t("menu.offlineAudio.title")}</span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  Lưu audio thuyết minh trên thiết bị
+                  {t("menu.offlineAudio.description")}
                 </span>
               </span>
               <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -174,9 +179,9 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
                 <BellRingIcon className="size-5" aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">Thông báo</span>
+                <span className="block text-sm font-semibold">{t("menu.notifications.title")}</span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  Nhận thông báo khi đến gần POI
+                  {t("menu.notifications.description")}
                 </span>
               </span>
               <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -192,9 +197,9 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
                 <StoreIcon className="size-5" aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold">Đăng ký chủ quán</span>
+                <span className="block text-sm font-semibold">{t("menu.ownerRegistration.title")}</span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  Trở thành đối tác của Quan4 Tourism
+                  {t("menu.ownerRegistration.description")}
                 </span>
               </span>
               <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden="true" />

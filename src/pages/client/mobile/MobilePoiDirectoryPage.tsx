@@ -2,13 +2,15 @@ import { MapPinIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { usePoiData } from "#hooks/use-poi-data";
+import { useUiBundle } from "#hooks/use-ui-bundle";
 
 export default function MobilePoiDirectoryPage() {
   const navigate = useNavigate();
   const { pois, loading, errorMessage } = usePoiData();
+  const { t } = useUiBundle();
 
   if (loading && pois.length === 0) {
-    return <p className="py-12 text-center text-sm text-muted-foreground">Đang tải địa điểm…</p>;
+    return <p className="py-12 text-center text-sm text-muted-foreground">{t("places.loading")}</p>;
   }
 
   if (errorMessage && pois.length === 0) {
@@ -18,9 +20,9 @@ export default function MobilePoiDirectoryPage() {
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-2xl font-semibold">Khám phá địa điểm</h2>
+        <h2 className="text-2xl font-semibold">{t("page.places.title")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Chọn một địa điểm để xem hình ảnh và nghe thuyết minh.
+          {t("places.description")}
         </p>
       </div>
 
@@ -40,7 +42,7 @@ export default function MobilePoiDirectoryPage() {
               />
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                Chưa có hình ảnh
+                {t("places.noImage")}
               </div>
             )}
             <span className="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent" />
