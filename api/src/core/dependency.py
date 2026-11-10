@@ -23,6 +23,7 @@ class AccessTokenPayload(BaseModel):
 
 async def validate_session(
     request: Request,
+    db: PostgresDB,
 ) -> AccessTokenPayload:
 
     token = request.cookies.get("access_token")
@@ -33,7 +34,7 @@ async def validate_session(
 
     try:
         payload = decode_token(token, TokenType.ACCESS)
-        return AccessTokenPayload.model_validate(payload)
+        session = AccessTokenPayload.model_validate(payload)
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -44,6 +45,27 @@ async def validate_session(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Phiên đăng nhập không chính xác",
         )
+
+    # Resolve current account state instead of trusting stale role claims.
+    from uuid import UUID
+    from model.admin_user_model import AdminUserModel
+    from model.role_model import RoleModel
+
+    try:
+        user_id = UUID(session.sub)
+    except ValueError as error:
+        raise HTTPException(401, "Phiên đăng nhập không chính xác") from error
+    user = await db.get(AdminUserModel, user_id)
+    if user is None or user.deleted_at is not None or not user.is_active:
+        raise HTTPException(401, "Tài khoản không tồn tại hoặc đã bị khóa")
+    role = await db.get(RoleModel, user.role_id) if user.role_id else None
+    if role is not None and role.deleted_at is not None:
+        role = None
+    return session.model_copy(update={
+        "role_name": role.name if role else None,
+        "permissions": role.permissions if role else [],
+        "is_poi_owner_verified": user.is_poi_owner_verified,
+    })
 
 
 def require_permission(permission: str):
