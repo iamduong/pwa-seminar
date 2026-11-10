@@ -22,7 +22,7 @@ class PoiTaskProcessModel(Base):
     __tablename__ = "poi_task_processes"
 
     task_id: Mapped[UUID] = mapped_column(
-        ForeignKey("poi_tasks.id", ondelete="CASCADE"),
+        ForeignKey("poi_tasks.id", ondelete="RESTRICT"),
         nullable=False,
     )
     language: Mapped[str] = mapped_column(String(10), nullable=False)

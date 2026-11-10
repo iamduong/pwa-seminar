@@ -34,7 +34,7 @@ class PoiSubmissionModel(Base):
         nullable=False,
     )
     poi_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("pois.id", ondelete="SET NULL"),
+        ForeignKey("pois.id", ondelete="RESTRICT"),
         nullable=True,
     )
     submission_type: Mapped[str] = mapped_column(

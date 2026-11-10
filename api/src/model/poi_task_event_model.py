@@ -16,7 +16,7 @@ class PoiTaskEventModel(Base):
     __tablename__ = "poi_task_events"
 
     task_id: Mapped[UUID] = mapped_column(
-        ForeignKey("poi_tasks.id", ondelete="CASCADE"),
+        ForeignKey("poi_tasks.id", ondelete="RESTRICT"),
         nullable=False,
     )
     message: Mapped[str] = mapped_column(Text, nullable=False)

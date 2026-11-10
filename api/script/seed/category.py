@@ -9,7 +9,7 @@ CATEGORY_NAMES = [
 ]
 
 
-async def init_poi_category(session: AsyncSession) -> list[PoiCategoryModel]:
+async def init_categories(session: AsyncSession) -> list[PoiCategoryModel]:
     categories = []
     for name in CATEGORY_NAMES:
         model = (await session.scalars(select(PoiCategoryModel).where(PoiCategoryModel.name == name))).first()

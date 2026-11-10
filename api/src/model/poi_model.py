@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
     from model.admin_user_model import AdminUserModel
+    from model.analytics_event_model import AnalyticsEventModel
     from model.menu_item_model import MenuItemModel
     from model.poi_category_model import PoiCategoryModel
     from model.poi_localization_model import PoiLocalizationModel
@@ -29,7 +30,7 @@ class PoiModel(Base):
     __tablename__ = "pois"
 
     owner_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("admin_users.id", ondelete="SET NULL"),
+        ForeignKey("admin_users.id", ondelete="RESTRICT"),
         nullable=True,
     )
     category_id: Mapped[UUID] = mapped_column(
@@ -67,17 +68,25 @@ class PoiModel(Base):
 
     menu_items: Mapped[list[MenuItemModel]] = relationship(
         back_populates="poi",
-        cascade="all, delete-orphan",
+        passive_deletes="all",
     )
 
     localizations: Mapped[list[PoiLocalizationModel]] = relationship(
         back_populates="poi",
-        cascade="all, delete-orphan",
+        passive_deletes="all",
     )
 
     tasks: Mapped[list[PoiTaskModel]] = relationship(
         back_populates="poi",
-        cascade="all, delete-orphan",
+        passive_deletes="all",
     )
 
-    submissions: Mapped[list[PoiSubmissionModel]] = relationship(back_populates="poi")
+    submissions: Mapped[list[PoiSubmissionModel]] = relationship(
+        back_populates="poi",
+        passive_deletes="all",
+    )
+
+    analytics_events: Mapped[list[AnalyticsEventModel]] = relationship(
+        back_populates="poi",
+        passive_deletes="all",
+    )

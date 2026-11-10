@@ -10,6 +10,11 @@ export type RegisterPayload = {
   phone: string;
 }
 
+export type ChangePasswordPayload = {
+  current_password: string;
+  new_password: string;
+}
+
 export type LoginResult = null;
 
 export type RegisterResult = {

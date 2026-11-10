@@ -114,7 +114,15 @@ export function RegisterPage() {
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Đăng nhập để khám phá địa điểm hoặc đăng ký trở thành chủ địa điểm.
           </p>
-          <Button className="mt-6" render={<Link to={loginPath} />}>
+          <Button
+            className="mt-6"
+            render={
+              <Link
+                to={loginPath}
+                state={{ from: "/quan-ly/dang-ky-chu-quan" }}
+              />
+            }
+          >
             Đi đến trang đăng nhập
           </Button>
         </div>

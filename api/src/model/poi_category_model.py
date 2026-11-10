@@ -18,8 +18,12 @@ class PoiCategoryModel(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationship
-    pois: Mapped[list[PoiModel]] = relationship(back_populates="category")
+    pois: Mapped[list[PoiModel]] = relationship(
+        back_populates="category",
+        passive_deletes="all",
+    )
 
     poi_submissions: Mapped[list[PoiSubmissionModel]] = relationship(
-        back_populates="category"
+        back_populates="category",
+        passive_deletes="all",
     )

@@ -35,4 +35,7 @@ class RoleModel(Base):
     )
 
     # Relationship
-    users: Mapped[list[AdminUserModel]] = relationship(back_populates="role")
+    users: Mapped[list[AdminUserModel]] = relationship(
+        back_populates="role",
+        passive_deletes="all",
+    )

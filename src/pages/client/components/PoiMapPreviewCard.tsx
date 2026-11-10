@@ -1,4 +1,4 @@
-import { InfoIcon, NavigationIcon } from "lucide-react";
+import { InfoIcon, NavigationIcon, XIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { Button } from "#components/ui/button";
@@ -8,9 +8,18 @@ import type { PublicPoi } from "../../../types/Poi";
 type PoiMapPreviewCardProps = {
   poi: PublicPoi;
   onClose: () => void;
+  onClickCoodinate: () => void;
+  hasRoute: boolean;
+  onClearRoute: () => void;
 };
 
-export function PoiMapPreviewCard({ poi, onClose }: PoiMapPreviewCardProps) {
+export function PoiMapPreviewCard({
+  poi,
+  onClose,
+  onClickCoodinate,
+  hasRoute,
+  onClearRoute,
+}: PoiMapPreviewCardProps) {
   const navigate = useNavigate();
   const { t } = useUiBundle();
   const coverImage = poi.images[0];
@@ -59,16 +68,27 @@ export function PoiMapPreviewCard({ poi, onClose }: PoiMapPreviewCardProps) {
               <InfoIcon aria-hidden="true" />
               {t("poi.details")}
             </Button>
-            <Button
-              className="h-10 rounded-full"
-              type="button"
-              variant="outline"
-              disabled
-              title={t("poi.directionsUnavailable")}
-            >
-              <NavigationIcon aria-hidden="true" />
-              {t("poi.directions")}
-            </Button>
+            {hasRoute ? (
+              <Button
+                className="h-10 rounded-full"
+                type="button"
+                variant="outline"
+                onClick={onClearRoute}
+              >
+                <XIcon aria-hidden="true" />
+                Tắt chỉ đường
+              </Button>
+            ) : (
+              <Button
+                className="h-10 rounded-full"
+                type="button"
+                variant="outline"
+                onClick={onClickCoodinate}
+              >
+                <NavigationIcon aria-hidden="true" />
+                {t("poi.directions")}
+              </Button>
+            )}
           </div>
         </div>
       </div>

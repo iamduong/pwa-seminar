@@ -1,7 +1,7 @@
 import api from "#lib/api";
 import type { ApiResponse } from "#lib/api";
 
-import type { LoginResult, LoginPayload, RegisterPayload, RegisterResult, ProfileSession } from "../types/Authorize";
+import type { ChangePasswordPayload, LoginResult, LoginPayload, RegisterPayload, RegisterResult, ProfileSession } from "../types/Authorize";
 
 class AuthorizeService {
     async Login(payload: LoginPayload) {
@@ -40,8 +40,12 @@ class AuthorizeService {
 
     }
 
-    async ChangePassword() {
+    async ChangePassword(payload: ChangePasswordPayload) {
+        const response = await api.post<ApiResponse<null>>(
+            "/authorize/change-password", payload
+        );
 
+        return response.data;
     }
 }
 

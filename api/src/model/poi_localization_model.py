@@ -23,7 +23,7 @@ class PoiLocalizationModel(Base):
     __tablename__ = "poi_localizations"
 
     poi_id: Mapped[UUID] = mapped_column(
-        ForeignKey("pois.id", ondelete="CASCADE"),
+        ForeignKey("pois.id", ondelete="RESTRICT"),
         nullable=False,
     )
     lang: Mapped[str] = mapped_column(String(10), nullable=False)

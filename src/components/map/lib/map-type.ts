@@ -20,9 +20,10 @@ export interface HybridMapProps {
   isSupportLocation?: boolean;
 
   poiMarkers?: PoiMarker[];
-
   clientLocation?: MapCoordinates;
+  geometryCoordinates?: MapCoordinates[];
 
+  // Used in managed role
   selectedLocation?: SelectedLocation;
 
   onClickMap?: (coordinates: MapCoordinates) => void;

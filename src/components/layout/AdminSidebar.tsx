@@ -3,6 +3,8 @@ import {
   ChevronDownIcon,
   ClipboardCheckIcon,
   FileClockIcon,
+  KeyRoundIcon,
+  LayoutDashboardIcon,
   LogOutIcon,
   MapPinnedIcon,
   ShieldCheckIcon,
@@ -31,6 +33,39 @@ import { useAuthorize } from "../../hooks/use-authorize";
 import { authorizeService } from "../../services/AuthorizeService";
 
 const navigationGroup = [
+  {
+    title: "Tổng quan",
+    icon: LayoutDashboardIcon,
+    child: [
+      {
+        title: "Dashboard",
+        href: "/quan-ly/dashboard",
+        permissions: [
+          "owner:poi_read",
+          "poi:read",
+          "owner_registration:read",
+          "poi_submission:read",
+          "user:read",
+        ],
+      },
+    ],
+  },
+  {
+    title: "Đăng ký làm chủ quán",
+    icon: StoreIcon,
+    child: [
+      {
+        title: "Hồ sơ của tôi",
+        href: "/quan-ly/dang-ky-chu-quan",
+        permissions: [
+          "owner_registration:register",
+          "owner_registration:read_self",
+          "owner_registration:resubmit",
+        ],
+        ownerRegistration: true,
+      },
+    ],
+  },
   {
     title: "Địa điểm POI",
     icon: MapPinnedIcon,
@@ -177,7 +212,7 @@ export function AdminSidebar() {
       child: group.child.filter((item) =>
         item.permissions.some((permission) =>
           session?.role?.permissions.includes(permission),
-        ),
+        ) || ("ownerRegistration" in item && item.ownerRegistration && Boolean(session?.poiOwner)),
       ),
     }))
     .filter((group) => group.child.length > 0);
@@ -212,7 +247,7 @@ export function AdminSidebar() {
       <SidebarHeader className="border-b p-2">
         <Link
           className="flex h-10 items-center gap-2 rounded-md px-2"
-          to="/dashboard"
+          to="/quan-ly/dashboard"
         >
           <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
             <MapPinnedIcon className="size-4" aria-hidden="true" />
@@ -294,6 +329,26 @@ export function AdminSidebar() {
                   {session?.role?.name ?? "Chưa có vai trò"}
                 </span>
               </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              render={<Link to="/quan-ly/tai-khoan/doi-mat-khau" />}
+              isActive={isCurrentPath(
+                location.pathname,
+                "/quan-ly/tai-khoan/doi-mat-khau",
+              )}
+              aria-current={
+                isCurrentPath(
+                  location.pathname,
+                  "/quan-ly/tai-khoan/doi-mat-khau",
+                )
+                  ? "page"
+                  : undefined
+              }
+            >
+              <KeyRoundIcon aria-hidden="true" />
+              <span>Đổi mật khẩu</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
