@@ -75,13 +75,21 @@ export default function MenuItemRequestPage() {
     }
     setSubmitting(true);
     try {
+      let imageUrl = item?.image_url || undefined;
+      if (selectedImage) {
+        const uploadResponse = await menuItemService.uploadImage(selectedImage.file);
+        if (!uploadResponse.success || !uploadResponse.data) {
+          throw new Error(uploadResponse.message || "Không thể tải ảnh món ăn.");
+        }
+        imageUrl = uploadResponse.data.url;
+      }
+
       const payload = {
         poi_id: poiId,
         name,
         description: String(form.get("description") || "").trim() || undefined,
         price: form.get("price") === "" ? undefined : Number(form.get("price")),
-        // shortcut: selected images use a placeholder URL until the upload API is available.
-        image_url: selectedImage ? "https://anh.com" : item?.image_url || undefined,
+        image_url: imageUrl,
       };
       const response = id
         ? await menuItemService.update(id, payload)
@@ -176,7 +184,7 @@ export default function MenuItemRequestPage() {
               {selectedImage ? "Chọn ảnh khác" : "Chọn ảnh từ máy"}
             </Button>
             <p className="text-xs text-muted-foreground">
-              Ảnh được chọn chỉ xem trước tại trình duyệt, chưa được tải lên máy chủ.
+              Hỗ trợ JPEG, PNG, WebP hoặc GIF; dung lượng tối đa 5 MB.
             </p>
             {item?.image_url && !selectedImage && (
               <p className="text-sm text-muted-foreground">

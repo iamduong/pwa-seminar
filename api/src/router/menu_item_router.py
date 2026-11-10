@@ -1,12 +1,30 @@
 from typing import Annotated
 
 from core.api_response import ApiResponse
-from core.dependency import AccessTokenPayload, require_permission
-from fastapi import APIRouter, Depends, status
+from core.dependency import AccessTokenPayload, require_permission, validate_session
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from schema.menu_item_schema import MenuItemSave, MenuItemView
+from service.cloudinary_service import CloudinaryService
 from service.menu_item_service import MenuItemService
 
 router = APIRouter(prefix="/menu-items", tags=["Menu Items"])
+
+
+@router.post("/images")
+async def upload_menu_item_image(
+    image: Annotated[UploadFile, File()],
+    principal: Annotated[AccessTokenPayload, Depends(validate_session)],
+    service: Annotated[CloudinaryService, Depends()],
+) -> ApiResponse[dict[str, str]]:
+    allowed_permissions = {"menu:create", "menu:update", "owner:menu_submit"}
+    if not (allowed_permissions & set(principal.permissions)):
+        raise HTTPException(403, "Bạn không có quyền tải ảnh món ăn")
+
+    return ApiResponse(
+        success=True,
+        message="Tải ảnh món ăn thành công",
+        data=await service.upload_image(image),
+    )
 
 
 @router.get("/my-pois")
