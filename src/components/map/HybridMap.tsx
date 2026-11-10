@@ -19,6 +19,7 @@ import { ensurePmtilesProtocol } from "./lib/pmtiles-protocol";
 import { drawClientLocation } from "./util/clientLocation";
 import { drawPoiMarkers } from "./util/poiMarkers";
 import { drawSelectedLocation } from "./util/selectedLocation";
+import { drawGeometryCoordinates } from "./util/geometryCoordinates";
 
 setWorkerUrl(mapWorkerUrl);
 
@@ -39,9 +40,11 @@ const HybridMap = ({
 
   // Poi markers
   poiMarkers = [],
-
   // Client location
   clientLocation,
+  // Geometry coodinates
+  geometryCoordinates
+
 }: HybridMapProps) => {
   const { t } = useUiBundle();
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -57,6 +60,7 @@ const HybridMap = ({
 
   // ! Mode checking state
   const [mode, setMode] = useState<MapMode>("checking");
+  const [styleRevision, setStyleRevision] = useState(0);
   useEffect(() => {
     onClickMapRef.current = onClickMap;
   }, [onClickMap]);
@@ -88,6 +92,9 @@ const HybridMap = ({
       style,
     });
     mapRef.current = map;
+
+    const handleStyleLoad = () => setStyleRevision((revision) => revision + 1);
+    map.on("style.load", handleStyleLoad);
 
     // ! Button click to go to self locationm (GPS)
     if (isSupportLocationRef.current) {
@@ -130,6 +137,7 @@ const HybridMap = ({
     return () => {
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
+      map.off("style.load", handleStyleLoad);
       map.remove();
       mapRef.current = null;
     };
@@ -167,6 +175,14 @@ const HybridMap = ({
     };
   }, [poiMarkers, t]);
 
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+
+    drawGeometryCoordinates(map, geometryCoordinates);
+  }, [geometryCoordinates, styleRevision]);
+
+  // * Selected POI
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;

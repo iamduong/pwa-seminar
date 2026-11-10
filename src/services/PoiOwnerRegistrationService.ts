@@ -2,6 +2,7 @@ import api from "#lib/api";
 import type { ApiResponse } from "#lib/api";
 import type { PoiOwnerRegistrationStatus } from "../types/PoiOwnerRegistration";
 import type {
+  PoiOwnerRegistration,
   RegisterPoiOwnerRegistration,
   PoiOwnerRegistrationPagination,
 } from "../types/PoiOwnerRegistration";
@@ -37,6 +38,24 @@ class PoiOwnerRegistrationService {
     const response = await api.post<ApiResponse<RegisteredPoiOwner>>(
       "/poi-owner-registrations/register",
       payload,
+    );
+
+    return response.data;
+  }
+
+  async ReRegisterPoiOwner(payload: RegisterPoiOwnerRegistration) {
+    const response = await api.post<ApiResponse<RegisteredPoiOwner>>(
+      "/poi-owner-registrations/re-register",
+      payload,
+    );
+
+    return response.data;
+  }
+
+  async GetSelfRegistrations(signal?: AbortSignal) {
+    const response = await api.get<ApiResponse<PoiOwnerRegistration[]>>(
+      "/poi-owner-registrations/self-registration",
+      { signal },
     );
 
     return response.data;

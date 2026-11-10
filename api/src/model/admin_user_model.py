@@ -9,6 +9,8 @@ from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
+    from model.ai_usage_limit_model import AiUsageLimitModel
+    from model.analytics_event_model import AnalyticsEventModel
     from model.poi_model import PoiModel
     from model.poi_owner_registration_model import PoiOwnerRegistrationModel
     from model.poi_submission_model import PoiSubmissionModel
@@ -34,19 +36,34 @@ class AdminUserModel(Base):
         nullable=True,
     )
     role_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("roles.id", ondelete="SET NULL"),
+        ForeignKey("roles.id", ondelete="RESTRICT"),
         nullable=True,
     )
 
     # Relationship
     role: Mapped[RoleModel | None] = relationship(back_populates="users")
 
-    pois: Mapped[list[PoiModel]] = relationship(back_populates="owner")
+    pois: Mapped[list[PoiModel]] = relationship(
+        back_populates="owner",
+        passive_deletes="all",
+    )
 
     poi_submissions: Mapped[list[PoiSubmissionModel]] = relationship(
-        back_populates="owner"
+        back_populates="owner",
+        passive_deletes="all",
     )
 
     poi_owner_registrations: Mapped[list[PoiOwnerRegistrationModel]] = relationship(
-        back_populates="owner"
+        back_populates="owner",
+        passive_deletes="all",
+    )
+
+    ai_usage_limits: Mapped[list[AiUsageLimitModel]] = relationship(
+        back_populates="user",
+        passive_deletes="all",
+    )
+
+    analytics_events: Mapped[list[AnalyticsEventModel]] = relationship(
+        back_populates="user",
+        passive_deletes="all",
     )

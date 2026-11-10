@@ -31,7 +31,7 @@ class PoiTaskModel(Base):
     __tablename__ = "poi_tasks"
 
     poi_id: Mapped[UUID] = mapped_column(
-        ForeignKey("pois.id", ondelete="CASCADE"),
+        ForeignKey("pois.id", ondelete="RESTRICT"),
         nullable=False,
     )
     type: Mapped[str] = mapped_column(String(30), nullable=False)
@@ -56,12 +56,12 @@ class PoiTaskModel(Base):
 
     events: Mapped[list[PoiTaskEventModel]] = relationship(
         back_populates="task",
-        cascade="all, delete-orphan",
+        passive_deletes="all",
     )
 
     processes: Mapped[list[PoiTaskProcessModel]] = relationship(
         back_populates="task",
-        cascade="all, delete-orphan",
+        passive_deletes="all",
     )
 
 

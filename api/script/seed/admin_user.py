@@ -10,15 +10,14 @@ PASSWORD = "Admin@123"
 USER_FIXTURES = [
     ("Nguyễn Admin", "admin@dev.com", "0388858383", "super_admin", True),
     ("Nguyễn Chủ Quán", "owner@dev.com", "0388858384", "poi_owner", True),
-    ("Lâm Vinh Đạt", "lamvinhdat@gmail.com", "0969297300", "user", False),
-    ("Trần Thanh Quy", "thanhquyfu@gmail.com", "0969297301", "user", False),
-    ("Nguyễn Minh Anh", "nguyenminhanh@gmail.com", "0969297302", "user", False),
-    ("Lê Hoàng Nam", "lehoangnam@gmail.com", "0969297303", "user", False),
-    ("Phạm Thu Hà", "phamthuha@gmail.com", "0969297304", "user", False),
+    ("Nguyễn Người Dùng", "user@dev.com", "0388858385", "user", False),
 ]
 
 
-async def init_admin_user(session: AsyncSession, roles: dict[str, RoleModel]) -> dict[str, AdminUserModel]:
+async def init_admin_users(
+    session: AsyncSession,
+    roles: dict[str, RoleModel],
+) -> dict[str, AdminUserModel]:
     users = {}
     password_hash = bcrypt.hashpw(PASSWORD.encode(), bcrypt.gensalt()).decode()
     for full_name, email, phone, role_name, verified in USER_FIXTURES:

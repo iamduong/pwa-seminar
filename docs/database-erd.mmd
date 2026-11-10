@@ -1,0 +1,232 @@
+erDiagram
+    roles {
+        UUID id PK
+        VARCHAR name
+        TEXT_ARRAY permissions
+        BOOLEAN is_system
+        INTEGER priority
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    admin_users {
+        UUID id PK
+        UUID role_id FK
+        VARCHAR full_name
+        VARCHAR email
+        VARCHAR phone
+        TEXT password_hash
+        BOOLEAN is_active
+        BOOLEAN is_poi_owner_verified
+        TEXT id_card_encrypted
+        TIMESTAMPTZ pii_collected_at
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    poi_categories {
+        UUID id PK
+        VARCHAR name
+        BOOLEAN is_active
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    pois {
+        UUID id PK
+        UUID owner_id FK
+        UUID category_id FK
+        VARCHAR category_name
+        VARCHAR name
+        TEXT description
+        TEXT address
+        JSONB location
+        TEXT_ARRAY images
+        FLOAT trigger_radius
+        BOOLEAN is_active
+        BOOLEAN activation_requested
+        INTEGER audio_priority
+        VARCHAR audio_status
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    poi_localizations {
+        UUID id PK
+        UUID poi_id FK
+        VARCHAR lang
+        VARCHAR category
+        VARCHAR name
+        TEXT description
+        TEXT audio_url
+        VARCHAR audio_status
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    menu_items {
+        UUID id PK
+        UUID poi_id FK
+        VARCHAR name
+        TEXT description
+        FLOAT price
+        TEXT image_url
+        BOOLEAN is_active
+        BOOLEAN is_available
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    menu_item_localizations {
+        UUID id PK
+        UUID menu_item_id FK
+        VARCHAR lang
+        VARCHAR name
+        TEXT description
+        VARCHAR translation_status
+        TEXT error_message
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    poi_owner_registrations {
+        UUID id PK
+        UUID user_id FK
+        VARCHAR business_name
+        TEXT business_address
+        TEXT note
+        TEXT admin_note
+        VARCHAR status
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    poi_submissions {
+        UUID id PK
+        UUID owner_id FK
+        UUID poi_id FK
+        UUID category_id FK
+        VARCHAR submission_type
+        VARCHAR category_name
+        VARCHAR name
+        TEXT description
+        TEXT address
+        JSONB location
+        TEXT_ARRAY images
+        INTEGER trigger_radius
+        TEXT owner_note
+        VARCHAR status
+        TEXT admin_note
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    poi_tasks {
+        UUID id PK
+        UUID poi_id FK
+        VARCHAR type
+        VARCHAR status
+        INTEGER progress_percent
+        TEXT_ARRAY target_languages
+        VARCHAR step_language
+        BOOLEAN activation_requested
+        INTEGER retry_count
+        INTEGER max_retries
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    poi_task_events {
+        UUID id PK
+        UUID task_id FK
+        TEXT message
+        VARCHAR language
+        TIMESTAMPTZ started_at
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    poi_task_processes {
+        UUID id PK
+        UUID task_id FK
+        VARCHAR language
+        VARCHAR translation_status
+        VARCHAR audio_status
+        TEXT audio_url
+        TEXT error_message
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    ui_bundles {
+        UUID id PK
+        VARCHAR lang UK
+        JSONB ui_bundle
+        INTEGER version
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    content_dataset_versions {
+        UUID id PK
+        VARCHAR key_query
+        VARCHAR etag
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    ai_usage_limits {
+        UUID id PK
+        UUID user_id FK
+        DATE usage_date
+        INTEGER usage_count
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    analytics_events {
+        UUID id PK
+        VARCHAR event_type
+        UUID session_id
+        UUID user_id FK
+        UUID poi_id FK
+        UUID menu_item_id FK
+        TIMESTAMPTZ occurred_at
+        JSONB metadata
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    roles o|--o{ admin_users : assigns
+    admin_users o|--o{ pois : owns
+    poi_categories ||--o{ pois : classifies
+    pois ||--o{ poi_localizations : localizes
+    pois ||--o{ menu_items : contains
+    menu_items ||--o{ menu_item_localizations : localizes
+    admin_users ||--o{ poi_owner_registrations : submits
+    admin_users ||--o{ poi_submissions : submits
+    pois o|--o{ poi_submissions : references
+    poi_categories ||--o{ poi_submissions : classifies
+    pois ||--o{ poi_tasks : processes
+    poi_tasks ||--o{ poi_task_events : logs
+    poi_tasks ||--o{ poi_task_processes : tracks
+    admin_users ||--o{ ai_usage_limits : consumes
+    admin_users o|--o{ analytics_events : generates
+    pois o|--o{ analytics_events : receives
+    menu_items o|--o{ analytics_events : receives

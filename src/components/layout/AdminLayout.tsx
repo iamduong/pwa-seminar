@@ -1,6 +1,8 @@
 import { Outlet } from "react-router"
 
 import { AdminSidebar } from "#components/layout/AdminSidebar"
+import { AiAdvisorWidget } from "#components/ai/AiAdvisorWidget"
+import { useAuthorize } from "#hooks/use-authorize"
 import { Separator } from "#components/ui/separator"
 import {
   SidebarInset,
@@ -9,6 +11,12 @@ import {
 } from "#components/ui/sidebar"
 
 export function AdminLayout() {
+  const { session } = useAuthorize()
+  const permissions = session?.role?.permissions ?? []
+  const canUseContentAdvisor =
+    permissions.includes("poi:create") ||
+    permissions.includes("owner:poi_submit")
+
   return (
     <SidebarProvider>
       <AdminSidebar />
@@ -22,6 +30,7 @@ export function AdminLayout() {
           <Outlet />
         </div>
       </SidebarInset>
+      {canUseContentAdvisor && <AiAdvisorWidget />}
     </SidebarProvider>
   )
 }

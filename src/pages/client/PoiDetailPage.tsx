@@ -118,8 +118,9 @@ export default function PoiDetailPage() {
             type="button"
             size="icon-lg"
             variant="ghost"
-            disabled
-            title={t("poi.directionsUnavailable")}
+          onClick={() => navigate(`/?poi=${encodeURIComponent(poi.id)}`)}
+          title={t("poi.directions")}
+          aria-label={`${t("poi.directions")} ${poi.name}`}
           >
             <NavigationIcon className="text-primary" aria-hidden="true" />
           </Button>

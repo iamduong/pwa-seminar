@@ -18,6 +18,7 @@ router = APIRouter(prefix="/public", tags=["Public Controller"])
 POI_CACHE_SCHEMA_VERSION = 2
 
 
+# * UI Bundles
 @router.get("/ui/load-all", response_model=None)
 async def bundle_ui(
     lang: str,
@@ -65,7 +66,7 @@ async def filter_poi_category(
 
 
 @router.get("/poi/load-all", response_model=None)
-async def bundle_poi(
+async def poi_bundles(
     # Params
     lang: str,
     # Service

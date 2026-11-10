@@ -37,7 +37,13 @@ function MenuList({ poiId }: { poiId: string }) {
       try {
         const [poiResponse, response] = await Promise.all([
           menuItemService.getPoi(poiId),
-          menuItemService.listByPoi(poiId, page, filter === "all" ? undefined : filter === "approved", pageSize),
+          menuItemService.listByPoi(
+            poiId,
+            page,
+            filter === "all" ? undefined : filter === "approved",
+            undefined,
+            pageSize,
+          ),
         ]);
         if (!poiResponse.success || !poiResponse.data) {
           throw new Error(poiResponse.message || "Không tải được địa điểm.");

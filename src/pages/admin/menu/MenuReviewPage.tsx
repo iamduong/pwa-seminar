@@ -39,7 +39,7 @@ function MenuReview({ poiId }: { poiId: string }) {
       try {
         const [poiResponse, response] = await Promise.all([
           menuItemService.getPoi(poiId),
-          menuItemService.listByPoi(poiId, page, false, pageSize),
+          menuItemService.listByPoi(poiId, page, false, undefined, pageSize),
         ]);
         if (!poiResponse.success || !poiResponse.data) {
           throw new Error(poiResponse.message || "Không tải được địa điểm.");

@@ -41,6 +41,10 @@ import { PoiDataProvider } from "./providers/PoiDataProvider";
 import MenuReviewPage from "./pages/admin/menu/MenuReviewPage";
 import { UiBundleProvider } from "./providers/UiBundleProvider";
 import OwnerPoiDetailPage from "./pages/admin/poi-submission/OwnerPoiDetailPage";
+import SelfPoiOwnerRegistrationPage from "./pages/admin/poi-owner-registration/SelfPoiOwnerRegistrationPage";
+import ManagementIndexPage from "./pages/admin/ManagementIndexPage";
+import ChangePasswordPage from "./pages/admin/account/ChangePasswordPage";
+import DashboardPage from "./pages/admin/dashboard/DashboardPage";
 
 const ClientProviders = () => {
   return (
@@ -91,6 +95,16 @@ export default function App() {
         {/* Admin page and features */}
         <Route element={<ProtectedRoute />}>
           <Route path="/quan-ly" element={<AdminLayout />}>
+            <Route index element={<ManagementIndexPage />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+
+            <Route path="tai-khoan/doi-mat-khau" element={<ChangePasswordPage />} />
+
+            <Route
+              path="dang-ky-chu-quan"
+              element={<SelfPoiOwnerRegistrationPage />}
+            />
+
             {/* POI features */}
             <Route path="dia-diem-poi">
               <Route path="danh-sach-poi" element={<PoiListPage />} />

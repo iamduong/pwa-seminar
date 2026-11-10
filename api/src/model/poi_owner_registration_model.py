@@ -22,7 +22,7 @@ class PoiOwnerRegistrationModel(Base):
     __tablename__ = "poi_owner_registrations"
 
     user_id: Mapped[UUID] = mapped_column(
-        ForeignKey("admin_users.id", ondelete="CASCADE"),
+        ForeignKey("admin_users.id", ondelete="RESTRICT"),
         nullable=False,
     )
     business_name: Mapped[str] = mapped_column(String(200), nullable=False)
