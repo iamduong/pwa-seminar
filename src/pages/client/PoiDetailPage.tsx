@@ -1,9 +1,10 @@
 import { ArrowLeftIcon, NavigationIcon } from "lucide-react";
-import { useRef, useState, type UIEvent } from "react";
+import { useEffect, useRef, useState, type UIEvent } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import { Button } from "#components/ui/button";
 import { usePoiData } from "#hooks/use-poi-data";
+import { useUiBundle } from "#hooks/use-ui-bundle";
 
 function resolveMediaUrl(url: string) {
   if (/^https?:\/\//i.test(url)) return url;
@@ -20,9 +21,14 @@ export default function PoiDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { pois, loading } = usePoiData();
+  const { t } = useUiBundle();
   const poi = pois.find((item) => item.id === id);
   const [activeImage, setActiveImage] = useState(0);
   const carouselRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    document.title = `${poi?.name ?? t("page.places.title")} | Quan4 Tourism`;
+  }, [poi?.name, t]);
 
   function handleImageScroll(event: UIEvent<HTMLDivElement>) {
     const width = event.currentTarget.clientWidth;
@@ -34,11 +40,11 @@ export default function PoiDetailPage() {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-muted-foreground">
-          {loading ? "Đang tải địa điểm…" : "Không tìm thấy địa điểm."}
+          {loading ? t("places.loading") : t("poi.notFound")}
         </p>
         <Button type="button" variant="outline" onClick={() => navigate(-1)}>
           <ArrowLeftIcon aria-hidden="true" />
-          Quay lại
+          {t("poi.back")}
         </Button>
       </div>
     );
@@ -53,7 +59,7 @@ export default function PoiDetailPage() {
           type="button"
           className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4 z-20 flex size-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm"
           onClick={() => navigate(-1)}
-          aria-label="Quay lại"
+          aria-label={t("poi.back")}
         >
           <ArrowLeftIcon aria-hidden="true" />
         </button>
@@ -69,13 +75,13 @@ export default function PoiDetailPage() {
                 key={`${image}-${index}`}
                 className="h-full min-w-full snap-center object-cover"
                 src={image}
-                alt={`${poi.name} - hình ${index + 1}`}
+                alt={t("poi.imageAlt", { name: poi.name, index: index + 1 })}
               />
             ))}
           </div>
         ) : (
           <div className="flex h-[45dvh] items-center justify-center text-sm text-muted-foreground">
-            Chưa có hình ảnh
+            {t("places.noImage")}
           </div>
         )}
 
@@ -94,7 +100,7 @@ export default function PoiDetailPage() {
                     behavior: "smooth",
                   })
                 }
-                aria-label={`Xem hình ${index + 1}`}
+                aria-label={t("poi.viewImage", { index: index + 1 })}
               />
             ))}
           </div>
@@ -113,19 +119,19 @@ export default function PoiDetailPage() {
             size="icon-lg"
             variant="ghost"
             disabled
-            title="Tính năng chỉ đường sẽ được bổ sung sau"
+            title={t("poi.directionsUnavailable")}
           >
             <NavigationIcon className="text-primary" aria-hidden="true" />
           </Button>
         </header>
 
         <section>
-          <h2 className="mb-2 font-semibold">Giới thiệu</h2>
+          <h2 className="mb-2 font-semibold">{t("poi.introduction")}</h2>
           <p className="text-base leading-7 text-foreground/85">{poi.description}</p>
         </section>
 
         <section className="rounded-2xl border bg-card p-4 shadow-sm">
-          <h2 className="font-semibold">Nghe thuyết minh</h2>
+          <h2 className="font-semibold">{t("poi.audioTitle")}</h2>
           {poi.audio_url ? (
             <audio
               className="mt-3 w-full"
@@ -135,7 +141,7 @@ export default function PoiDetailPage() {
             />
           ) : (
             <p className="mt-2 text-sm text-muted-foreground">
-              Địa điểm này chưa có bản thuyết minh.
+              {t("poi.audioUnavailable")}
             </p>
           )}
         </section>

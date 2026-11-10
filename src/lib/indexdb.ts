@@ -2,21 +2,29 @@ import { openDB } from "idb";
 import type { DBSchema, IDBPDatabase } from "idb";
 
 import type { PoiBundle, PublicPoi } from "../types/Poi";
+import type { UiBundle } from "../types/UiBundle";
 
 export type DBPoi = PoiBundle & {
   lang: string;
 };
+
+export type DBUiBundle = UiBundle;
 
 interface Quan4DatabaseSchema extends DBSchema {
   db_poi: {
     key: string;
     value: DBPoi;
   };
+  db_ui_bundle: {
+    key: string;
+    value: DBUiBundle;
+  };
 }
 
 const DB_NAME = "Quan4DB";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const POI_STORE = "db_poi";
+const UI_BUNDLE_STORE = "db_ui_bundle";
 
 let databasePromise: Promise<IDBPDatabase<Quan4DatabaseSchema>> | null = null;
 
@@ -26,6 +34,9 @@ export function getDatabase(): Promise<IDBPDatabase<Quan4DatabaseSchema>> {
       upgrade(database) {
         if (!database.objectStoreNames.contains(POI_STORE)) {
           database.createObjectStore(POI_STORE, { keyPath: "lang" });
+        }
+        if (!database.objectStoreNames.contains(UI_BUNDLE_STORE)) {
+          database.createObjectStore(UI_BUNDLE_STORE, { keyPath: "lang" });
         }
       },
     });
@@ -65,4 +76,17 @@ export async function savePoi(
   await transaction.done;
 
   return record;
+}
+
+export async function getCachedUiBundle(
+  lang: string,
+): Promise<DBUiBundle | undefined> {
+  const database = await getDatabase();
+  return database.get(UI_BUNDLE_STORE, lang);
+}
+
+export async function saveUiBundle(data: UiBundle): Promise<DBUiBundle> {
+  const database = await getDatabase();
+  await database.put(UI_BUNDLE_STORE, data);
+  return data;
 }

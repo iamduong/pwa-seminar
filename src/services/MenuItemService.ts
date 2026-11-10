@@ -47,10 +47,16 @@ class MenuItemService {
     return response.data;
   }
 
-  async listByPoi(poiId: string, page = 1, isActive?: boolean, pageSize = 20) {
+  async listByPoi(
+    poiId: string,
+    page = 1,
+    isActive?: boolean,
+    signal?: AbortSignal,
+    pageSize = 20,
+  ) {
     const response = await api.get<ApiResponse<Pagination<MenuItem>>>(
       `/pois/${poiId}/menu-items`,
-      { params: { page, page_size: pageSize, is_active: isActive } },
+      { params: { page, page_size: pageSize, is_active: isActive }, signal },
     );
     return response.data;
   }

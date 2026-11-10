@@ -9,6 +9,7 @@ import {
 import mapWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 
 import { cn } from "#lib/utils";
+import { useUiBundle } from "#hooks/use-ui-bundle";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -23,12 +24,6 @@ setWorkerUrl(mapWorkerUrl);
 
 const DEFAULT_MAP_CENTER: MapCoordinates = [106.704, 10.76];
 const DEFAULT_MAP_ZOOM = 15;
-
-const MODE_LABELS = {
-  checking: "Đang kiểm tra bản đồ…",
-  online: "Bản đồ trực tuyến",
-  offline: "Bản đồ ngoại tuyến",
-} as const;
 
 const HybridMap = ({
   className,
@@ -48,6 +43,7 @@ const HybridMap = ({
   // Client location
   clientLocation,
 }: HybridMapProps) => {
+  const { t } = useUiBundle();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
 
@@ -161,14 +157,15 @@ const HybridMap = ({
         center: poiMarker.location.coordinates,
         offset: [0, -100],
         duration: reduceMotion ? 0 : 500,
+        zoom: 18
       });
       onClickPoiMarkerRef.current?.(poiMarker);
-    });
+    }, t("map.marker.viewPlace"));
 
     return () => {
       markers.forEach((marker) => marker.remove());
     };
-  }, [poiMarkers]);
+  }, [poiMarkers, t]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -191,7 +188,7 @@ const HybridMap = ({
         "relative h-128 min-h-80 w-full overflow-hidden rounded-xl border bg-muted",
         className,
       )}
-      aria-label="Bản đồ địa điểm"
+      aria-label={t("map.ariaLabel")}
     >
       <div ref={containerRef} className="absolute inset-0 h-full w-full" />
 
@@ -205,13 +202,13 @@ const HybridMap = ({
             mode === "offline" && "bg-slate-500",
           )}
         />
-        {MODE_LABELS[mode]}
+        {t(`map.status.${mode}`)}
       </div>
 
       {/* Text helper */}
       {onClickMap && (
         <div className="pointer-events-none absolute top-14 left-3 rounded-md border bg-background/90 px-2.5 py-1.5 text-xs shadow-sm backdrop-blur-sm">
-          Nhấn lên bản đồ để chọn vị trí
+          {t("map.selectLocationHint")}
         </div>
       )}
     </section>

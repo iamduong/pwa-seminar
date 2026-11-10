@@ -14,7 +14,6 @@ from repository.poi_repository import PoiRepository
 from repository.poi_submission_repository import PoiSubmissionRepository
 from repository.poi_task_repository import PoiTaskRepository
 from schema.poi_submission_shema import FilterPoiSubmission, RegisterPoiSubmission, ReviewPoiSubmission, ViewPoiSubmission
-from service.content_dataset_version_service import ContentDatasetVersionService
 
 
 def point_value(location):
@@ -29,7 +28,6 @@ class PoiSubmissionService:
         self.categories = PoiCategoryRepository(db)
         self.pois = PoiRepository(db)
         self.tasks = PoiTaskRepository(db)
-        self.versions = ContentDatasetVersionService(db)
 
     @staticmethod
     def _view(model):
@@ -78,7 +76,5 @@ class PoiSubmissionService:
             task.processes = [PoiTaskProcessModel(language=language) for language in MY_MEMORY_LANGUAGES]
             await self.tasks.insert(task)
         await self.repository.save(model)
-        if body.status == "approved":
-            await self.versions.rotate_poi_etag()
         refreshed = await self.repository.find_by_id(model.id)
         return self._view(refreshed)

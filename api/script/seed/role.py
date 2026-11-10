@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 ROLE_FIXTURES = [
     ("super_admin", PERMISSIONS, 0),
-    ("admin", ["poi:read", "menu:read", "menu:create", "menu:review", "owner_registration:read", "owner_registration:review", "poi_submission:read", "poi_submission:review"], 1),
+    ("admin", ["poi:read", "poi:create", "poi:update", "poi:delete", "menu:read", "menu:create", "menu:review", "owner_registration:read", "owner_registration:review", "poi_submission:read", "poi_submission:review"], 1),
     ("poi_owner", ["owner:poi_read", "owner:poi_submit", "owner:menu_read", "owner:menu_submit"], 10),
     ("user", ["owner_registration:register", "owner_registration:read_self", "owner_registration:resubmit"], 100),
 ]

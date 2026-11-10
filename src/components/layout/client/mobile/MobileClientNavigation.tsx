@@ -6,19 +6,22 @@ import {
 import { NavLink } from "react-router"
 
 import { ClientMenu } from "#components/layout/client/shared/ClientMenu"
+import { useUiBundle } from "#hooks/use-ui-bundle"
 
 const mobileNavigation = [
-  { title: "Trang chủ", href: "/", icon: MapPinnedIcon },
-  { title: "Món ăn", href: "/mon-an", icon: SoupIcon },
-  { title: "Địa điểm", href: "/dia-diem", icon: MapPinPenIcon },
+  { titleKey: "navigation.home", href: "/", icon: MapPinnedIcon },
+  { titleKey: "navigation.food", href: "/mon-an", icon: SoupIcon },
+  { titleKey: "navigation.places", href: "/dia-diem", icon: MapPinPenIcon },
 ]
 
 export const MobileClientNavigation = () => {
+  const { t } = useUiBundle()
+
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-50 px-3">
       <nav
         className="pointer-events-auto mx-auto grid h-17 w-full max-w-130 grid-cols-4 gap-1 rounded-2xl border bg-card/95 p-1.5 shadow-lg backdrop-blur-xl"
-        aria-label="Điều hướng chính"
+        aria-label={t("navigation.main.ariaLabel")}
       >
         {mobileNavigation.map((item) => (
           <NavLink
@@ -34,7 +37,7 @@ export const MobileClientNavigation = () => {
             }
           >
             <item.icon className="size-5" aria-hidden="true" />
-            <span className="max-w-full truncate">{item.title}</span>
+            <span className="max-w-full truncate">{t(item.titleKey)}</span>
           </NavLink>
         ))}
 

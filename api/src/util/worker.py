@@ -11,6 +11,7 @@ from model.poi_task_model import PoiTaskModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
+from service.content_dataset_version_service import ContentDatasetVersionService
 from util.audio import AudioGenerationError, ensure_audio_directory, generate_audio
 from util.translator import TranslationError, translate_poi
 
@@ -179,7 +180,12 @@ async def process_poi_task(
     if not has_error and task.activation_requested:
         poi.is_active = True
     task.events.append(_event(task.id, "Xử lý POI thất bại" if has_error else "Xử lý POI hoàn tất"))
-    await session.commit()
+    if poi.is_active:
+        # Publish the POI changes and the new snapshot ETag together, only
+        # after translations and audio are complete.
+        await ContentDatasetVersionService(session).rotate_poi_etag()
+    else:
+        await session.commit()
 
 
 async def _find_localization(session: AsyncSession, poi_id: UUID, language: str):

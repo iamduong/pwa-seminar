@@ -2,6 +2,7 @@ import { InfoIcon, NavigationIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { Button } from "#components/ui/button";
+import { useUiBundle } from "#hooks/use-ui-bundle";
 import type { PublicPoi } from "../../../types/Poi";
 
 type PoiMapPreviewCardProps = {
@@ -11,6 +12,7 @@ type PoiMapPreviewCardProps = {
 
 export function PoiMapPreviewCard({ poi, onClose }: PoiMapPreviewCardProps) {
   const navigate = useNavigate();
+  const { t } = useUiBundle();
   const coverImage = poi.images[0];
 
   return (
@@ -19,9 +21,9 @@ export function PoiMapPreviewCard({ poi, onClose }: PoiMapPreviewCardProps) {
         type="button"
         className="absolute -top-6 right-3 z-10 flex h-6 items-center gap-1 rounded-t-lg bg-foreground px-2.5 text-[12px] font-medium text-background shadow-sm"
         onClick={onClose}
-        aria-label="Đóng thông tin địa điểm"
+        aria-label={t("poi.preview.closeAria")}
       >
-        Đóng địa điểm này
+        {t("poi.preview.close")}
       </button>
 
       <div className="grid grid-cols-[7.5rem_minmax(0,1fr)] overflow-hidden rounded-2xl border bg-card shadow-xl">
@@ -34,7 +36,7 @@ export function PoiMapPreviewCard({ poi, onClose }: PoiMapPreviewCardProps) {
             />
           ) : (
             <div className="flex h-full items-center justify-center px-3 text-center text-xs text-muted-foreground">
-              Chưa có hình ảnh
+              {t("places.noImage")}
             </div>
           )}
         </div>
@@ -55,17 +57,17 @@ export function PoiMapPreviewCard({ poi, onClose }: PoiMapPreviewCardProps) {
               onClick={() => navigate(`/dia-diem/${poi.id}`)}
             >
               <InfoIcon aria-hidden="true" />
-              Chi tiết
+              {t("poi.details")}
             </Button>
             <Button
               className="h-10 rounded-full"
               type="button"
               variant="outline"
               disabled
-              title="Tính năng chỉ đường sẽ được bổ sung sau"
+              title={t("poi.directionsUnavailable")}
             >
               <NavigationIcon aria-hidden="true" />
-              Chỉ đường
+              {t("poi.directions")}
             </Button>
           </div>
         </div>
