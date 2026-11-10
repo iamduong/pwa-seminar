@@ -27,6 +27,7 @@ import PoiSubmissionListPage from "./pages/admin/poi-submission/PoiSubmissionLis
 import PoiSubmissionDetailPage from "./pages/admin/poi-submission/PoiSubmissionDetailPage";
 import PoiTaskMonitorPage from "./pages/admin/poi-submission/PoiTaskMonitorPage";
 import AdminUserCreatePage from "./pages/admin/user/AdminUserCreatePage";
+import AdminUserEditPage from "./pages/admin/user/AdminUserEditPage";
 import AdminUsersPage from "./pages/admin/user/AdminUsersPage";
 import PoiListPage from "./pages/admin/poi/PoiListPage";
 import PoiCreatePage from "./pages/admin/poi/PoiCreatePage";
@@ -173,6 +174,7 @@ export default function App() {
             <Route path="nguoi-dung">
               <Route path="danh-sach-nguoi-dung" element={<AdminUsersPage />} />
               <Route path="them-nguoi-dung" element={<AdminUserCreatePage />} />
+              <Route path=":id/chinh-sua" element={<AdminUserEditPage />} />
             </Route>
           </Route>
         </Route>

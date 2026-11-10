@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import {
   ArrowLeftIcon,
   CheckCircle2Icon,
@@ -20,6 +20,8 @@ import {
 import { Input } from "#components/ui/input";
 import useQuery from "#hooks/use-query";
 import { adminUserService } from "../../../services/AdminUserService";
+import type { AdminUserRoleOption } from "../../../types/AdminUser";
+import { getApiErrorMessage } from "#lib/api";
 
 interface CreateUserErrors {
   full_name?: string;
@@ -27,6 +29,7 @@ interface CreateUserErrors {
   phone?: string;
   password?: string;
   confirm_password?: string;
+  role_id?: string;
 }
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -73,9 +76,33 @@ export default function AdminUserCreatePage() {
   const [requestError, setRequestError] = useState("");
   const [isCreated, setIsCreated] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [roles, setRoles] = useState<AdminUserRoleOption[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(true);
+  const [roleError, setRoleError] = useState("");
+  const [roleReload, setRoleReload] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadRoles() {
+      setLoadingRoles(true);
+      setRoleError("");
+      try {
+        const response = await adminUserService.RoleOptions(controller.signal);
+        if (!response.success || !response.data) throw new Error(response.message || "Không thể tải vai trò.");
+        if (!controller.signal.aborted) setRoles(response.data);
+      } catch (error) {
+        if (!controller.signal.aborted) setRoleError(getApiErrorMessage(error, "Không thể tải vai trò."));
+      } finally {
+        if (!controller.signal.aborted) setLoadingRoles(false);
+      }
+    }
+    void loadRoles();
+    return () => controller.abort();
+  }, [roleReload]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting || loadingRoles || roleError) return;
     setRequestError("");
 
     const form = new FormData(event.currentTarget);
@@ -88,9 +115,12 @@ export default function AdminUserCreatePage() {
         .replace(/\s/g, ""),
       password: String(form.get("password") || ""),
       confirm_password: String(form.get("confirm_password") || ""),
+      role_id: String(form.get("role_id") || ""),
+      is_active: form.get("is_active") === "on",
     };
 
     const nextErrors = validateForm(values);
+    if (!roles.some((role) => role.id === values.role_id)) nextErrors.role_id = "Vui lòng chọn vai trò cho người dùng.";
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) return;
@@ -100,7 +130,8 @@ export default function AdminUserCreatePage() {
 
     await execute(
       async () => {
-        await adminUserService.CreateAdminUser(payload);
+        const response = await adminUserService.CreateAdminUser(payload);
+        if (!response.success) throw new Error(response.message || "Không thể tạo người dùng.");
         setIsCreated(true);
       },
       {
@@ -297,13 +328,22 @@ export default function AdminUserCreatePage() {
               </Field>
             </div>
 
-            <div className="rounded-lg border bg-muted/40 p-4">
-              <p className="text-sm font-medium">Vai trò mặc định</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Người dùng (User). Hệ thống sẽ tự động gán vai trò này
-                sau khi tạo tài khoản.
-              </p>
-            </div>
+            <Field data-invalid={Boolean(errors.role_id)}>
+              <FieldLabel htmlFor="role_id">Vai trò / quyền hạn</FieldLabel>
+              <select id="role_id" name="role_id" defaultValue="" required disabled={isSubmitting || loadingRoles || !!roleError}
+                aria-invalid={Boolean(errors.role_id)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <option value="" disabled>{loadingRoles ? "Đang tải vai trò..." : "Chọn vai trò"}</option>
+                {roles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
+              </select>
+              <FieldError>{errors.role_id}</FieldError>
+              {!loadingRoles && !roleError && roles.length === 0 && <p className="text-sm text-muted-foreground">Không có vai trò có thể gán.</p>}
+              {roleError && <Alert variant="destructive"><AlertTitle>Không thể tải vai trò</AlertTitle><AlertDescription><p>{roleError}</p><Button type="button" variant="outline" size="sm" onClick={() => setRoleReload((value) => value + 1)}>Thử lại</Button></AlertDescription></Alert>}
+              <p className="text-sm text-muted-foreground">Người dùng sẽ được cấp các quyền thuộc vai trò đã chọn.</p>
+            </Field>
+            <label className="flex items-center gap-3 rounded-lg border bg-muted/40 p-4 text-sm font-medium">
+              <input type="checkbox" name="is_active" defaultChecked disabled={isSubmitting} className="size-4 accent-primary" />
+              Tài khoản đang hoạt động
+            </label>
 
             <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
               <Button
@@ -315,7 +355,7 @@ export default function AdminUserCreatePage() {
                 Hủy
               </Button>
 
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || loadingRoles || !!roleError || roles.length === 0}>
                 {isSubmitting ? (
                   <Loader2Icon className="animate-spin" aria-hidden="true" />
                 ) : (

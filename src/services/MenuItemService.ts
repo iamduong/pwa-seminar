@@ -35,9 +35,9 @@ class MenuItemService {
     return response.data;
   }
 
-  async listPois(page = 1) {
+  async listPois(page = 1, pageSize = 20) {
     const response = await api.get<ApiResponse<Pagination<AdminPoi>>>("/pois", {
-      params: { page, page_size: 20 },
+      params: { page, page_size: pageSize },
     });
     return response.data;
   }
