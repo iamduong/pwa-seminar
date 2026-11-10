@@ -96,13 +96,13 @@ export function drawPoiMarkers(
     const markers: Marker[] = [];
 
     if (poiMarker.trigger_radius > 0) {
-      markers.push(
-        radiusMarker(
-          map,
-          poiMarker.location.coordinates,
-          poiMarker.trigger_radius,
-        ),
-      );
+      // markers.push(
+      //   radiusMarker(
+      //     map,
+      //     poiMarker.location.coordinates,
+      //     poiMarker.trigger_radius,
+      //   ),
+      // );
     }
 
     markers.push(
