@@ -33,6 +33,7 @@ import PoiListPage from "./pages/admin/poi/PoiListPage";
 import PoiCreatePage from "./pages/admin/poi/PoiCreatePage";
 import MenuListPage from "./pages/admin/menu/MenuListPage";
 import MenuCreatePage from "./pages/admin/menu/MenuCreatePage";
+import MenuPoiListPage from "./pages/admin/menu/MenuPoiListPage";
 import MenuItemsPage from "./pages/admin/menu/MenuItemsPage";
 import MenuItemRequestPage from "./pages/admin/menu/MenuItemRequestPage";
 import { MobileClientAccessGate } from "./components/layout/client/mobile/MobileClientAccessGate";
@@ -45,6 +46,8 @@ import SelfPoiOwnerRegistrationPage from "./pages/admin/poi-owner-registration/S
 import ManagementIndexPage from "./pages/admin/ManagementIndexPage";
 import ChangePasswordPage from "./pages/admin/account/ChangePasswordPage";
 import DashboardPage from "./pages/admin/dashboard/DashboardPage";
+import OwnerNotificationsPage from "./pages/admin/notifications/OwnerNotificationsPage";
+import AuditLogsPage from "./pages/admin/audit/AuditLogsPage";
 
 const ClientProviders = () => {
   return (
@@ -99,6 +102,8 @@ export default function App() {
             <Route path="dashboard" element={<DashboardPage />} />
 
             <Route path="tai-khoan/doi-mat-khau" element={<ChangePasswordPage />} />
+            <Route path="thong-bao" element={<OwnerNotificationsPage />} />
+            <Route path="nhat-ky-he-thong" element={<AuditLogsPage />} />
 
             <Route
               path="dang-ky-chu-quan"
@@ -119,8 +124,8 @@ export default function App() {
             </Route>
 
             {/* Culinary features */}
-            <Route path="danh-sach-thuc-don" element={<Navigate to="/quan-ly/dia-diem-poi/danh-sach-poi" replace />} />
-            <Route path="them-thuc-don" element={<Navigate to="/quan-ly/dia-diem-poi/danh-sach-poi" replace />} />
+            <Route path="danh-sach-thuc-don" element={<MenuPoiListPage />} />
+            <Route path="them-thuc-don" element={<MenuPoiListPage />} />
 
             {/* Poi owner registration features */}
             <Route path="don-dang-ky-chu-quan">

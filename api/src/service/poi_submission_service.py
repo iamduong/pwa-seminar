@@ -8,11 +8,14 @@ from model.poi_model import PoiModel
 from model.poi_submission_model import PoiSubmissionModel
 from model.poi_task_model import PoiTaskModel
 from model.poi_task_process_model import PoiTaskProcessModel
+from model.owner_notification_model import OwnerNotificationType
+from repository.audit_log_repository import AuditLogRepository
 from repository.admin_user_repository import AdminUserRepository
 from repository.poi_category_repository import PoiCategoryRepository
 from repository.poi_repository import PoiRepository
 from repository.poi_submission_repository import PoiSubmissionRepository
 from repository.poi_task_repository import PoiTaskRepository
+from repository.owner_notification_repository import OwnerNotificationRepository
 from schema.poi_submission_shema import FilterPoiSubmission, RegisterPoiSubmission, ReviewPoiSubmission, ViewPoiSubmission
 
 
@@ -28,6 +31,8 @@ class PoiSubmissionService:
         self.categories = PoiCategoryRepository(db)
         self.pois = PoiRepository(db)
         self.tasks = PoiTaskRepository(db)
+        self.notifications = OwnerNotificationRepository(db)
+        self.audit_logs = AuditLogRepository(db)
 
     @staticmethod
     def _view(model):
@@ -60,10 +65,26 @@ class PoiSubmissionService:
             raise HTTPException(404, "Không tìm thấy danh mục POI")
         model = PoiSubmissionModel(owner_id=owner_id, category_id=category.id, category_name=category.name, name=body.name.strip(), description=body.description.strip(), address=body.address.strip(), location=point_value(body.location), images=body.images, trigger_radius=body.trigger_radius, owner_note=body.owner_note.strip(), admin_note=None)
         model = await self.repository.insert(model)
+        await self.notifications.create_once(
+            owner_id=owner_id,
+            notification_type=OwnerNotificationType.POI_SUBMISSION_SUBMITTED.value,
+            title="Đã gửi đề xuất POI",
+            message=f"Đề xuất POI '{model.name}' đã được ghi nhận và đang chờ xét duyệt.",
+            resource_type="poi_submission",
+            resource_id=model.id,
+            commit=False,
+        )
+        await self.audit_logs.create(
+            actor_user_id=owner_id,
+            action="poi_submission.submit",
+            resource_type="poi_submission",
+            resource_id=model.id,
+            description=f"Chủ quán gửi đề xuất POI: {model.name}",
+        )
         model.location_geojson = body.location.model_dump()
         return self._view(model)
 
-    async def review_poi_submission(self, submission_id: str, body: ReviewPoiSubmission):
+    async def review_poi_submission(self, submission_id: str, body: ReviewPoiSubmission, reviewer_id: str):
         model = await self.repository.find_by_id(parse_uuid(submission_id, "Mã đăng ký POI"), pending=True)
         if model is None:
             raise HTTPException(404, "Không tìm thấy đơn hoặc đơn đã xử lý")
@@ -76,5 +97,22 @@ class PoiSubmissionService:
             task.processes = [PoiTaskProcessModel(language=language) for language in MY_MEMORY_LANGUAGES]
             await self.tasks.insert(task)
         await self.repository.save(model)
+        status_label = "được phê duyệt" if body.status == "approved" else "bị từ chối"
+        await self.notifications.create_once(
+            owner_id=model.owner_id,
+            notification_type=OwnerNotificationType.POI_SUBMISSION_REVIEWED.value,
+            title="Kết quả xét duyệt POI",
+            message=f"Đề xuất POI '{model.name}' đã {status_label}.",
+            resource_type="poi_submission",
+            resource_id=model.id,
+            commit=False,
+        )
+        await self.audit_logs.create(
+            actor_user_id=parse_uuid(reviewer_id, "Mã người xét duyệt"),
+            action="poi_submission.review",
+            resource_type="poi_submission",
+            resource_id=model.id,
+            description=f"Đề xuất POI '{model.name}' đã {status_label}",
+        )
         refreshed = await self.repository.find_by_id(model.id)
         return self._view(refreshed)

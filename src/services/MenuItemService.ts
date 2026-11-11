@@ -10,6 +10,17 @@ import type {
 import type { Pagination } from "../types/contract/Pagination";
 
 class MenuItemService {
+  async uploadImage(file: File) {
+    const formData = new FormData();
+    formData.append("image", file);
+    const response = await api.post<ApiResponse<{ url: string; public_id: string }>>(
+      "/menu-items/images",
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+    return response.data;
+  }
+
   async listMyPois() {
     const response = await api.get<ApiResponse<OwnerPoiOption[]>>("/menu-items/my-pois");
     return response.data;
@@ -35,9 +46,10 @@ class MenuItemService {
     return response.data;
   }
 
-  async listPois(page = 1, pageSize = 20) {
-    const response = await api.get<ApiResponse<Pagination<AdminPoi>>>("/pois", {
-      params: { page, page_size: pageSize },
+  async listPois(page = 1, pageSize = 20, q = "", signal?: AbortSignal) {
+    const response = await api.get<ApiResponse<Pagination<AdminPoi>>>("/menu-items/admin/pois", {
+      params: { page, page_size: pageSize, q: q.trim() || undefined },
+      signal,
     });
     return response.data;
   }

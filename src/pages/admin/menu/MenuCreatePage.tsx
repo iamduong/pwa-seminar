@@ -37,11 +37,25 @@ export default function MenuCreatePage() {
     setError("");
 
     try {
+      const image = form.get("image");
+      let imageUrl: string | null = null;
+      if (image instanceof File && image.size > 0) {
+        if (!image.type.startsWith("image/")) {
+          setError("Vui lòng chọn tệp hình ảnh hợp lệ.");
+          return;
+        }
+        const uploadResponse = await menuItemService.uploadImage(image);
+        if (!uploadResponse.success || !uploadResponse.data) {
+          throw new Error(uploadResponse.message || "Không thể tải ảnh món ăn.");
+        }
+        imageUrl = uploadResponse.data.url;
+      }
+
       const response = await menuItemService.createDirect(poiId, {
         name,
         description: String(form.get("description") ?? "").trim() || null,
         price,
-        image_url: String(form.get("image_url") ?? "").trim() || null,
+        image_url: imageUrl,
         is_available: form.get("is_available") === "on",
       });
 
@@ -120,13 +134,15 @@ export default function MenuCreatePage() {
           </label>
 
           <label className="block space-y-2 text-sm font-medium">
-            URL ảnh
+            Hình ảnh
             <Input
-              placeholder="https://example.com/mon-an.jpg"
-              name="image_url"
-              type="url"
-              maxLength={500}
+              name="image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
             />
+            <span className="block text-xs font-normal text-muted-foreground">
+              Hỗ trợ JPEG, PNG, WebP hoặc GIF; dung lượng tối đa 5 MB.
+            </span>
           </label>
 
           <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-muted/30 p-4">

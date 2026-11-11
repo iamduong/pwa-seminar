@@ -150,7 +150,7 @@ erDiagram
         UUID id PK
         UUID task_id FK
         TEXT message
-        VARCHAR language
+        VARCHAR language "nullable"
         TIMESTAMPTZ started_at
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
@@ -163,8 +163,8 @@ erDiagram
         VARCHAR language
         VARCHAR translation_status
         VARCHAR audio_status
-        TEXT audio_url
-        TEXT error_message
+        TEXT audio_url "nullable"
+        TEXT error_message "nullable"
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
         TIMESTAMPTZ deleted_at
@@ -213,6 +213,35 @@ erDiagram
         TIMESTAMPTZ deleted_at
     }
 
+    owner_notifications {
+        UUID id PK
+        UUID owner_id FK
+        VARCHAR notification_type
+        VARCHAR title
+        TEXT message
+        VARCHAR resource_type
+        UUID resource_id
+        BOOLEAN is_read
+        TIMESTAMPTZ read_at
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    audit_logs {
+        UUID id PK
+        UUID actor_user_id FK
+        VARCHAR action
+        VARCHAR resource_type
+        UUID resource_id
+        VARCHAR result
+        TEXT description
+        JSONB metadata
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
     roles o|--o{ admin_users : assigns
     admin_users o|--o{ pois : owns
     poi_categories ||--o{ pois : classifies
@@ -230,3 +259,5 @@ erDiagram
     admin_users o|--o{ analytics_events : generates
     pois o|--o{ analytics_events : receives
     menu_items o|--o{ analytics_events : receives
+    admin_users ||--o{ owner_notifications : receives
+    admin_users o|--o{ audit_logs : performs

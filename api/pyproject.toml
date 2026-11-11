@@ -10,6 +10,7 @@ requires-python = ">=3.14"
 dependencies = [
     "alembic>=1.20.1",
     "bcrypt>=5.0.0",
+    "cloudinary>=1.47.0",
     "cryptography>=50.0.1",
     "deep-translator>=1.11.4",
     "edge-tts==7.3.1",
