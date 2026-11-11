@@ -150,7 +150,7 @@ erDiagram
         UUID id PK
         UUID task_id FK
         TEXT message
-        VARCHAR language
+        VARCHAR language "nullable"
         TIMESTAMPTZ started_at
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
@@ -163,8 +163,8 @@ erDiagram
         VARCHAR language
         VARCHAR translation_status
         VARCHAR audio_status
-        TEXT audio_url
-        TEXT error_message
+        TEXT audio_url "nullable"
+        TEXT error_message "nullable"
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
         TIMESTAMPTZ deleted_at
