@@ -45,10 +45,12 @@ import SelfPoiOwnerRegistrationPage from "./pages/admin/poi-owner-registration/S
 import ManagementIndexPage from "./pages/admin/ManagementIndexPage";
 import ChangePasswordPage from "./pages/admin/account/ChangePasswordPage";
 import DashboardPage from "./pages/admin/dashboard/DashboardPage";
+import { VisitorPresence } from "./components/presence/VisitorPresence";
 
 const ClientProviders = () => {
   return (
     <LanguageProvider>
+      <VisitorPresence />
       <UiBundleProvider>
         <PoiDataProvider>
           <MobileClientAccessGate />

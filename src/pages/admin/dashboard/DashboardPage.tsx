@@ -7,6 +7,7 @@ import {
   EyeIcon,
   HeadphonesIcon,
   MapPinnedIcon,
+  RadioIcon,
   RefreshCwIcon,
   StoreIcon,
   UsersIcon,
@@ -18,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert";
 import { Button, buttonVariants } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { useAuthorize } from "#hooks/use-authorize";
+import { usePresenceSocket } from "#hooks/use-presence-socket";
 import { getApiErrorMessage } from "#lib/api";
 import { adminUserService } from "../../../services/AdminUserService";
 import { menuItemService } from "../../../services/MenuItemService";
@@ -68,6 +70,7 @@ function MetricCard({ label, value, description, icon: Icon, loading }: MetricCa
 
 export default function DashboardPage() {
   const { session } = useAuthorize();
+  const { connectedVisitors, isConnected: isPresenceConnected } = usePresenceSocket("dashboard");
   const permissions = session?.role?.permissions ?? EMPTY_PERMISSIONS;
   const isOwner = permissions.includes("owner:poi_read");
   const [metrics, setMetrics] = useState<DashboardMetrics>({});
@@ -149,11 +152,13 @@ export default function DashboardPage() {
 
   const cards: Array<Omit<MetricCardProps, "loading">> = isOwner
     ? [
+        { label: "Khách đang kết nối", value: connectedVisitors, description: isPresenceConnected ? "Số khách du lịch đang sử dụng ứng dụng theo thời gian thực." : "Đang kết nối tới cổng theo dõi thời gian thực…", icon: RadioIcon },
         { label: "POI của tôi", value: metrics.pois, description: "Địa điểm đang thuộc quyền quản lý của bạn.", icon: StoreIcon },
         { label: "Món ăn", value: metrics.menuItems, description: "Tổng số món ăn đã gửi lên hệ thống.", icon: UtensilsIcon },
         { label: "Đơn POI chờ duyệt", value: metrics.pendingPoiSubmissions, description: "Yêu cầu đang chờ quản trị viên xử lý.", icon: ClipboardClockIcon },
       ]
     : [
+        { label: "Khách đang kết nối", value: connectedVisitors, description: isPresenceConnected ? "Số khách du lịch đang sử dụng ứng dụng theo thời gian thực." : "Đang kết nối tới cổng theo dõi thời gian thực…", icon: RadioIcon },
         ...(permissions.includes("poi:read")
           ? [{ label: "Tổng POI", value: metrics.pois, description: "Số địa điểm hiện có trong hệ thống.", icon: MapPinnedIcon }]
           : []),
@@ -200,7 +205,7 @@ export default function DashboardPage() {
       )}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Chỉ số vận hành">
-        {cards.map((card) => <MetricCard key={card.label} {...card} loading={loading} />)}
+        {cards.map((card) => <MetricCard key={card.label} {...card} loading={card.label === "Khách đang kết nối" ? false : loading} />)}
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
