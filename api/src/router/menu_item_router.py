@@ -2,7 +2,7 @@ from typing import Annotated
 
 from core.api_response import ApiResponse
 from core.dependency import AccessTokenPayload, require_permission, validate_session
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from schema.menu_item_schema import MenuItemSave, MenuItemView
 from service.cloudinary_service import CloudinaryService
 from service.menu_item_service import MenuItemService
@@ -24,6 +24,22 @@ async def upload_menu_item_image(
         success=True,
         message="Tải ảnh món ăn thành công",
         data=await service.upload_image(image),
+    )
+
+
+@router.get("/admin/pois")
+async def list_admin_pois_for_menu(
+    params: Annotated[MenuItemFilter, Query()],
+    principal: Annotated[
+        AccessTokenPayload,
+        Depends(require_permission("menu:read")),
+    ],
+    service: Annotated[MenuItemService, Depends()],
+) -> ApiResponse:
+    return ApiResponse(
+        success=True,
+        message="Lấy danh sách địa điểm để quản lý thực đơn thành công",
+        data=await service.list_admin_pois(params),
     )
 
 

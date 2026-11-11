@@ -7,6 +7,7 @@ import {
   LayoutDashboardIcon,
   LogOutIcon,
   MapPinnedIcon,
+  ScrollTextIcon,
   ShieldCheckIcon,
   StoreIcon,
   UsersIcon,
@@ -47,6 +48,17 @@ const navigationGroup = [
           "poi_submission:read",
           "user:read",
         ],
+      },
+    ],
+  },
+  {
+    title: "Giám sát",
+    icon: ScrollTextIcon,
+    child: [
+      {
+        title: "Nhật ký hệ thống",
+        href: "/quan-ly/nhat-ky-he-thong",
+        permissions: ["audit:read"],
       },
     ],
   },

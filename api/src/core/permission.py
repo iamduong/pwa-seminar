@@ -35,4 +35,10 @@ PERMISSIONS: list[str] = [
     "poi_submission:read",
     "poi_submission:review",
     "poi_submission:monitor",
+    # ---------
+    "owner_notification:read",
+    "owner_notification:update",
+    # ---------
+    "audit:read",
+    "audit:manage",
 ]

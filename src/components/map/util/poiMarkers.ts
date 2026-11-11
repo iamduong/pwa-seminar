@@ -1,7 +1,6 @@
 import { Marker, type Map } from "maplibre-gl";
 
 import type { PoiMarker } from "../lib/map-type";
-import { radiusMarker } from "./radiusMarker";
 
 const TWEMOJI_BASE_URL =
   "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg";
