@@ -43,11 +43,15 @@ async def filter_poi_owner_registration(
 async def review_registration(
     id: str,
     body: ReviewPoiPOwnerRegistration,
+    principal: Annotated[
+        AccessTokenPayload,
+        Depends(require_permission("owner_registration:review")),
+    ],
     poi_owner_registration_service: Annotated[PoiOwnerRegistrationService, Depends()],
 ) -> ApiResponse[dict]:
 
     result = await poi_owner_registration_service.review_registration(
-        id, body.model_dump()
+        id, body.model_dump(), principal.sub
     )
 
     return ApiResponse(

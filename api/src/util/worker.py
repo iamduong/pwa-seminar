@@ -8,6 +8,9 @@ from model.poi_model import AudioStatus as PoiAudioStatus
 from model.poi_model import PoiModel
 from model.poi_task_event_model import PoiTaskEventModel
 from model.poi_task_model import PoiTaskModel
+from model.owner_notification_model import OwnerNotificationType
+from repository.audit_log_repository import AuditLogRepository
+from repository.owner_notification_repository import OwnerNotificationRepository
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import selectinload
@@ -180,6 +183,26 @@ async def process_poi_task(
     if not has_error and task.activation_requested:
         poi.is_active = True
     task.events.append(_event(task.id, "Xử lý POI thất bại" if has_error else "Xử lý POI hoàn tất"))
+    if not has_error:
+        if poi.owner_id is not None:
+            await OwnerNotificationRepository(session).create_once(
+                owner_id=poi.owner_id,
+                notification_type=OwnerNotificationType.POI_PROCESSING_COMPLETED.value,
+                title="POI đã xử lý hoàn tất",
+                message=f"POI '{poi.name}' đã có đầy đủ bản dịch và âm thanh.",
+                resource_type="poi_task",
+                resource_id=task.id,
+                commit=False,
+            )
+        await AuditLogRepository(session).create(
+            actor_user_id=None,
+            action="poi_task.complete",
+            resource_type="poi_task",
+            resource_id=task.id,
+            description=f"Hoàn tất bản dịch và âm thanh cho POI '{poi.name}'",
+            metadata={"poi_id": str(poi.id)},
+            commit=False,
+        )
     if poi.is_active:
         # Publish the POI changes and the new snapshot ETag together, only
         # after translations and audio are complete.

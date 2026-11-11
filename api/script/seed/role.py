@@ -6,9 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 def role_fixtures(all_permissions: list[str]):
     return [
         ("super_admin", all_permissions, 0),
-        ("admin", ["poi:read", "poi:create", "poi:update", "poi:delete", "menu:read", "menu:create", "menu:review", "owner_registration:read", "owner_registration:review", "poi_submission:read", "poi_submission:review"], 1),
-        ("poi_owner", ["owner:poi_read", "owner:poi_submit", "owner:menu_read", "owner:menu_submit"], 10),
-        ("user", ["owner_registration:register", "owner_registration:read_self", "owner_registration:resubmit"], 100),
+        ("admin", ["poi:read", "poi:create", "poi:update", "poi:delete", "menu:read", "menu:create", "menu:review", "owner_registration:read", "owner_registration:review", "poi_submission:read", "poi_submission:review", "audit:read", "audit:manage"], 1),
+        ("poi_owner", ["owner:poi_read", "owner:poi_submit", "owner:menu_read", "owner:menu_submit", "owner_notification:read", "owner_notification:update"], 10),
+        ("user", ["owner_registration:register", "owner_registration:read_self", "owner_registration:resubmit", "owner_notification:read", "owner_notification:update"], 100),
     ]
 
 

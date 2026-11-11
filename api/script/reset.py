@@ -16,8 +16,13 @@ import model  # noqa: F401 - register every SQLAlchemy mapper
 from core.provider.postgres import close_postgres, engine
 from model.base.base import Base
 
+REQUIRED_TABLES = {"owner_notifications", "audit_logs"}
+
 
 async def reset_database() -> None:
+    missing_models = REQUIRED_TABLES.difference(Base.metadata.tables)
+    if missing_models:
+        raise RuntimeError(f"Models are not registered: {sorted(missing_models)}")
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.drop_all)
     print("All PostgreSQL application tables and data were removed")

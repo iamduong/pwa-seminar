@@ -73,9 +73,9 @@ function MenuList({ poiId }: { poiId: string }) {
 
   return (
     <div className="space-y-6">
-      <Link className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-ring" to="/quan-ly/dia-diem-poi/danh-sach-poi">
+      <Link className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-ring" to="/quan-ly/danh-sach-thuc-don">
         <ArrowLeftIcon className="size-4" aria-hidden="true" />
-        Danh sách POI
+        Danh sách thực đơn
       </Link>
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">

@@ -133,6 +133,8 @@ from router.public_router import router as public_router
 from router.role_router import router as role_router
 from router.poi_task_router import router as poi_task_router
 from router.presence_router import router as presence_router
+from router.owner_notification_router import router as owner_notification_router
+from router.audit_log_router import router as audit_log_router
 
 app.include_router(public_router)
 app.include_router(authorize_router)
@@ -144,3 +146,5 @@ app.include_router(admin_user_router)
 app.include_router(menu_item_router)
 app.include_router(poi_task_router)
 app.include_router(presence_router)
+app.include_router(owner_notification_router)
+app.include_router(audit_log_router)

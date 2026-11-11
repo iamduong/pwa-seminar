@@ -11,6 +11,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 if TYPE_CHECKING:
     from model.ai_usage_limit_model import AiUsageLimitModel
     from model.analytics_event_model import AnalyticsEventModel
+    from model.audit_log_model import AuditLogModel
+    from model.owner_notification_model import OwnerNotificationModel
     from model.poi_model import PoiModel
     from model.poi_owner_registration_model import PoiOwnerRegistrationModel
     from model.poi_submission_model import PoiSubmissionModel
@@ -65,5 +67,15 @@ class AdminUserModel(Base):
 
     analytics_events: Mapped[list[AnalyticsEventModel]] = relationship(
         back_populates="user",
+        passive_deletes="all",
+    )
+
+    owner_notifications: Mapped[list[OwnerNotificationModel]] = relationship(
+        back_populates="owner",
+        passive_deletes="all",
+    )
+
+    audit_logs: Mapped[list[AuditLogModel]] = relationship(
+        back_populates="actor",
         passive_deletes="all",
     )

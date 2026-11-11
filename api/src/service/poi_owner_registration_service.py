@@ -6,7 +6,10 @@ from core.pagination import Pagination
 from core.security import encrypt_pii
 from fastapi import HTTPException
 from model.poi_owner_registration_model import PoiOwnerRegistrationModel, PoiOwnerRegistrationStatus
+from model.owner_notification_model import OwnerNotificationType
+from repository.audit_log_repository import AuditLogRepository
 from repository.admin_user_repository import AdminUserRepository
+from repository.owner_notification_repository import OwnerNotificationRepository
 from repository.poi_owner_registration_repository import PoiOwnerRegistrationRepository
 from repository.role_repository import RoleRepository
 from schema.poi_owner_registration_schema import FilterPoiOwnerRegistration, ViewPoiOwnerRegistration
@@ -18,6 +21,8 @@ class PoiOwnerRegistrationService:
         self.users = AdminUserRepository(db)
         self.repository = PoiOwnerRegistrationRepository(db)
         self.roles = RoleRepository(db)
+        self.notifications = OwnerNotificationRepository(db)
+        self.audit_logs = AuditLogRepository(db)
 
     @staticmethod
     def _view(model):
@@ -27,7 +32,7 @@ class PoiOwnerRegistrationService:
         items, total = await self.repository.find_pagination(filters.page, filters.page_size, status=filters.status, keyword=filters.q)
         return Pagination[ViewPoiOwnerRegistration](page=filters.page, page_size=filters.page_size, total_item=total, total_page=(total + filters.page_size - 1) // filters.page_size, data=[self._view(x) for x in items])
 
-    async def review_registration(self, registration_id: str, body: dict):
+    async def review_registration(self, registration_id: str, body: dict, reviewer_id: str):
         registration = await self.repository.find_by_id(parse_uuid(registration_id, "Mã đơn đăng ký"))
         if registration is None:
             raise HTTPException(404, "Không tìm thấy đơn đăng ký")
@@ -47,6 +52,23 @@ class PoiOwnerRegistrationService:
         registration.admin_note = body.get("admin_note") or ""
         await self.users.update(user)
         await self.repository.update(registration)
+        status_label = "được phê duyệt" if approved else "bị từ chối"
+        await self.notifications.create_once(
+            owner_id=user.id,
+            notification_type=OwnerNotificationType.OWNER_REGISTRATION_REVIEWED.value,
+            title="Kết quả đăng ký chủ quán",
+            message=f"Hồ sơ đăng ký chủ quán của bạn đã {status_label}.",
+            resource_type="poi_owner_registration",
+            resource_id=registration.id,
+            commit=False,
+        )
+        await self.audit_logs.create(
+            actor_user_id=parse_uuid(reviewer_id, "Mã người xét duyệt"),
+            action="owner_registration.review",
+            resource_type="poi_owner_registration",
+            resource_id=registration.id,
+            description=f"Hồ sơ đăng ký chủ quán đã {status_label}",
+        )
         return {"registration_id": str(registration.id), "user_id": str(user.id), "status": registration.status, "admin_note": registration.admin_note, "is_poi_owner_verified": approved}
 
     async def register_poi_owner(self, user_id: str, body: dict):
@@ -62,6 +84,22 @@ class PoiOwnerRegistrationService:
         registration = PoiOwnerRegistrationModel(user_id=user.id, admin_note="", business_name=body["business_name"].strip(), business_address=body["business_address"].strip(), note=body["note"].strip(), status="pending")
         await self.users.update(user)
         registration = await self.repository.insert(registration)
+        await self.notifications.create_once(
+            owner_id=user.id,
+            notification_type=OwnerNotificationType.OWNER_REGISTRATION_SUBMITTED.value,
+            title="Đã gửi hồ sơ đăng ký chủ quán",
+            message="Hồ sơ của bạn đã được ghi nhận và đang chờ quản trị viên xét duyệt.",
+            resource_type="poi_owner_registration",
+            resource_id=registration.id,
+            commit=False,
+        )
+        await self.audit_logs.create(
+            actor_user_id=user.id,
+            action="owner_registration.submit",
+            resource_type="poi_owner_registration",
+            resource_id=registration.id,
+            description="Người dùng gửi hồ sơ đăng ký chủ quán",
+        )
         return {"registration_id": str(registration.id), "status": registration.status}
 
     async def self_registration(self, user_id: str):

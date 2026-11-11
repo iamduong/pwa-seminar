@@ -61,14 +61,18 @@ async def get_poi_registration_by_id(
 
 
 # Review poi registration
-@router.post("/review/{poi_submission_id}", dependencies=[Depends(require_permission("poi_submission:review"))])
+@router.post("/review/{poi_submission_id}")
 async def review_poi_registration(
     poi_submission_id: str,
     body: ReviewPoiSubmission,
+    principal: Annotated[
+        AccessTokenPayload,
+        Depends(require_permission("poi_submission:review")),
+    ],
     poi_submission_service: Annotated[PoiSubmissionService, Depends()],
 ) -> ApiResponse[ViewPoiSubmission]:
     result = await poi_submission_service.review_poi_submission(
-        poi_submission_id, body
+        poi_submission_id, body, principal.sub
     )
 
     return ApiResponse(

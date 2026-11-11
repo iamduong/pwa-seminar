@@ -3,9 +3,11 @@
 from model.admin_user_model import AdminUserModel
 from model.ai_usage_limit_model import AiUsageLimitModel
 from model.analytics_event_model import AnalyticsEventModel
+from model.audit_log_model import AuditLogModel
 from model.content_dataset_version_model import ContentDatasetVersionModel
 from model.menu_item_model import MenuItemModel
 from model.menu_item_localization_model import MenuItemLocalizationModel
+from model.owner_notification_model import OwnerNotificationModel
 from model.poi_category_model import PoiCategoryModel
 from model.poi_localization_model import PoiLocalizationModel
 from model.poi_model import PoiModel
@@ -21,9 +23,11 @@ __all__ = [
     "AdminUserModel",
     "AiUsageLimitModel",
     "AnalyticsEventModel",
+    "AuditLogModel",
     "ContentDatasetVersionModel",
     "MenuItemModel",
     "MenuItemLocalizationModel",
+    "OwnerNotificationModel",
     "PoiCategoryModel",
     "PoiLocalizationModel",
     "PoiModel",

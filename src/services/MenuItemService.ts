@@ -46,9 +46,10 @@ class MenuItemService {
     return response.data;
   }
 
-  async listPois(page = 1, pageSize = 20) {
-    const response = await api.get<ApiResponse<Pagination<AdminPoi>>>("/pois", {
-      params: { page, page_size: pageSize },
+  async listPois(page = 1, pageSize = 20, q = "", signal?: AbortSignal) {
+    const response = await api.get<ApiResponse<Pagination<AdminPoi>>>("/menu-items/admin/pois", {
+      params: { page, page_size: pageSize, q: q.trim() || undefined },
+      signal,
     });
     return response.data;
   }
