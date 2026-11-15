@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import {
   useCallback,
   useEffect,
@@ -292,6 +293,7 @@ export default function PoiTaskMonitorPage() {
           {streamConnected ? "Đang nhận cập nhật" : "Đang kết nối lại"}
         </div>
       </header>
+      <ListStats total={tasks.length} visible={tasks.length} loading={loading} error={Boolean(errorMessage)} totalLabel="Tác vụ đã tải theo bộ lọc" extra={[{ label: "Thất bại trong danh sách", value: tasks.filter((task) => task.status === "failed").length }]} />
 
       {errorMessage && (
         <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">

@@ -14,6 +14,7 @@ ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 class CloudinaryService:
     def __init__(self):
         setting = get_setting()
+        self.configured = all((setting.CLOUDINARY_CLOUD_NAME, setting.CLOUDINARY_API_KEY, setting.CLOUDINARY_API_SECRET))
         cloudinary.config(
             cloud_name=setting.CLOUDINARY_CLOUD_NAME,
             api_key=setting.CLOUDINARY_API_KEY,
@@ -26,6 +27,9 @@ class CloudinaryService:
         image: UploadFile,
         folder: str = "pwa-seminar/menu-items",
     ) -> dict[str, str]:
+        if not self.configured:
+            await image.close()
+            raise HTTPException(503, "Cần cấu hình Cloudinary trước khi tải ảnh lên")
         if image.content_type not in ALLOWED_IMAGE_TYPES:
             await image.close()
             raise HTTPException(422, "Định dạng ảnh không được hỗ trợ")

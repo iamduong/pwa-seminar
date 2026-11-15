@@ -1,4 +1,5 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { ListStats } from "#components/ListStats";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import { getApiErrorMessage } from "#lib/api";
 import { menuItemService } from "../../../services/MenuItemService";
@@ -104,6 +105,8 @@ function MenuReview({ poiId }: { poiId: string }) {
           <RefreshCwIcon className={loading ? "animate-spin" : undefined} aria-hidden="true" />Làm mới
         </Button>
       </header>
+
+      <ListStats total={totalItems} visible={items.length} pages={totalPages} loading={loading} error={Boolean(loadError)} />
       {reviewError && <Alert variant="destructive"><AlertCircleIcon aria-hidden="true" /><AlertTitle>Không thể duyệt món ăn</AlertTitle><AlertDescription>{reviewError}</AlertDescription></Alert>}
       {message && <Alert role="status"><CheckCircle2Icon className="text-green-700" aria-hidden="true" /><AlertTitle>Duyệt thành công</AlertTitle><AlertDescription>{message}</AlertDescription></Alert>}
       {loadError ? (

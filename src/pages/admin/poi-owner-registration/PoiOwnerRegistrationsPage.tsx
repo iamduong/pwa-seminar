@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import { useEffect, useState } from "react";
 import { AlertCircleIcon, FileTextIcon, RefreshCwIcon } from "lucide-react";
 import { useSearchParams } from "react-router";
@@ -163,6 +164,8 @@ export default function PoiOwnerRegistrationsPage() {
           Làm mới
         </Button>
       </header>
+
+      <ListStats total={data?.total_item ?? 0} visible={data?.data.length ?? 0} pages={data?.total_page ?? 0} loading={loading} error={Boolean(errorMessage)} />
 
       {errorMessage ? (
         <Alert variant="destructive">

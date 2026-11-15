@@ -17,6 +17,7 @@ class AiUsageLimitModel(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "usage_date", name="uq_ai_usage_user_date"),
         CheckConstraint("usage_count >= 0", name="ck_ai_usage_count_non_negative"),
+        CheckConstraint("daily_limit >= 0", name="ck_ai_daily_limit_non_negative"),
     )
 
     user_id: Mapped[UUID] = mapped_column(
@@ -26,5 +27,6 @@ class AiUsageLimitModel(Base):
     )
     usage_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     usage_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    daily_limit: Mapped[int] = mapped_column(Integer, default=20, server_default="20", nullable=False)
 
     user: Mapped[AdminUserModel] = relationship(back_populates="ai_usage_limits")

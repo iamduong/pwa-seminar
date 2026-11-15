@@ -1,3 +1,4 @@
+import { clearAdvisorSessions } from "#lib/ai-advisor-session";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LOCALSTORAGE_SESSION_KEY } from "../assets/config";
 import type { ProfileSession } from "../types/Authorize";
@@ -34,6 +35,7 @@ export const AuthorizeProvider = ({ children }: { children: React.ReactNode }) =
   const [session, setSession] = useState<ProfileSessionFormated | null>(null);
 
   const clearSession = useCallback(() => {
+    clearAdvisorSessions();
     localStorage.removeItem(LOCALSTORAGE_SESSION_KEY);
     setSession(null);
     setStatus("unauthenticated");
@@ -53,6 +55,7 @@ export const AuthorizeProvider = ({ children }: { children: React.ReactNode }) =
     } catch (error: unknown) {
       localStorage.removeItem(LOCALSTORAGE_SESSION_KEY);
       if (error instanceof AxiosError && error.response?.status === 401) {
+        clearAdvisorSessions();
         setSession(null);
         setStatus("unauthenticated");
       } else {

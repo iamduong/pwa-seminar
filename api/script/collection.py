@@ -13,8 +13,9 @@ sys.path.insert(0, str(ROOT / "src"))
 import model  # noqa: F401 - register every SQLAlchemy mapper
 from core.provider.postgres import close_postgres, engine
 from model.base.base import Base
+from sqlalchemy import text
 
-REQUIRED_TABLES = {"owner_notifications", "audit_logs"}
+REQUIRED_TABLES = {"owner_notifications", "audit_logs", "ai_usage_limits"}
 
 
 async def create_tables() -> None:
@@ -23,6 +24,11 @@ async def create_tables() -> None:
         raise RuntimeError(f"Models are not registered: {sorted(missing_models)}")
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
+        # create_all does not add columns to an existing database.
+        await connection.execute(text(
+            "ALTER TABLE ai_usage_limits ADD COLUMN IF NOT EXISTS "
+            "daily_limit INTEGER NOT NULL DEFAULT 20 CHECK (daily_limit >= 0)"
+        ))
     print("PostgreSQL tables are ready")
 
 

@@ -165,7 +165,7 @@ export default function PoiCreatePage() {
   return (
     <div className="space-y-6">
       <header>
-        <Button variant="ghost" render={<Link to={LIST_PATH} />} className="mb-3">
+        <Button nativeButton={false} variant="ghost" render={<Link to={LIST_PATH} />} className="mb-3">
           <ArrowLeftIcon aria-hidden="true" />
           Quay lại danh sách
         </Button>

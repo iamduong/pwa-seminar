@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   AlertCircleIcon,
@@ -156,11 +157,13 @@ export default function PoiListPage() {
             Quản lý địa điểm, trạng thái xử lý audio và thực đơn trên hệ thống.
           </p>
         </div>
-        <Button render={<Link to="/quan-ly/dia-diem-poi/them-poi" />}>
+        <Button nativeButton={false} render={<Link to="/quan-ly/dia-diem-poi/them-poi" />}>
           <PlusIcon aria-hidden="true" />
           Thêm POI trực tiếp
         </Button>
       </header>
+
+      <ListStats total={data?.total_item ?? 0} visible={data?.data.length ?? 0} pages={data?.total_page ?? 0} loading={loading} error={Boolean(errorMessage)} />
 
       {created && (
         <Alert>
@@ -306,7 +309,7 @@ export default function PoiListPage() {
                         <MapIcon aria-hidden="true" />
                         Bản đồ
                       </Button>
-                      <Button
+                      <Button nativeButton={false}
                         size="sm"
                         variant="outline"
                         render={<Link to={`/quan-ly/dia-diem-poi/${poi.id}/mon-an`} />}

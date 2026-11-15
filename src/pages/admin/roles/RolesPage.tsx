@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import { useEffect, useState } from "react";
 import {
   AlertCircleIcon,
@@ -158,12 +159,14 @@ export default function RolesPage() {
             <RefreshCwIcon className={loading ? "animate-spin" : undefined} aria-hidden="true" />
             Làm mới
           </Button>
-          <Button render={<Link to="/quan-ly/quyen-han/them-vai-tro" />}>
+          <Button nativeButton={false} render={<Link to="/quan-ly/quyen-han/them-vai-tro" />}>
             <PlusIcon aria-hidden="true" />
             Thêm vai trò
           </Button>
         </div>
       </header>
+
+      <ListStats total={data?.total_item ?? 0} visible={data?.data.length ?? 0} pages={data?.total_page ?? 0} loading={loading} error={Boolean(errorMessage)} />
 
       {errorMessage && (
         <Alert variant="destructive">

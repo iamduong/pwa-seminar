@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import { useEffect, useState, type FormEvent } from "react";
 import {
   AlertCircleIcon,
@@ -163,6 +164,8 @@ const PoiSubmissionListPage = () => {
           Làm mới
         </Button>
       </header>
+
+      <ListStats total={data?.total_item ?? 0} visible={data?.data.length ?? 0} pages={data?.total_page ?? 0} loading={inProcess} error={Boolean(errorMessage)} />
 
       <HybridMap className="h-120" />
 

@@ -216,7 +216,7 @@ export default function OwnerPoiDetailPage({
   if (!poi) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" render={<Link to={listPath} />}>
+        <Button nativeButton={false} variant="ghost" render={<Link to={listPath} />}>
           <ArrowLeftIcon aria-hidden="true" />
           Quay lại danh sách
         </Button>
@@ -245,7 +245,7 @@ export default function OwnerPoiDetailPage({
   return (
     <div className="space-y-6">
       <header>
-        <Button variant="ghost" render={<Link to={listPath} />} className="mb-3">
+        <Button nativeButton={false} variant="ghost" render={<Link to={listPath} />} className="mb-3">
           <ArrowLeftIcon aria-hidden="true" />
           Quay lại danh sách
         </Button>

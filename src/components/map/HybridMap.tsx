@@ -13,7 +13,7 @@ import { useUiBundle } from "#hooks/use-ui-bundle";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import { createOfflineStyle, ONLINE_STYLE } from "./lib/map-style";
+import { createOfflineStyle, normalizeMapStyle, ONLINE_STYLE } from "./lib/map-style";
 import type { HybridMapProps, MapCoordinates, MapMode } from "./lib/map-type";
 import { ensurePmtilesProtocol } from "./lib/pmtiles-protocol";
 import { drawClientLocation } from "./util/clientLocation";
@@ -89,6 +89,7 @@ const HybridMap = ({
       center: initialCenterRef.current,
       zoom: initialZoomRef.current,
       fadeDuration: 0,
+      transformStyle: (_previous, next) => normalizeMapStyle(next),
       style,
     });
     mapRef.current = map;
@@ -127,7 +128,7 @@ const HybridMap = ({
     };
 
     const handleOnline = () => {
-      map.setStyle(ONLINE_STYLE);
+      map.setStyle(ONLINE_STYLE, { transformStyle: (_previous, next) => normalizeMapStyle(next) });
       setMode("online");
     };
 

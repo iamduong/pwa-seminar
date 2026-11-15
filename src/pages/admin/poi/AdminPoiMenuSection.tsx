@@ -88,11 +88,11 @@ export function AdminPoiMenuSection({ poiId }: { poiId: string }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" render={<Link to={menuPath} />}>
+          <Button nativeButton={false} variant="outline" render={<Link to={menuPath} />}>
             <SettingsIcon aria-hidden="true" />
             Quản lý thực đơn
           </Button>
-          <Button render={<Link to={`${menuPath}/them`} />}>
+          <Button nativeButton={false} render={<Link to={`${menuPath}/them`} />}>
             <PlusIcon aria-hidden="true" />
             Thêm món
           </Button>

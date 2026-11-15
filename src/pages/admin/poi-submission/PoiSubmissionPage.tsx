@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   AlertCircleIcon,
@@ -160,12 +161,14 @@ export default function PoiSubmissionPage() {
           </p>
         </div>
         {session?.role?.permissions.includes("owner:poi_submit") && (
-          <Button render={<Link to="/quan-ly/chuc-nang-chu-quan/gui-yeu-cau-them-poi" />}>
+          <Button nativeButton={false} render={<Link to="/quan-ly/chuc-nang-chu-quan/gui-yeu-cau-them-poi" />}>
             <PlusIcon aria-hidden="true" />
             Đăng ký địa điểm mới
           </Button>
         )}
       </header>
+
+      <ListStats total={data?.total_item ?? 0} visible={data?.data.length ?? 0} pages={data?.total_page ?? 0} loading={loading} error={Boolean(errorMessage)} />
 
       <div ref={mapSectionRef} className="scroll-mt-6 space-y-3">
         <div className="flex items-center justify-between gap-3">

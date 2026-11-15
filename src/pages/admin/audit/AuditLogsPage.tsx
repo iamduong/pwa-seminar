@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import { AlertCircleIcon, FileClockIcon, InboxIcon, RefreshCwIcon, SearchIcon } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
@@ -93,6 +94,8 @@ export default function AuditLogsPage() {
           Làm mới
         </Button>
       </header>
+
+      <ListStats total={data?.total_item ?? 0} visible={data?.data.length ?? 0} pages={data?.total_page ?? 0} loading={loading} error={Boolean(error)} />
 
       {error && (
         <Alert variant="destructive">

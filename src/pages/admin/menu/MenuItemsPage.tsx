@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import { useEffect, useState } from "react";
 import { AlertCircleIcon, PencilIcon, PlusIcon, RefreshCwIcon, UtensilsIcon } from "lucide-react";
 import { Link } from "react-router";
@@ -62,6 +63,8 @@ export default function MenuItemsPage() {
           </Button>
         )}
       </header>
+
+      <ListStats total={items.length} visible={items.length} loading={loading} error={Boolean(error)} totalLabel="Tổng món ăn của tôi" extra={[{ label: "Chờ duyệt", value: items.filter((item) => !item.is_active).length }, { label: "Đã duyệt", value: items.filter((item) => item.is_active).length }]} />
 
       {error && (
         <Alert variant="destructive">
