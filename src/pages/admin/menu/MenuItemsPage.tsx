@@ -96,23 +96,22 @@ export default function MenuItemsPage() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead scope="col" className="pl-4">Món ăn</TableHead>
-                <TableHead scope="col">Giá bán</TableHead>
                 <TableHead scope="col">Trạng thái duyệt</TableHead>
-                <TableHead scope="col">Trạng thái bán</TableHead>
+                <TableHead scope="col">Hiển thị</TableHead>
                 {canEdit && <TableHead scope="col" className="pr-4 text-right">Thao tác</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && Array.from({ length: 3 }, (_, index) => (
                 <TableRow key={index}>
-                  {Array.from({ length: canEdit ? 5 : 4 }, (_, cellIndex) => (
+                  {Array.from({ length: canEdit ? 4 : 3 }, (_, cellIndex) => (
                     <TableCell key={cellIndex} className="px-4 py-3"><Skeleton className="h-8 w-full min-w-24" /></TableCell>
                   ))}
                 </TableRow>
               ))}
               {!loading && items.length === 0 && (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={canEdit ? 5 : 4} className="h-64 text-center">
+                  <TableCell colSpan={canEdit ? 4 : 3} className="h-64 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <UtensilsIcon className="size-8" aria-hidden="true" />
                       <p className="font-medium text-foreground">Chưa có món ăn nào</p>
@@ -129,9 +128,6 @@ export default function MenuItemsPage() {
                       {item.description || "Không có mô tả."}
                     </p>
                   </TableCell>
-                  <TableCell className="font-medium">
-                    {item.price === null ? "Chưa có giá" : `${item.price.toLocaleString("vi-VN")} đ`}
-                  </TableCell>
                   <TableCell>
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${item.is_active
                       ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-300"
@@ -141,7 +137,7 @@ export default function MenuItemsPage() {
                   </TableCell>
                   <TableCell>
                     <span className="inline-flex rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                      {item.is_available ? "Đang bán" : "Tạm ngưng"}
+                      {item.is_available ? "Đang hiển thị" : item.is_active ? "Chưa dịch xong" : "Chờ duyệt"}
                     </span>
                   </TableCell>
                   {canEdit && (

@@ -26,12 +26,6 @@ import { menuItemService } from "../../../services/MenuItemService";
 import type { MenuItem } from "../../../types/MenuItem";
 import type { Pagination } from "../../../types/contract/Pagination";
 
-const CURRENCY_FORMATTER = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-  maximumFractionDigits: 0,
-});
-
 export function AdminPoiMenuSection({ poiId }: { poiId: string }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -127,16 +121,15 @@ export function AdminPoiMenuSection({ poiId }: { poiId: string }) {
               <TableRow className="hover:bg-transparent">
                 <TableHead className="pl-4">Món ăn</TableHead>
                 <TableHead>Mô tả</TableHead>
-                <TableHead>Giá</TableHead>
                 <TableHead>Kiểm duyệt</TableHead>
-                <TableHead className="pr-4">Phục vụ</TableHead>
+                <TableHead className="pr-4">Hiển thị</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading &&
                 Array.from({ length: 3 }, (_, index) => (
                   <TableRow key={index}>
-                    {Array.from({ length: 5 }, (_, cell) => (
+                    {Array.from({ length: 4 }, (_, cell) => (
                       <TableCell key={cell}>
                         <Skeleton className="h-7 min-w-24" />
                       </TableCell>
@@ -146,7 +139,7 @@ export function AdminPoiMenuSection({ poiId }: { poiId: string }) {
 
               {!loading && items.length === 0 && (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={5} className="h-40 text-center">
+                  <TableCell colSpan={4} className="h-40 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <InboxIcon className="size-7" aria-hidden="true" />
                       <p>POI chưa có món ăn nào.</p>
@@ -164,12 +157,9 @@ export function AdminPoiMenuSection({ poiId }: { poiId: string }) {
                         {item.description || "—"}
                       </p>
                     </TableCell>
-                    <TableCell>
-                      {item.price == null ? "Liên hệ" : CURRENCY_FORMATTER.format(item.price)}
-                    </TableCell>
                     <TableCell>{item.is_active ? "Đã duyệt" : "Chờ duyệt"}</TableCell>
                     <TableCell className="pr-4">
-                      {item.is_available ? "Đang phục vụ" : "Tạm hết"}
+                      {item.is_available ? "Đang hiển thị" : item.is_active ? "Chưa dịch xong" : "Chờ duyệt"}
                     </TableCell>
                   </TableRow>
                 ))}
