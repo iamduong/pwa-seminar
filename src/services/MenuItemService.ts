@@ -5,11 +5,25 @@ import type {
   MenuItem,
   MenuItemCreatePayload,
   MenuItemPayload,
+  MenuTranslationStatus,
+  MenuTranslationTask,
   OwnerPoiOption,
 } from "../types/MenuItem";
 import type { Pagination } from "../types/contract/Pagination";
 
 class MenuItemService {
+  async listTranslations(page: number, pageSize: number, status?: MenuTranslationStatus, signal?: AbortSignal) {
+    const response = await api.get<ApiResponse<Pagination<MenuTranslationTask>>>("/menu-items/translations", {
+      params: { page, page_size: pageSize, status }, signal,
+    });
+    return response.data;
+  }
+
+  async retryTranslations(itemId: string) {
+    const response = await api.post<ApiResponse<MenuTranslationTask>>(`/menu-items/${itemId}/translations/retry`);
+    return response.data;
+  }
+
   async uploadImage(file: File) {
     const formData = new FormData();
     formData.append("image", file);

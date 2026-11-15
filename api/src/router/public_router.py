@@ -46,11 +46,12 @@ async def bundle_ui(
 async def list_public_menu(
     poi_id: str,
     service: Annotated[MenuItemService, Depends()],
+    lang: str = "vi-VN",
 ) -> ApiResponse[list[MenuItemView]]:
     return ApiResponse(
         success=True,
         message="Lấy thực đơn thành công",
-        data=await service.list_public(poi_id),
+        data=await service.list_public(poi_id, lang),
     )
 
 

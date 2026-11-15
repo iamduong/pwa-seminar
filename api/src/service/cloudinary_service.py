@@ -14,6 +14,8 @@ ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 class CloudinaryService:
     def __init__(self):
         setting = get_setting()
+        if not all((setting.CLOUDINARY_CLOUD_NAME, setting.CLOUDINARY_API_KEY, setting.CLOUDINARY_API_SECRET)):
+            raise HTTPException(503, "Chưa cấu hình dịch vụ tải ảnh Cloudinary")
         cloudinary.config(
             cloud_name=setting.CLOUDINARY_CLOUD_NAME,
             api_key=setting.CLOUDINARY_API_KEY,

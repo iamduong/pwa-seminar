@@ -8,7 +8,6 @@ export type MenuItem = {
   poi_id: string;
   name: string;
   description: string | null;
-  price: number | null;
   image_url: string | null;
   is_active: boolean;
   is_available: boolean;
@@ -20,16 +19,33 @@ export type MenuItemPayload = {
   poi_id: string;
   name: string;
   description?: string;
-  price?: number;
   image_url?: string;
 };
 
 export type MenuItemCreatePayload = {
   name: string;
   description: string | null;
-  price: number | null;
   image_url: string | null;
+};
+
+export type MenuTranslationStatus = "queued" | "running" | "done" | "failed";
+
+export type MenuTranslationTask = {
+  id: string;
+  poi_id: string;
+  name: string;
+  status: MenuTranslationStatus;
+  progress_percent: number;
   is_available: boolean;
+  localizations: {
+    id: string;
+    lang: string;
+    name: string;
+    description: string | null;
+    translation_status: "pending" | "processing" | "ready" | "failed";
+    error_message: string | null;
+    updated_at: string;
+  }[];
 };
 
 export type AdminPoi = {
