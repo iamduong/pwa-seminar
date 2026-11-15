@@ -86,9 +86,10 @@ function MenuList({ poiId }: { poiId: string }) {
             <MapPinIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             {poi.address || "Chưa có địa chỉ"}
           </p>}
-          <p className="mt-2 text-sm text-muted-foreground">Theo dõi giá, trạng thái xét duyệt và tình trạng bán của các món ăn.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Theo dõi trạng thái xét duyệt và hiển thị của các món ăn.</p>
         </div>
         <nav className="flex shrink-0 flex-wrap gap-2" aria-label="Quản lý món ăn">
+          <Link className={buttonVariants({ variant: "outline" })} to="/quan-ly/tien-trinh-dich-mon-an">Tiến trình dịch</Link>
           <Link className={buttonVariants({ variant: "outline" })} to={`${basePath}/yeu-cau`}>
             <ClipboardCheckIcon aria-hidden="true" />Duyệt món ăn
           </Link>
@@ -136,15 +137,13 @@ function MenuList({ poiId }: { poiId: string }) {
             <Table>
               <TableHeader><TableRow className="hover:bg-transparent">
                 <TableHead className="pl-4">Tên món</TableHead>
-                <TableHead className="text-right">Giá</TableHead>
                 <TableHead>Duyệt hiển thị</TableHead>
-                <TableHead className="pr-4">Trạng thái bán</TableHead>
+                <TableHead className="pr-4">Hiển thị</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {loading && Array.from({ length: 5 }, (_, index) => (
                   <TableRow key={index}>
                     <TableCell className="py-4 pl-4"><Skeleton className="h-5 w-36" /><Skeleton className="mt-2 h-4 w-48" /></TableCell>
-                    <TableCell><Skeleton className="ml-auto h-5 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                     <TableCell className="pr-4"><Skeleton className="h-6 w-24" /></TableCell>
                   </TableRow>
@@ -155,16 +154,15 @@ function MenuList({ poiId }: { poiId: string }) {
                       <p className="font-medium">{item.name}</p>
                       {item.description && <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>}
                     </TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">{item.price === null ? <span className="font-normal text-muted-foreground">Chưa có giá</span> : `${item.price.toLocaleString("vi-VN")} đ`}</TableCell>
                     <TableCell><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${item.is_active ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
                       {item.is_active ? "Đã duyệt" : "Chưa duyệt"}
                     </span></TableCell>
                     <TableCell className="pr-4"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${item.is_available ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>
-                      {item.is_available ? "Đang bán" : "Tạm ngưng"}
+                      {item.is_available ? "Đang hiển thị" : item.is_active ? "Chưa dịch xong" : "Chờ duyệt"}
                     </span></TableCell>
                   </TableRow>
                 ))}
-                {!loading && items.length === 0 && <TableRow className="hover:bg-transparent"><TableCell colSpan={4} className="h-64 text-center">
+                {!loading && items.length === 0 && <TableRow className="hover:bg-transparent"><TableCell colSpan={3} className="h-64 text-center">
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <InboxIcon className="size-8" aria-hidden="true" />
                     <p className="font-medium text-foreground">Không có món ăn phù hợp</p>

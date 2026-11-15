@@ -77,7 +77,7 @@ function MenuReview({ poiId }: { poiId: string }) {
     try {
       const response = await menuItemService.approveItem(poiId, item.id);
       if (!response.success) throw new Error(response.message || "Không thể duyệt món ăn.");
-      setMessage(`Đã duyệt món “${item.name}”.`);
+      setMessage(`Đã duyệt món “${item.name}” và đưa vào hàng đợi dịch.`);
     } catch (requestError) {
       setReviewError(getApiErrorMessage(requestError, "Không thể duyệt món ăn."));
     } finally {
@@ -121,23 +121,22 @@ function MenuReview({ poiId }: { poiId: string }) {
           <div className="flex items-center gap-2 border-b px-4 py-3"><ClipboardCheckIcon className="size-4" aria-hidden="true" /><h2 id="menu-review-title" className="font-semibold">Món ăn chờ duyệt</h2></div>
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent">
-              <TableHead className="pl-4">Tên món</TableHead><TableHead className="text-right">Giá</TableHead><TableHead>Duyệt hiển thị</TableHead><TableHead>Trạng thái bán</TableHead><TableHead className="pr-4 text-right">Thao tác</TableHead>
+              <TableHead className="pl-4">Tên món</TableHead><TableHead>Duyệt hiển thị</TableHead><TableHead>Hiển thị</TableHead><TableHead className="pr-4 text-right">Thao tác</TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {loading && Array.from({ length: 5 }, (_, index) => <TableRow key={index}>
                 <TableCell className="py-4 pl-4"><Skeleton className="h-5 w-36" /><Skeleton className="mt-2 h-4 w-48" /></TableCell>
-                <TableCell><Skeleton className="ml-auto h-5 w-20" /></TableCell><TableCell><Skeleton className="h-6 w-24" /></TableCell><TableCell><Skeleton className="h-6 w-24" /></TableCell><TableCell className="pr-4"><Skeleton className="ml-auto h-7 w-24" /></TableCell>
+                <TableCell><Skeleton className="h-6 w-24" /></TableCell><TableCell><Skeleton className="h-6 w-24" /></TableCell><TableCell className="pr-4"><Skeleton className="ml-auto h-7 w-24" /></TableCell>
               </TableRow>)}
               {!loading && items.map((item) => <TableRow key={item.id}>
                 <TableCell className="min-w-56 max-w-md py-4 pl-4 whitespace-normal"><p className="font-medium">{item.name}</p><p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{item.description || "Chưa có mô tả."}</p></TableCell>
-                <TableCell className="text-right font-medium tabular-nums">{item.price === null ? <span className="font-normal text-muted-foreground">Chưa có giá</span> : `${item.price.toLocaleString("vi-VN")} đ`}</TableCell>
                 <TableCell><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${item.is_active ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{item.is_active ? "Đã duyệt" : "Chưa duyệt"}</span></TableCell>
-                <TableCell><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${item.is_available ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>{item.is_available ? "Đang bán" : "Tạm ngưng"}</span></TableCell>
+                <TableCell><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${item.is_available ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>{item.is_available ? "Đang hiển thị" : item.is_active ? "Chưa dịch xong" : "Chờ duyệt"}</span></TableCell>
                 <TableCell className="pr-4 text-right">{!item.is_active && <Button type="button" size="sm" disabled={busy !== null} onClick={() => void review(item)} aria-label={`Duyệt món ${item.name}`}>
                   {busy === item.id ? <Loader2Icon className="animate-spin" aria-hidden="true" /> : <CheckCircle2Icon aria-hidden="true" />}{busy === item.id ? "Đang duyệt..." : "Duyệt món"}
                 </Button>}</TableCell>
               </TableRow>)}
-              {!loading && items.length === 0 && <TableRow className="hover:bg-transparent"><TableCell colSpan={5} className="h-64 text-center"><div className="flex flex-col items-center gap-2 text-muted-foreground"><InboxIcon className="size-8" aria-hidden="true" /><p className="font-medium text-foreground">Không có món ăn chờ duyệt</p><p>Các món cần xét duyệt sẽ hiển thị tại đây.</p></div></TableCell></TableRow>}
+              {!loading && items.length === 0 && <TableRow className="hover:bg-transparent"><TableCell colSpan={4} className="h-64 text-center"><div className="flex flex-col items-center gap-2 text-muted-foreground"><InboxIcon className="size-8" aria-hidden="true" /><p className="font-medium text-foreground">Không có món ăn chờ duyệt</p><p>Các món cần xét duyệt sẽ hiển thị tại đây.</p></div></TableCell></TableRow>}
             </TableBody>
           </Table>
           <DataPagination page={page} pageSize={pageSize} totalItems={totalItems} totalPages={totalPages} itemLabel="món chờ duyệt" disabled={loading || busy !== null} onPageChange={setPage} onPageSizeChange={(size) => { setPageSize(size); setPage(1); }} />

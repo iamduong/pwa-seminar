@@ -40,6 +40,7 @@ import { MobileClientAccessGate } from "./components/layout/client/mobile/Mobile
 import { LanguageProvider } from "./providers/LanguageProvider";
 import { PoiDataProvider } from "./providers/PoiDataProvider";
 import MenuReviewPage from "./pages/admin/menu/MenuReviewPage";
+import MenuTranslationMonitorPage from "./pages/admin/menu/MenuTranslationMonitorPage";
 import { UiBundleProvider } from "./providers/UiBundleProvider";
 import OwnerPoiDetailPage from "./pages/admin/poi-submission/OwnerPoiDetailPage";
 import SelfPoiOwnerRegistrationPage from "./pages/admin/poi-owner-registration/SelfPoiOwnerRegistrationPage";
@@ -126,6 +127,7 @@ export default function App() {
             {/* Culinary features */}
             <Route path="danh-sach-thuc-don" element={<MenuPoiListPage />} />
             <Route path="them-thuc-don" element={<MenuPoiListPage />} />
+            <Route path="tien-trinh-dich-mon-an" element={<MenuTranslationMonitorPage />} />
 
             {/* Poi owner registration features */}
             <Route path="don-dang-ky-chu-quan">

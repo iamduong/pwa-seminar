@@ -14,6 +14,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from util.audio import AUDIO_DIRECTORY
 from util.image import IMAGE_DIRECTORY
 from util.worker import process_worker
+from util.menu_item_worker import process_menu_item_worker
 
 
 @asynccontextmanager
@@ -26,12 +27,13 @@ async def lifespan(app: FastAPI):
 
     stop_event = asyncio.Event()
     worker_task = asyncio.create_task(process_worker(SessionFactory, stop_event))
+    menu_worker_task = asyncio.create_task(process_menu_item_worker(SessionFactory, stop_event))
 
     try:
         yield
     finally:
         stop_event.set()
-        await worker_task
+        await asyncio.gather(worker_task, menu_worker_task)
         await close_redis()
         await close_postgres()
 
