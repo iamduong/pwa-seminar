@@ -20,7 +20,15 @@ class PoiTaskService:
         return ViewPoiTask(id=str(task.id), poi_id=str(task.poi_id), type=task.type, status=task.status, progress_percent=task.progress_percent, target_languages=task.target_languages, step_language=task.step_language, activation_requested=task.activation_requested, retry_count=task.retry_count, max_retries=task.max_retries, events=task.events, processes=task.processes, created_at=task.created_at, updated_at=task.updated_at)
 
     async def filter_poi_tasks(self, filters: FilterPoiTask):
-        statuses = {"done": ["done"], "processing": ["running", "queued"], "failed": ["failed"]}.get(filters.view_status)
+        statuses = (
+            [filters.status.value]
+            if filters.status is not None
+            else {
+                "done": ["done"],
+                "processing": ["running", "queued"],
+                "failed": ["failed"],
+            }.get(filters.view_status)
+        )
         tasks, total = await self.repository.find_pagination(filters.page, filters.page_size, statuses)
         return Pagination[ViewPoiTask](page=filters.page, page_size=filters.page_size, total_item=total, total_page=(total + filters.page_size - 1) // filters.page_size, data=[self._view(x) for x in tasks])
 

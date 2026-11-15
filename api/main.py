@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from service.analytics_event_service import AnalyticsEventService
 from service.content_dataset_version_service import ContentDatasetVersionService
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from util.audio import AUDIO_DIRECTORY
@@ -23,6 +24,7 @@ async def lifespan(app: FastAPI):
 
     async with SessionFactory() as database:
         await ContentDatasetVersionService(database).initialize()
+        await AnalyticsEventService(database).disconnect_all_visitors()
 
     stop_event = asyncio.Event()
     worker_task = asyncio.create_task(process_worker(SessionFactory, stop_event))
@@ -125,6 +127,7 @@ async def unexpected_exception_handler(
 
 from router.admin_user_router import router as admin_user_router
 from router.authorize_router import router as authorize_router
+from router.dashboard_statistics_router import router as dashboard_statistics_router
 from router.menu_item_router import router as menu_item_router
 from router.poi_owner_registration_router import router as poi_owner_registration_router
 from router.poi_registration_router import router as poi_registration_router
@@ -138,6 +141,7 @@ from router.presence_router import router as presence_router
 
 app.include_router(public_router)
 app.include_router(authorize_router)
+app.include_router(dashboard_statistics_router)
 app.include_router(poi_owner_registration_router)
 app.include_router(role_router)
 app.include_router(poi_registration_router)

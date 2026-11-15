@@ -6,9 +6,11 @@ from core.pagination import Pagination
 from core.ui_bundle import UiBundle
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from schema.menu_item_schema import MenuItemView
+from schema.analytics_event_schema import ViewAudioPlayCount
 from schema.poi_category_schema import FilterPoiCategory, ViewPoiCategory
 from schema.poi_dataset_schema import PoiDataset
 from service.content_dataset_version_service import ContentDatasetVersionService
+from service.analytics_event_service import AnalyticsEventService
 from service.menu_item_service import MenuItemService
 from service.poi_category_service import PoiCategoryService
 from service.poi_service import PoiService
@@ -51,6 +53,18 @@ async def list_public_menu(
         success=True,
         message="Lấy thực đơn thành công",
         data=await service.list_public(poi_id),
+    )
+
+
+@router.post("/pois/{poi_id}/audio-listens")
+async def record_poi_audio_play(
+    poi_id: str,
+    service: Annotated[AnalyticsEventService, Depends()],
+) -> ApiResponse[ViewAudioPlayCount]:
+    return ApiResponse(
+        success=True,
+        message="Ghi nhận lượt nghe audio thành công",
+        data=await service.record_audio_play(poi_id),
     )
 
 

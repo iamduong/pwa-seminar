@@ -9,6 +9,7 @@ type PresenceRole = "visitor" | "dashboard";
 type PresenceMessage = {
   type: "presence:update";
   connected_visitors: number;
+  total_connections: number;
 };
 
 function getWebSocketBaseUrl() {
@@ -39,6 +40,7 @@ function getPresenceUrl(role: PresenceRole) {
 
 export function usePresenceSocket(role: PresenceRole) {
   const [connectedVisitors, setConnectedVisitors] = useState<number>();
+  const [totalConnections, setTotalConnections] = useState<number>();
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
@@ -69,8 +71,13 @@ export function usePresenceSocket(role: PresenceRole) {
         if (role !== "dashboard") return;
         try {
           const message = JSON.parse(event.data as string) as PresenceMessage;
-          if (message.type === "presence:update" && Number.isInteger(message.connected_visitors)) {
+          if (
+            message.type === "presence:update"
+            && Number.isInteger(message.connected_visitors)
+            && Number.isInteger(message.total_connections)
+          ) {
             setConnectedVisitors(message.connected_visitors);
+            setTotalConnections(message.total_connections);
           }
         } catch {
           // Ignore messages that do not follow the presence contract.
@@ -99,5 +106,5 @@ export function usePresenceSocket(role: PresenceRole) {
     };
   }, [role]);
 
-  return { connectedVisitors, isConnected };
+  return { connectedVisitors, totalConnections, isConnected };
 }

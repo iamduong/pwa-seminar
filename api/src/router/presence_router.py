@@ -1,57 +1,49 @@
-from collections import defaultdict
+from uuid import UUID
 
 import jwt
+from core.provider.postgres import SessionFactory
 from core.security import TokenType, decode_token
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
+from service.analytics_event_service import AnalyticsEventService
 
 
 router = APIRouter(prefix="/ws/presence", tags=["Presence WebSocket"])
 
 
 class PresenceManager:
-    """Tracks unique visitor browsers and publishes the count to dashboards."""
+    """Publishes database-backed visitor metrics to connected dashboards."""
 
     def __init__(self) -> None:
-        self._visitors: dict[str, set[WebSocket]] = defaultdict(set)
         self._dashboards: set[WebSocket] = set()
-
-    @property
-    def visitor_count(self) -> int:
-        return len(self._visitors)
-
-    async def connect_visitor(self, visitor_id: str, websocket: WebSocket) -> None:
-        await websocket.accept()
-        self._visitors[visitor_id].add(websocket)
-        await self._broadcast_count()
-
-    async def disconnect_visitor(self, visitor_id: str, websocket: WebSocket) -> None:
-        connections = self._visitors.get(visitor_id)
-        if connections is None:
-            return
-
-        connections.discard(websocket)
-        if not connections:
-            self._visitors.pop(visitor_id, None)
-        await self._broadcast_count()
 
     async def connect_dashboard(self, websocket: WebSocket) -> None:
         await websocket.accept()
         self._dashboards.add(websocket)
-        await self._send_count(websocket)
+        await self._send_metrics(websocket, await _get_presence_counts())
 
     def disconnect_dashboard(self, websocket: WebSocket) -> None:
         self._dashboards.discard(websocket)
 
-    async def _send_count(self, websocket: WebSocket) -> None:
+    async def _send_metrics(
+        self,
+        websocket: WebSocket,
+        counts: tuple[int, int],
+    ) -> None:
+        connected_visitors, total_connections = counts
         await websocket.send_json(
-            {"type": "presence:update", "connected_visitors": self.visitor_count}
+            {
+                "type": "presence:update",
+                "connected_visitors": connected_visitors,
+                "total_connections": total_connections,
+            }
         )
 
-    async def _broadcast_count(self) -> None:
+    async def broadcast_metrics(self) -> None:
+        counts = await _get_presence_counts()
         disconnected: list[WebSocket] = []
         for dashboard in tuple(self._dashboards):
             try:
-                await self._send_count(dashboard)
+                await self._send_metrics(dashboard, counts)
             except (RuntimeError, WebSocketDisconnect):
                 disconnected.append(dashboard)
 
@@ -62,6 +54,11 @@ class PresenceManager:
 presence_manager = PresenceManager()
 
 
+async def _get_presence_counts() -> tuple[int, int]:
+    async with SessionFactory() as database:
+        return await AnalyticsEventService(database).get_presence_counts()
+
+
 async def _keep_connection_open(websocket: WebSocket) -> None:
     while True:
         # Receiving heartbeat messages also lets the server notice closed clients.
@@ -70,17 +67,28 @@ async def _keep_connection_open(websocket: WebSocket) -> None:
 
 @router.websocket("/visitor/{visitor_id}")
 async def visitor_presence(websocket: WebSocket, visitor_id: str) -> None:
-    if not visitor_id or len(visitor_id) > 100:
+    try:
+        session_id = UUID(visitor_id)
+    except ValueError:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    await presence_manager.connect_visitor(visitor_id, websocket)
+    event_id: UUID | None = None
     try:
+        async with SessionFactory() as database:
+            event = await AnalyticsEventService(database).connect_visitor(session_id)
+            event_id = event.id
+
+        await websocket.accept()
+        await presence_manager.broadcast_metrics()
         await _keep_connection_open(websocket)
     except WebSocketDisconnect:
         pass
     finally:
-        await presence_manager.disconnect_visitor(visitor_id, websocket)
+        if event_id is not None:
+            async with SessionFactory() as database:
+                await AnalyticsEventService(database).disconnect_visitor(event_id)
+            await presence_manager.broadcast_metrics()
 
 
 @router.websocket("/dashboard")
@@ -95,8 +103,6 @@ async def dashboard_presence(websocket: WebSocket) -> None:
     except (jwt.PyJWTError, ValueError):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
-
-
     await presence_manager.connect_dashboard(websocket)
     try:
         await _keep_connection_open(websocket)
