@@ -47,12 +47,16 @@ import SelfPoiOwnerRegistrationPage from "./pages/admin/poi-owner-registration/S
 import ManagementIndexPage from "./pages/admin/ManagementIndexPage";
 import ChangePasswordPage from "./pages/admin/account/ChangePasswordPage";
 import DashboardPage from "./pages/admin/dashboard/DashboardPage";
+import { VisitorPresence } from "./components/presence/VisitorPresence";
 import OwnerNotificationsPage from "./pages/admin/notifications/OwnerNotificationsPage";
 import AuditLogsPage from "./pages/admin/audit/AuditLogsPage";
+import ConnectionStatisticsPage from "./pages/admin/analytics/ConnectionStatisticsPage";
+import AudioStatisticsPage from "./pages/admin/analytics/AudioStatisticsPage";
 
 const ClientProviders = () => {
   return (
     <LanguageProvider>
+      <VisitorPresence />
       <UiBundleProvider>
         <PoiDataProvider>
           <MobileClientAccessGate />
@@ -101,6 +105,8 @@ export default function App() {
           <Route path="/quan-ly" element={<AdminLayout />}>
             <Route index element={<ManagementIndexPage />} />
             <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="thong-ke/luot-ket-noi" element={<ConnectionStatisticsPage />} />
+            <Route path="thong-ke/luot-nghe-audio" element={<AudioStatisticsPage />} />
 
             <Route path="tai-khoan/doi-mat-khau" element={<ChangePasswordPage />} />
             <Route path="thong-bao" element={<OwnerNotificationsPage />} />

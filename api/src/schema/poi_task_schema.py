@@ -44,3 +44,4 @@ class FilterPoiTask(BaseModel):
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=5, ge=1, le=100)
     view_status: Literal["done", "processing", "failed"] | None = None
+    status: PoiTaskStatus | None = None

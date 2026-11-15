@@ -1,12 +1,12 @@
 import { useEffect, useState, type ComponentType } from "react";
 import {
   AlertCircleIcon,
+  ActivityIcon,
   BarChart3Icon,
   Building2Icon,
   ClipboardClockIcon,
-  EyeIcon,
-  HeadphonesIcon,
   MapPinnedIcon,
+  RadioIcon,
   RefreshCwIcon,
   StoreIcon,
   UsersIcon,
@@ -18,8 +18,10 @@ import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert";
 import { Button, buttonVariants } from "#components/ui/button";
 import { Skeleton } from "#components/ui/skeleton";
 import { useAuthorize } from "#hooks/use-authorize";
+import { usePresenceSocket } from "#hooks/use-presence-socket";
 import { getApiErrorMessage } from "#lib/api";
 import { adminUserService } from "../../../services/AdminUserService";
+import { dashboardStatisticsService } from "../../../services/DashboardStatisticsService";
 import { menuItemService } from "../../../services/MenuItemService";
 import { poiOwnerRegistrationService } from "../../../services/PoiOwnerRegistrationService";
 import { poiService } from "../../../services/PoiService";
@@ -30,6 +32,7 @@ type DashboardMetrics = {
   menuItems?: number;
   pendingPoiSubmissions?: number;
   pendingOwnerRegistrations?: number;
+  runningPoiTasks?: number;
   users?: number;
 };
 
@@ -41,6 +44,11 @@ type MetricCardProps = {
   description: string;
   icon: ComponentType<{ className?: string; "aria-hidden"?: "true" }>;
   loading: boolean;
+};
+
+type DashboardCard = Omit<MetricCardProps, "loading"> & {
+  group: "overview" | "operations";
+  realtime?: boolean;
 };
 
 function MetricCard({ label, value, description, icon: Icon, loading }: MetricCardProps) {
@@ -68,8 +76,17 @@ function MetricCard({ label, value, description, icon: Icon, loading }: MetricCa
 
 export default function DashboardPage() {
   const { session } = useAuthorize();
+  const {
+    connectedVisitors,
+    totalConnections,
+    isConnected: isPresenceConnected,
+  } = usePresenceSocket("dashboard");
   const permissions = session?.role?.permissions ?? EMPTY_PERMISSIONS;
-  const isOwner = permissions.includes("owner:poi_read");
+  const isOwner = session?.role?.name === "poi_owner";
+  const canViewSystemStatistics =
+    !isOwner
+    && permissions.includes("poi:read")
+    && permissions.includes("poi_submission:monitor");
   const [metrics, setMetrics] = useState<DashboardMetrics>({});
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -81,6 +98,7 @@ export default function DashboardPage() {
     async function loadDashboard() {
       setLoading(true);
       setErrorMessage(null);
+      setMetrics({});
 
       try {
         if (isOwner) {
@@ -101,7 +119,14 @@ export default function DashboardPage() {
         const nextMetrics: DashboardMetrics = {};
         const requests: Promise<void>[] = [];
 
-        if (permissions.includes("poi:read")) {
+        if (canViewSystemStatistics) {
+          requests.push(
+            dashboardStatisticsService.getStatistics().then((response) => {
+              nextMetrics.pois = response.data?.total_pois ?? 0;
+              nextMetrics.runningPoiTasks = response.data?.running_poi_tasks ?? 0;
+            }),
+          );
+        } else if (permissions.includes("poi:read")) {
           requests.push(
             poiService.getAdminPois({ page: 1, pageSize: 1 }).then((response) => {
               nextMetrics.pois = response.data?.total_item ?? 0;
@@ -145,28 +170,38 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [isOwner, permissions, requestVersion]);
+  }, [canViewSystemStatistics, isOwner, permissions, requestVersion]);
 
-  const cards: Array<Omit<MetricCardProps, "loading">> = isOwner
+  const cards: DashboardCard[] = isOwner
     ? [
-        { label: "POI của tôi", value: metrics.pois, description: "Địa điểm đang thuộc quyền quản lý của bạn.", icon: StoreIcon },
-        { label: "Món ăn", value: metrics.menuItems, description: "Tổng số món ăn đã gửi lên hệ thống.", icon: UtensilsIcon },
-        { label: "Đơn POI chờ duyệt", value: metrics.pendingPoiSubmissions, description: "Yêu cầu đang chờ quản trị viên xử lý.", icon: ClipboardClockIcon },
+        { label: "Khách đang kết nối", value: connectedVisitors, description: isPresenceConnected ? "Số khách du lịch đang sử dụng ứng dụng theo thời gian thực." : "Đang kết nối tới cổng theo dõi thời gian thực…", icon: RadioIcon, group: "overview", realtime: true },
+        { label: "Tổng lượt truy cập", value: totalConnections, description: "Số lượt truy cập từ trước tới nay", icon: BarChart3Icon, group: "overview", realtime: true },
+        { label: "POI của tôi", value: metrics.pois, description: "Địa điểm đang thuộc quyền quản lý của bạn.", icon: StoreIcon, group: "overview" },
+        { label: "Món ăn", value: metrics.menuItems, description: "Tổng số món ăn đã gửi lên hệ thống.", icon: UtensilsIcon, group: "operations" },
+        { label: "Đơn POI chờ duyệt", value: metrics.pendingPoiSubmissions, description: "Yêu cầu đang chờ quản trị viên xử lý.", icon: ClipboardClockIcon, group: "operations" },
       ]
     : [
+        { label: "Khách đang kết nối", value: connectedVisitors, description: isPresenceConnected ? "Số khách du lịch đang sử dụng ứng dụng theo thời gian thực." : "Đang kết nối tới cổng theo dõi thời gian thực…", icon: RadioIcon, group: "overview", realtime: true },
+        { label: "Tổng lượt kết nối", value: totalConnections, description: "Số lượt khách đã kết nối từ trước tới nay.", icon: BarChart3Icon, group: "overview", realtime: true },
         ...(permissions.includes("poi:read")
-          ? [{ label: "Tổng POI", value: metrics.pois, description: "Số địa điểm hiện có trong hệ thống.", icon: MapPinnedIcon }]
+          ? [{ label: "Tổng POI", value: metrics.pois, description: "Số địa điểm hiện có trong hệ thống.", icon: MapPinnedIcon, group: "overview" as const }]
           : []),
         ...(permissions.includes("poi_submission:read")
-          ? [{ label: "Đơn POI chờ duyệt", value: metrics.pendingPoiSubmissions, description: "Yêu cầu POI cần quản trị viên xử lý.", icon: ClipboardClockIcon }]
+          ? [{ label: "Đơn POI chờ duyệt", value: metrics.pendingPoiSubmissions, description: "Yêu cầu POI cần quản trị viên xử lý.", icon: ClipboardClockIcon, group: "operations" as const }]
+          : []),
+        ...(permissions.includes("poi_submission:monitor")
+          ? [{ label: "POI task đang chạy", value: metrics.runningPoiTasks, description: "Số tiến trình xử lý POI đang chạy trên hệ thống.", icon: ActivityIcon, group: "operations" as const }]
           : []),
         ...(permissions.includes("owner_registration:read")
-          ? [{ label: "Hồ sơ chủ quán", value: metrics.pendingOwnerRegistrations, description: "Hồ sơ đăng ký chủ quán đang chờ duyệt.", icon: Building2Icon }]
+          ? [{ label: "Hồ sơ chủ quán", value: metrics.pendingOwnerRegistrations, description: "Hồ sơ đăng ký chủ quán đang chờ duyệt.", icon: Building2Icon, group: "operations" as const }]
           : []),
         ...(permissions.includes("user:read")
-          ? [{ label: "Người dùng", value: metrics.users, description: "Tài khoản được quản lý trên hệ thống.", icon: UsersIcon }]
+          ? [{ label: "Người dùng", value: metrics.users, description: "Tài khoản được quản lý trên hệ thống.", icon: UsersIcon, group: "operations" as const }]
           : []),
       ];
+
+  const overviewCards = cards.filter((card) => card.group === "overview");
+  const operationCards = cards.filter((card) => card.group === "operations");
 
   const primaryAction = isOwner
     ? { label: "Xem POI của tôi", href: "/quan-ly/chuc-nang-chu-quan/poi-cua-toi" }
@@ -199,41 +234,55 @@ export default function DashboardPage() {
         </Alert>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Chỉ số vận hành">
-        {cards.map((card) => <MetricCard key={card.label} {...card} loading={loading} />)}
+      <section aria-labelledby="overview-metrics-title">
+        <div className="mb-4">
+          <div>
+            <h2 id="overview-metrics-title" className="text-lg font-semibold">Tổng quan truy cập</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Các chỉ số chính để đánh giá nhanh tình hình hệ thống.</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {overviewCards.map((card) => (
+            <MetricCard
+              key={card.label}
+              label={card.label}
+              value={card.value}
+              description={card.description}
+              icon={card.icon}
+              loading={card.realtime ? false : loading}
+            />
+          ))}
+        </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
-        <article className="rounded-xl border bg-card p-5 shadow-sm sm:p-6">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-lg bg-muted">
-              <BarChart3Icon className="size-5" aria-hidden="true" />
-            </span>
-            <div>
-              <h2 className="font-semibold">Hiệu quả nội dung</h2>
-              <p className="text-sm text-muted-foreground">Dữ liệu tương tác của khách tham quan.</p>
-            </div>
+      {operationCards.length > 0 && (
+        <section aria-labelledby="operation-metrics-title">
+          <div className="mb-4">
+            <h2 id="operation-metrics-title" className="text-lg font-semibold">Vận hành hệ thống</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Các đầu việc và trạng thái cần theo dõi.</p>
           </div>
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <div className="rounded-lg border bg-muted/20 p-4">
-              <EyeIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-              <p className="mt-3 text-2xl font-semibold">—</p>
-              <p className="text-xs text-muted-foreground">Lượt xem POI</p>
-            </div>
-            <div className="rounded-lg border bg-muted/20 p-4">
-              <HeadphonesIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-              <p className="mt-3 text-2xl font-semibold">—</p>
-              <p className="text-xs text-muted-foreground">Lượt phát audio</p>
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {operationCards.map((card) => (
+              <MetricCard
+                key={card.label}
+                label={card.label}
+                value={card.value}
+                description={card.description}
+                icon={card.icon}
+                loading={card.realtime ? false : loading}
+              />
+            ))}
           </div>
-          <p className="mt-4 text-sm leading-6 text-muted-foreground">
-            Chưa kết nối module Analytics. Khu vực này đã sẵn sàng để nhận dữ liệu lượt xem, lượt nghe và xu hướng theo thời gian.
-          </p>
-        </article>
+        </section>
+      )}
 
-        <article className="rounded-xl border bg-card p-5 shadow-sm sm:p-6">
-          <h2 className="font-semibold">Công việc tiếp theo</h2>
-          <div className="mt-4 space-y-3 text-sm">
+      <section aria-labelledby="quick-actions-title">
+        <div className="mb-4">
+          <h2 id="quick-actions-title" className="text-lg font-semibold">Lối tắt</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Đi nhanh đến các công việc thường dùng.</p>
+        </div>
+        <div className="grid gap-3 text-sm sm:grid-cols-2">
             {isOwner ? (
               <>
                 <Link className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50" to="/quan-ly/chuc-nang-chu-quan/gui-yeu-cau-them-poi">
@@ -249,8 +298,7 @@ export default function DashboardPage() {
                 {permissions.includes("owner_registration:read") && <Link className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50" to="/quan-ly/don-dang-ky-chu-quan/danh-sach-don-dang-ky"><span>Xử lý hồ sơ chủ quán</span><span aria-hidden="true">→</span></Link>}
               </>
             )}
-          </div>
-        </article>
+        </div>
       </section>
     </div>
   );

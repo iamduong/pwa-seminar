@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router";
 import { Button } from "#components/ui/button";
 import { usePoiData } from "#hooks/use-poi-data";
 import { useUiBundle } from "#hooks/use-ui-bundle";
+import { publicService } from "../../services/PublicService";
 
 function resolveMediaUrl(url: string) {
   if (/^https?:\/\//i.test(url)) return url;
@@ -25,6 +26,7 @@ export default function PoiDetailPage() {
   const poi = pois.find((item) => item.id === id);
   const [activeImage, setActiveImage] = useState(0);
   const carouselRef = useRef<HTMLDivElement | null>(null);
+  const recordedAudioPoiIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     document.title = `${poi?.name ?? t("page.places.title")} | Quan4 Tourism`;
@@ -34,6 +36,14 @@ export default function PoiDetailPage() {
     const width = event.currentTarget.clientWidth;
     if (!width) return;
     setActiveImage(Math.round(event.currentTarget.scrollLeft / width));
+  }
+
+  function recordAudioListen() {
+    if (!poi || recordedAudioPoiIdRef.current === poi.id) return;
+    recordedAudioPoiIdRef.current = poi.id;
+    void publicService.RecordPoiAudioListen(poi.id).catch(() => {
+      recordedAudioPoiIdRef.current = null;
+    });
   }
 
   if (!poi) {
@@ -139,6 +149,7 @@ export default function PoiDetailPage() {
               controls
               preload="metadata"
               src={resolveMediaUrl(poi.audio_url)}
+              onPlay={recordAudioListen}
             />
           ) : (
             <p className="mt-2 text-sm text-muted-foreground">

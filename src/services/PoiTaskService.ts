@@ -2,6 +2,7 @@ import api, { type ApiResponse } from "#lib/api";
 import type {
   PoiTask,
   PoiTaskPagination,
+  PoiTaskStatus,
   PoiTaskViewStatus,
 } from "../types/PoiTask";
 
@@ -9,15 +10,21 @@ export type PoiTaskQuery = {
   page?: number;
   pageSize?: number;
   viewStatus?: PoiTaskViewStatus;
+  status?: PoiTaskStatus;
 };
 
 class PoiTaskService {
   async GetPoiTasks(query: PoiTaskQuery = {}, signal?: AbortSignal) {
-    const { page = 1, pageSize = 100, viewStatus } = query;
+    const { page = 1, pageSize = 100, viewStatus, status } = query;
     const response = await api.get<ApiResponse<PoiTaskPagination>>(
       "/poi-tasks",
       {
-        params: { page, page_size: pageSize, view_status: viewStatus },
+        params: {
+          page,
+          page_size: pageSize,
+          view_status: viewStatus,
+          status,
+        },
         signal,
       },
     );
