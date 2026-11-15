@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  BarChart3Icon,
   ChevronDownIcon,
   ClipboardCheckIcon,
   FileClockIcon,
@@ -48,6 +49,22 @@ const navigationGroup = [
           "poi_submission:read",
           "user:read",
         ],
+      },
+    ],
+  },
+  {
+    title: "Phân tích",
+    icon: BarChart3Icon,
+    child: [
+      {
+        title: "Lượt kết nối",
+        href: "/quan-ly/thong-ke/luot-ket-noi",
+        permissions: ["poi:read"],
+      },
+      {
+        title: "Lượt nghe audio",
+        href: "/quan-ly/thong-ke/luot-nghe-audio",
+        permissions: ["poi:read"],
       },
     ],
   },

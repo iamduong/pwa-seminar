@@ -5,6 +5,15 @@ import type { PoiCategoryPagination } from "../types/PoiCategory";
 import type { UiBundle } from "../types/UiBundle";
 
 class PublicService {
+    async RecordPoiAudioListen(poiId: string) {
+        const response = await api.post<ApiResponse<{
+            poi_id: string;
+            audio_listen_count: number;
+        }>>(`/public/pois/${poiId}/audio-listens`);
+
+        return response.data;
+    }
+
     async GetPoiCategory(
         q: string = "",
         page: number = 1,
