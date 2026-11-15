@@ -2,6 +2,8 @@ from uuid import UUID
 
 from model.admin_user_model import AdminUserModel
 from model.menu_item_model import MenuItemModel
+from repository.menu_item_repository import MenuItemRepository
+from resource.config import MY_MEMORY_LANGUAGES
 from model.poi_category_model import PoiCategoryModel
 from model.poi_model import PoiModel
 from sqlalchemy import select
@@ -32,18 +34,22 @@ async def init_menu_items(session: AsyncSession, category: PoiCategoryModel, own
     await session.flush()
 
     fixtures = [
-        (pois[0], "Phở bò đặc biệt", 65000, True, True),
-        (pois[0], "Phở gà", 55000, True, True),
-        (pois[0], "Trà đá", 5000, False, True),
-        (pois[1], "Cơm sườn bì chả", 55000, True, True),
-        (pois[1], "Cơm gà", 50000, True, False),
+        (pois[0], "Phở bò đặc biệt", True),
+        (pois[0], "Phở gà", True),
+        (pois[0], "Trà đá", False),
+        (pois[1], "Cơm sườn bì chả", True),
+        (pois[1], "Cơm gà", True),
     ]
-    for poi, name, price, active, available in fixtures:
+    for poi, name, active in fixtures:
         item = (await session.scalars(select(MenuItemModel).where(MenuItemModel.poi_id == poi.id, MenuItemModel.name == name))).first()
         if item is None:
-            session.add(MenuItemModel(
+            item = MenuItemModel(
                 poi_id=poi.id, name=name, description="Món ăn mẫu",
-                price=price, is_active=active, is_available=available,
-            ))
+                is_active=active, is_available=False,
+            )
+            session.add(item)
+            await session.flush()
+            if active:
+                await MenuItemRepository(session).queue_translations(item, MY_MEMORY_LANGUAGES)
     await session.flush()
     print(f"pois: {len(pois)}, menu_items: {len(fixtures)} fixtures ready")

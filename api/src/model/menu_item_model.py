@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Boolean, Float, ForeignKey, String, Text
+from sqlalchemy import Boolean, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from model.base.base import Base
@@ -23,10 +23,9 @@ class MenuItemModel(Base):
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    price: Mapped[float | None] = mapped_column(Float, nullable=True)
     image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    is_available: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_available: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationship
     poi: Mapped[PoiModel] = relationship(back_populates="menu_items")

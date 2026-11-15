@@ -1,13 +1,32 @@
 from typing import Annotated
 
 from core.api_response import ApiResponse
+from core.pagination import Pagination
 from core.dependency import AccessTokenPayload, require_permission, validate_session
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from schema.menu_item_schema import MenuItemFilter, MenuItemSave, MenuItemView
+from schema.menu_item_schema import MenuItemFilter, MenuItemSave, MenuItemView, MenuTranslationFilter, MenuTranslationTaskView
 from service.cloudinary_service import CloudinaryService
 from service.menu_item_service import MenuItemService
 
 router = APIRouter(prefix="/menu-items", tags=["Menu Items"])
+
+
+@router.get("/translations")
+async def list_menu_translations(
+    params: Annotated[MenuTranslationFilter, Depends()],
+    principal: Annotated[AccessTokenPayload, Depends(require_permission("menu:read"))],
+    service: Annotated[MenuItemService, Depends()],
+) -> ApiResponse[Pagination[MenuTranslationTaskView]]:
+    return ApiResponse(success=True, message="Lấy tiến trình dịch món ăn thành công", data=await service.list_translation_tasks(params))
+
+
+@router.post("/{item_id}/translations/retry")
+async def retry_menu_translations(
+    item_id: str,
+    principal: Annotated[AccessTokenPayload, Depends(require_permission("menu:review"))],
+    service: Annotated[MenuItemService, Depends()],
+) -> ApiResponse[MenuTranslationTaskView]:
+    return ApiResponse(success=True, message="Đã đưa bản dịch lỗi vào hàng đợi", data=await service.retry_translations(item_id))
 
 
 @router.post("/images")

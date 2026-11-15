@@ -20,16 +20,9 @@ export default function MenuCreatePage() {
 
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name") ?? "").trim();
-    const rawPrice = String(form.get("price") ?? "").trim();
-    const price = rawPrice === "" ? null : Number(rawPrice);
 
     if (name.length < 2) {
       setError("Tên món cần ít nhất 2 ký tự.");
-      return;
-    }
-
-    if (price !== null && (!Number.isFinite(price) || price < 0)) {
-      setError("Giá bán không hợp lệ.");
       return;
     }
 
@@ -54,9 +47,7 @@ export default function MenuCreatePage() {
       const response = await menuItemService.createDirect(poiId, {
         name,
         description: String(form.get("description") ?? "").trim() || null,
-        price,
         image_url: imageUrl,
-        is_available: form.get("is_available") === "on",
       });
 
       if (!response.success) {
@@ -84,7 +75,7 @@ export default function MenuCreatePage() {
       <header>
         <p className="text-sm text-muted-foreground">Quản lý địa điểm POI</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">Thêm món ăn</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Nhập thông tin và trạng thái bán cho món ăn tại địa điểm này.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Món ăn được duyệt và tự động dịch sau khi lưu. Món chỉ hiển thị khi dịch hoàn tất.</p>
       </header>
 
       {error && <Alert variant="destructive">
@@ -99,7 +90,6 @@ export default function MenuCreatePage() {
           <h2 className="font-semibold">Thông tin món ăn</h2>
         </div>
         <fieldset disabled={saving} className="space-y-5 p-4 sm:p-6">
-          <div className="grid gap-5 sm:grid-cols-2">
           <label className="block space-y-2 text-sm font-medium">
             <span>Tên món <span className="text-destructive">*</span></span>
             <Input
@@ -110,18 +100,6 @@ export default function MenuCreatePage() {
               maxLength={120}
             />
           </label>
-
-          <label className="block space-y-2 text-sm font-medium">
-            Giá bán (VND)
-            <Input
-              placeholder="Ví dụ: 65000"
-              name="price"
-              type="number"
-              min="0"
-              step="any"
-            />
-          </label>
-          </div>
 
           <label className="block space-y-2 text-sm font-medium">
             Mô tả
@@ -145,13 +123,7 @@ export default function MenuCreatePage() {
             </span>
           </label>
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-muted/30 p-4">
-            <input className="mt-0.5 size-4 accent-primary focus-visible:outline-ring" name="is_available" type="checkbox" defaultChecked />
-            <span><span className="block text-sm font-medium">Đang bán</span>
-              <span className="mt-1 block text-sm text-muted-foreground">Bỏ chọn nếu món ăn đang tạm ngưng phục vụ.</span>
-            </span>
-          </label>
-          <p className="text-xs text-muted-foreground">Tên món là bắt buộc. Các thông tin giá bán, mô tả và ảnh có thể bổ sung sau.</p>
+          <p className="text-xs text-muted-foreground">Tên món là bắt buộc. Mô tả và ảnh có thể bổ sung sau.</p>
         </fieldset>
         <div className="flex flex-wrap justify-end gap-2 border-t px-4 py-4 sm:px-6">
           <Button type="button" variant="outline" disabled={saving} onClick={() => navigate(`/quan-ly/dia-diem-poi/${poiId}/mon-an`)}>Hủy</Button>

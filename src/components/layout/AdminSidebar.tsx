@@ -109,6 +109,11 @@ const navigationGroup = [
         href: "/quan-ly/them-thuc-don",
         permissions: ["menu:create"],
       },
+      {
+        title: "Tiến trình dịch món ăn",
+        href: "/quan-ly/tien-trinh-dich-mon-an",
+        permissions: ["menu:read"],
+      },
     ],
   },
   {

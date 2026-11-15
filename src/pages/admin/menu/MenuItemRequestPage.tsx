@@ -88,7 +88,6 @@ export default function MenuItemRequestPage() {
         poi_id: poiId,
         name,
         description: String(form.get("description") || "").trim() || undefined,
-        price: form.get("price") === "" ? undefined : Number(form.get("price")),
         image_url: imageUrl,
       };
       const response = id
@@ -114,7 +113,7 @@ export default function MenuItemRequestPage() {
         <p className="text-sm text-muted-foreground">Chức năng chủ quán</p>
         <h1 className="mt-1 text-2xl font-semibold">{id ? "Chỉnh sửa món ăn" : "Thêm món ăn"}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Món ăn sẽ ở trạng thái chờ duyệt trước khi được hiển thị.
+          Món ăn chờ duyệt và chỉ hiển thị sau khi dịch hoàn tất. Chỉnh sửa sẽ cần duyệt và dịch lại.
         </p>
       </header>
       {success && <Alert><AlertTitle>Gửi thành công</AlertTitle><AlertDescription>{success}</AlertDescription></Alert>}
@@ -142,10 +141,6 @@ export default function MenuItemRequestPage() {
             <FieldLabel htmlFor="name">Tên món ăn</FieldLabel>
             <Input id="name" name="name" defaultValue={item?.name} required minLength={2} maxLength={120} placeholder="Ví dụ: Cơm tấm sườn" disabled={submitting} />
             <FieldError>{nameError}</FieldError>
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="price">Giá bán (VNĐ)</FieldLabel>
-            <Input id="price" name="price" defaultValue={item?.price ?? ""} type="number" min="0" step="any" disabled={submitting} />
           </Field>
           <Field>
             <FieldLabel htmlFor="description">Mô tả</FieldLabel>
