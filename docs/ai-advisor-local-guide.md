@@ -143,10 +143,4 @@ Các unit test AI dùng mock dịch vụ và database; không thay thế kiểm 
 
 Backend tách lịch sử thành các tin user/assistant, giới hạn lịch sử gửi mô hình ở 4.000 ký tự và đặt mô tả gốc cùng yêu cầu mới nhất ở cuối. Lịch sử không được coi là dữ kiện đã xác thực. Khi sửa mô tả hoặc đổi POI/thực đơn, FE giữ tin nhắn để xem nhưng bắt đầu ngữ cảnh mới. Hội thoại lưu từ phiên bản cũ cũng bắt đầu ngữ cảnh mới để tránh tiếp tục dùng phản hồi sai trước đó.
 
-Chạy từ thư mục api để thử mô hình thật, không trừ hạn mức tài khoản:
-
-```powershell
-.\.venv\Scripts\python.exe script/check_ai_advisor.py
-```
-
-Script thử viết lại mô tả và yêu cầu Python ngoài phạm vi. Kiểm tra thủ công bản viết lại có giữ loại quán, Quận 4 và bữa trưa, không thêm nhận xét quảng cáo. Script sẽ báo lỗi nếu mô hình không từ chối câu hỏi Python. Prompt vẫn không bảo đảm tuyệt đối cho mọi câu hỏi; cần kiểm thử thêm các nội dung thực tế.
+Thử mô hình thật qua widget sau khi đăng nhập. Kiểm tra bản viết lại có giữ loại quán, Quận 4 và bữa trưa, không thêm nhận xét quảng cáo; đồng thời kiểm tra mô hình từ chối yêu cầu Python ngoài phạm vi. Prompt không bảo đảm tuyệt đối cho mọi câu hỏi nên cần kiểm thử thêm các nội dung thực tế.

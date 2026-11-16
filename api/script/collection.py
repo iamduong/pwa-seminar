@@ -1,6 +1,7 @@
-"""Create all PostgreSQL tables without inserting fixture data.
+"""Create every PostgreSQL application table and model constraint.
 
-Run from ``api``: ``.venv/bin/python script/collection.py``
+Run from ``api`` after resetting a legacy database:
+``.venv/bin/python script/collection.py``
 """
 
 import asyncio
@@ -13,23 +14,44 @@ sys.path.insert(0, str(ROOT / "src"))
 import model  # noqa: F401 - register every SQLAlchemy mapper
 from core.provider.postgres import close_postgres, engine
 from model.base.base import Base
-from sqlalchemy import text
-
-REQUIRED_TABLES = {"owner_notifications", "audit_logs", "ai_usage_limits"}
 
 
-async def create_tables() -> None:
+REQUIRED_TABLES = {
+    "roles",
+    "admin_users",
+    "poi_categories",
+    "pois",
+    "poi_localizations",
+    "menu_items",
+    "menu_item_localizations",
+    "poi_owner_registrations",
+    "poi_submissions",
+    "poi_tasks",
+    "poi_task_events",
+    "poi_task_processes",
+    "ui_bundles",
+    "content_dataset_versions",
+    "ai_usage_limits",
+    "analytics_events",
+    "owner_notifications",
+    "audit_logs",
+    "tours",
+    "tour_pois",
+    "transaction_logs",
+}
+
+
+def validate_metadata() -> None:
     missing_models = REQUIRED_TABLES.difference(Base.metadata.tables)
     if missing_models:
         raise RuntimeError(f"Models are not registered: {sorted(missing_models)}")
+
+
+async def create_tables() -> None:
+    validate_metadata()
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
-        # create_all does not add columns to an existing database.
-        await connection.execute(text(
-            "ALTER TABLE ai_usage_limits ADD COLUMN IF NOT EXISTS "
-            "daily_limit INTEGER NOT NULL DEFAULT 20 CHECK (daily_limit >= 0)"
-        ))
-    print("PostgreSQL tables are ready")
+    print(f"PostgreSQL tables and constraints are ready: {len(REQUIRED_TABLES)} tables")
 
 
 async def main() -> None:

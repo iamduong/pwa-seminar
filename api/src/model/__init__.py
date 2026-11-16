@@ -17,6 +17,9 @@ from model.poi_task_event_model import PoiTaskEventModel
 from model.poi_task_process_model import PoiTaskProcessModel
 from model.poi_task_model import PoiTaskModel
 from model.role_model import RoleModel
+from model.tour_model import TourModel
+from model.tour_poi_model import TourPoiModel
+from model.transaction_log_model import TransactionLogModel
 from model.ui_bundle_model import UiBundleModel
 
 __all__ = [
@@ -37,5 +40,8 @@ __all__ = [
     "PoiTaskModel",
     "PoiTaskProcessModel",
     "RoleModel",
+    "TourModel",
+    "TourPoiModel",
+    "TransactionLogModel",
     "UiBundleModel",
 ]

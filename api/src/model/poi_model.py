@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from model.poi_localization_model import PoiLocalizationModel
     from model.poi_submission_model import PoiSubmissionModel
     from model.poi_task_model import PoiTaskModel
+    from model.tour_poi_model import TourPoiModel
 
 
 class AudioStatus(str, Enum):
@@ -87,6 +88,11 @@ class PoiModel(Base):
     )
 
     analytics_events: Mapped[list[AnalyticsEventModel]] = relationship(
+        back_populates="poi",
+        passive_deletes="all",
+    )
+
+    tour_links: Mapped[list[TourPoiModel]] = relationship(
         back_populates="poi",
         passive_deletes="all",
     )

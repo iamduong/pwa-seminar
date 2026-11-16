@@ -193,6 +193,7 @@ erDiagram
         UUID user_id FK
         DATE usage_date
         INTEGER usage_count
+        INTEGER daily_limit
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
         TIMESTAMPTZ deleted_at
@@ -206,6 +207,8 @@ erDiagram
         UUID poi_id FK
         UUID menu_item_id FK
         TIMESTAMPTZ occurred_at
+        TIMESTAMPTZ disconnected_at
+        INTEGER audio_listen_count
         JSONB metadata
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
@@ -241,6 +244,38 @@ erDiagram
         TIMESTAMPTZ deleted_at
     }
 
+    tours {
+        UUID id PK
+        VARCHAR code UK
+        NUMERIC price
+        INTEGER max_people
+        INTEGER scanned_people
+        TIMESTAMPTZ expires_at
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    tour_pois {
+        UUID id PK
+        UUID tour_id FK
+        UUID poi_id FK
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
+    transaction_logs {
+        UUID id PK
+        TIMESTAMPTZ transaction_date
+        TEXT content
+        NUMERIC amount
+        VARCHAR reference_code UK
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at
+    }
+
     roles o|--o{ admin_users : assigns
     admin_users o|--o{ pois : owns
     poi_categories ||--o{ pois : classifies
@@ -260,3 +295,5 @@ erDiagram
     menu_items o|--o{ analytics_events : receives
     admin_users ||--o{ owner_notifications : receives
     admin_users o|--o{ audit_logs : performs
+    tours ||--o{ tour_pois : includes
+    pois ||--o{ tour_pois : belongs_to

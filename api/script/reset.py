@@ -1,7 +1,7 @@
-"""Drop every application table and all data from PostgreSQL.
+"""Drop every PostgreSQL application table, relation and row.
 
 Run from ``api``: ``.venv/bin/python script/reset.py --yes``.
-This command intentionally does not recreate or seed the database.
+This command does not recreate or seed the database.
 """
 
 import argparse
@@ -16,21 +16,18 @@ import model  # noqa: F401 - register every SQLAlchemy mapper
 from core.provider.postgres import close_postgres, engine
 from model.base.base import Base
 
-REQUIRED_TABLES = {"owner_notifications", "audit_logs"}
-
 
 async def reset_database() -> None:
-    missing_models = REQUIRED_TABLES.difference(Base.metadata.tables)
-    if missing_models:
-        raise RuntimeError(f"Models are not registered: {sorted(missing_models)}")
+    if not Base.metadata.tables:
+        raise RuntimeError("No application models are registered")
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.drop_all)
-    print("All PostgreSQL application tables and data were removed")
+    print("All PostgreSQL application tables, relations and data were removed")
 
 
 async def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Drop all application tables and data.",
+        description="Drop all application tables, relations and data.",
     )
     parser.add_argument(
         "--yes",
