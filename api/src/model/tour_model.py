@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
+from secrets import SystemRandom, choice
+from string import ascii_uppercase, digits
 from typing import TYPE_CHECKING
-from uuid import uuid4
 
 from model.base.base import Base
 from sqlalchemy import CheckConstraint, DateTime, Integer, Numeric, String
@@ -14,7 +15,13 @@ if TYPE_CHECKING:
 
 
 def generate_tour_code() -> str:
-    return f"TOUR-{uuid4().hex[:12].upper()}"
+    characters = [
+        choice(ascii_uppercase),
+        choice(digits),
+        *(choice(ascii_uppercase + digits) for _ in range(4)),
+    ]
+    SystemRandom().shuffle(characters)
+    return "".join(characters)
 
 
 class TourModel(Base):
@@ -26,10 +33,14 @@ class TourModel(Base):
             "scanned_people >= 0 AND scanned_people <= max_people",
             name="ck_tour_scanned_people_range",
         ),
+        CheckConstraint(
+            "code ~ '^[A-Z0-9]{6}$' AND code ~ '[A-Z]' AND code ~ '[0-9]'",
+            name="ck_tour_code_format",
+        ),
     )
 
     code: Mapped[str] = mapped_column(
-        String(32),
+        String(6),
         nullable=False,
         unique=True,
         index=True,

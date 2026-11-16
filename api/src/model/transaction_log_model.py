@@ -1,9 +1,10 @@
 from datetime import datetime
 from decimal import Decimal
 
-from model.base.base import Base
 from sqlalchemy import CheckConstraint, DateTime, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
+
+from model.base.base import Base
 
 
 class TransactionLogModel(Base):

@@ -32,6 +32,22 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     ],
   },
   {
+    title: "Tour",
+    description: "Quản lý tour, mã QR và các điểm POI trong tour.",
+    permissions: [
+      { value: "tour:read", label: "Xem", description: "Xem danh sách tour" },
+      { value: "tour:create", label: "Tạo", description: "Tạo tour và chọn POI" },
+      { value: "tour:delete", label: "Xóa/khôi phục", description: "Xóa mềm hoặc khôi phục tour" },
+    ],
+  },
+  {
+    title: "Giao dịch",
+    description: "Theo dõi dữ liệu giao dịch nhận từ IPN.",
+    permissions: [
+      { value: "transaction:read", label: "Xem", description: "Xem lịch sử giao dịch" },
+    ],
+  },
+  {
     title: "Người dùng",
     description: "Quản lý tài khoản sử dụng hệ thống.",
     permissions: [
