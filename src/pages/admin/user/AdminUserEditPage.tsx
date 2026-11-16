@@ -111,7 +111,7 @@ function AdminUserEditForm({ id }: { id: string | undefined }) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <header className="space-y-2">
-        <Button type="button" variant="ghost" size="sm" className="-ml-2 w-fit" render={<Link to={listPath} />}>
+        <Button nativeButton={false} type="button" variant="ghost" size="sm" className="-ml-2 w-fit" render={<Link to={listPath} />}>
           <ArrowLeftIcon aria-hidden="true" />
           Quay lại danh sách
         </Button>
@@ -188,7 +188,7 @@ function AdminUserEditForm({ id }: { id: string | undefined }) {
                 </Field>
               </div>
               <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
-                <Button type="button" variant="outline" disabled={isSubmitting} render={<Link to={listPath} />}>Hủy</Button>
+                <Button nativeButton={false} type="button" variant="outline" disabled={isSubmitting} render={<Link to={listPath} />}>Hủy</Button>
                 <Button type="submit" disabled={isSubmitting || roles.length === 0}>
                   {isSubmitting ? <Loader2Icon className="animate-spin" aria-hidden="true" /> : <SaveIcon aria-hidden="true" />}
                   {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}

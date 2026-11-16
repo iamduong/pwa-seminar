@@ -15,7 +15,7 @@ export function AdminLayout() {
   const { session } = useAuthorize()
   const permissions = session?.role?.permissions ?? []
   const canUseContentAdvisor =
-    permissions.includes("poi:create") ||
+    permissions.includes("poi:create") || permissions.includes("poi:update") || permissions.includes("menu:create") || permissions.includes("menu:update") || permissions.includes("owner:menu_submit") ||
     permissions.includes("owner:poi_submit")
   const canReadNotifications = permissions.includes("owner_notification:read")
 
@@ -35,7 +35,7 @@ export function AdminLayout() {
           <Outlet />
         </div>
       </SidebarInset>
-      {canUseContentAdvisor && <AiAdvisorWidget />}
+      {canUseContentAdvisor && session && <AiAdvisorWidget key={session.userId} userId={session.userId} />}
     </SidebarProvider>
   )
 }

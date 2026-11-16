@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import { useEffect, useState } from "react";
 import {
   AlertCircleIcon,
@@ -205,6 +206,8 @@ export default function AdminUsersPage() {
         </Button>
         </div>
       </header>
+
+      <ListStats total={data?.total_item ?? 0} visible={data?.data.length ?? 0} pages={data?.total_page ?? 0} loading={loading} error={Boolean(errorMessage)} />
 
       {errorMessage ? (
         <Alert variant="destructive">

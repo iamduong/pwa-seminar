@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import { AlertCircleIcon, InboxIcon, RefreshCwIcon, SearchIcon, UtensilsIcon } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
@@ -80,6 +81,8 @@ export default function MenuPoiListPage() {
         <p className="mt-2 text-sm text-muted-foreground">Chọn một địa điểm để xem và quản lý các món ăn.</p>
       </header>
 
+      <ListStats total={data?.total_item ?? 0} visible={data?.data.length ?? 0} pages={data?.total_page ?? 0} loading={loading} error={Boolean(error)} />
+
       {error && (
         <Alert variant="destructive">
           <AlertCircleIcon aria-hidden="true" />
@@ -146,12 +149,12 @@ export default function MenuPoiListPage() {
                 <TableCell className="max-w-xl whitespace-normal text-sm text-muted-foreground">{poi.address}</TableCell>
                 <TableCell className="pr-4 text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" render={<Link to={`/quan-ly/dia-diem-poi/${poi.id}/mon-an`} />}>
+                    <Button nativeButton={false} variant="outline" size="sm" render={<Link to={`/quan-ly/dia-diem-poi/${poi.id}/mon-an`} />}>
                       <UtensilsIcon aria-hidden="true" />
                       Xem thực đơn
                     </Button>
                     {canCreate && (
-                      <Button size="sm" render={<Link to={`/quan-ly/dia-diem-poi/${poi.id}/mon-an/them`} />}>
+                      <Button nativeButton={false} size="sm" render={<Link to={`/quan-ly/dia-diem-poi/${poi.id}/mon-an/them`} />}>
                         Thêm món
                       </Button>
                     )}

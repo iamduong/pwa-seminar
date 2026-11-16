@@ -178,7 +178,7 @@ export default function PoiSubmissionDetailPage() {
   if (!hasValidId || !submission) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" render={<Link to={LIST_PATH} />}>
+        <Button nativeButton={false} variant="ghost" render={<Link to={LIST_PATH} />}>
           <ArrowLeftIcon aria-hidden="true" />
           Quay lại danh sách
         </Button>
@@ -200,7 +200,7 @@ export default function PoiSubmissionDetailPage() {
   return (
     <div className="space-y-6">
       <header>
-        <Button
+        <Button nativeButton={false}
           variant="ghost"
           render={<Link to={LIST_PATH} />}
           className="mb-3"

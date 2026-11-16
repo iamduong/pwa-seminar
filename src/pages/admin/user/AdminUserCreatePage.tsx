@@ -186,7 +186,7 @@ export default function AdminUserCreatePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <header className="space-y-2">
-        <Button
+        <Button nativeButton={false}
           type="button"
           variant="ghost"
           size="sm"
@@ -346,7 +346,7 @@ export default function AdminUserCreatePage() {
             </label>
 
             <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
-              <Button
+              <Button nativeButton={false}
                 type="button"
                 variant="outline"
                 disabled={isSubmitting}

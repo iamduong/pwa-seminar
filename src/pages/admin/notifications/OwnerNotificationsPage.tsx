@@ -1,3 +1,4 @@
+import { ListStats } from "#components/ListStats";
 import { AlertCircleIcon, BellIcon, CheckCheckIcon, InboxIcon, RefreshCwIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -105,6 +106,8 @@ export default function OwnerNotificationsPage() {
           </Button>
         </div>
       </header>
+
+      <ListStats total={data?.total_item ?? 0} visible={data?.data.length ?? 0} pages={data?.total_page ?? 0} loading={loading} error={Boolean(error)} />
 
       {error && (
         <Alert variant="destructive">

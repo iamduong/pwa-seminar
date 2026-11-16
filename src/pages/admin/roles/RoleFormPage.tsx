@@ -193,7 +193,7 @@ export default function RoleFormPage({ mode }: RoleFormPageProps) {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <header>
-        <Button
+        <Button nativeButton={false}
           variant="ghost"
           className="-ml-2 mb-3"
           render={<Link to={ROLE_LIST_PATH} />}
@@ -354,7 +354,7 @@ export default function RoleFormPage({ mode }: RoleFormPageProps) {
         </section>
 
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" render={<Link to={ROLE_LIST_PATH} />}>
+          <Button nativeButton={false} variant="outline" render={<Link to={ROLE_LIST_PATH} />}>
             Hủy
           </Button>
           <Button

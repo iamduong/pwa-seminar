@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+import { ListStats } from "#components/ListStats";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { AlertCircleIcon, ArrowLeftIcon, ClipboardCheckIcon, InboxIcon, MapPinIcon, PlusIcon, RefreshCwIcon, UtensilsIcon } from "lucide-react";
 import { DataPagination } from "#components/DataPagination";
@@ -97,6 +98,8 @@ function MenuList({ poiId }: { poiId: string }) {
           </Link>
         </nav>
       </header>
+
+      <ListStats total={totalItems} visible={items.length} pages={totalPages} loading={loading} error={Boolean(error)} />
       <section className="overflow-hidden rounded-xl border bg-card shadow-sm" aria-labelledby="menu-list-title" aria-busy={loading}>
         <div className="flex items-center gap-2 border-b px-4 py-3">
           <UtensilsIcon className="size-4" aria-hidden="true" />
