@@ -118,15 +118,10 @@ const navigationGroup = [
     icon: UtensilsIcon,
     child: [
       {
-        title: "Danh sách thực đơn",
+        title: "Thực đơn tại POI",
         href: "/quan-ly/danh-sach-thuc-don",
         // menu:update, menu:delete
         permissions: ["menu:read"],
-      },
-      {
-        title: "Thêm thực đơn",
-        href: "/quan-ly/them-thuc-don",
-        permissions: ["menu:create"],
       },
       {
         title: "Tiến trình dịch món ăn",

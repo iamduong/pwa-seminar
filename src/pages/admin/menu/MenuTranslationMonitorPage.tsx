@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { LanguagesIcon, Loader2Icon, RefreshCwIcon, RotateCcwIcon } from "lucide-react";
+import { ArrowLeftIcon, LanguagesIcon, Loader2Icon, RefreshCwIcon, RotateCcwIcon } from "lucide-react";
 import { Link } from "react-router";
 
 import { DataPagination } from "#components/DataPagination";
@@ -94,6 +94,9 @@ export default function MenuTranslationMonitorPage() {
 
   return (
     <div className="space-y-6">
+      <Link className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-ring" to="/quan-ly/danh-sach-thuc-don">
+        <ArrowLeftIcon className="size-4" aria-hidden="true" />Thực đơn tại POI
+      </Link>
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm text-muted-foreground">Quản lý ẩm thực</p>
