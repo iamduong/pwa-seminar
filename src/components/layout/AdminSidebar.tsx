@@ -8,6 +8,8 @@ import {
   LayoutDashboardIcon,
   LogOutIcon,
   MapPinnedIcon,
+  RouteIcon,
+  ReceiptTextIcon,
   ScrollTextIcon,
   ShieldCheckIcon,
   StoreIcon,
@@ -130,6 +132,28 @@ const navigationGroup = [
         title: "Tiến trình dịch món ăn",
         href: "/quan-ly/tien-trinh-dich-mon-an",
         permissions: ["menu:read"],
+      },
+    ],
+  },
+  {
+    title: "Tour và thanh toán",
+    icon: RouteIcon,
+    child: [
+      {
+        title: "Danh sách tour",
+        href: "/quan-ly/tour/danh-sach",
+        permissions: ["tour:read"],
+      },
+      {
+        title: "Thêm tour",
+        href: "/quan-ly/tour/them",
+        permissions: ["tour:create"],
+      },
+      {
+        title: "Lịch sử giao dịch",
+        href: "/quan-ly/giao-dich",
+        permissions: ["transaction:read"],
+        icon: ReceiptTextIcon,
       },
     ],
   },

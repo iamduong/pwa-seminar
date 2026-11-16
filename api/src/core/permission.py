@@ -41,4 +41,10 @@ PERMISSIONS: list[str] = [
     # ---------
     "audit:read",
     "audit:manage",
+    # ---------
+    "tour:read",
+    "tour:create",
+    "tour:delete",
+    # ---------
+    "transaction:read",
 ]

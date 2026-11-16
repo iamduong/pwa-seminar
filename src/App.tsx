@@ -52,6 +52,9 @@ import OwnerNotificationsPage from "./pages/admin/notifications/OwnerNotificatio
 import AuditLogsPage from "./pages/admin/audit/AuditLogsPage";
 import ConnectionStatisticsPage from "./pages/admin/analytics/ConnectionStatisticsPage";
 import AudioStatisticsPage from "./pages/admin/analytics/AudioStatisticsPage";
+import ToursPage from "./pages/admin/tour/ToursPage";
+import TourCreatePage from "./pages/admin/tour/TourCreatePage";
+import TransactionLogsPage from "./pages/admin/transaction/TransactionLogsPage";
 
 const ClientProviders = () => {
   return (
@@ -111,6 +114,12 @@ export default function App() {
             <Route path="tai-khoan/doi-mat-khau" element={<ChangePasswordPage />} />
             <Route path="thong-bao" element={<OwnerNotificationsPage />} />
             <Route path="nhat-ky-he-thong" element={<AuditLogsPage />} />
+            <Route path="giao-dich" element={<TransactionLogsPage />} />
+
+            <Route path="tour">
+              <Route path="danh-sach" element={<ToursPage />} />
+              <Route path="them" element={<TourCreatePage />} />
+            </Route>
 
             <Route
               path="dang-ky-chu-quan"
