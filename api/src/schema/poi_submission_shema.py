@@ -2,8 +2,9 @@ from datetime import datetime
 from typing import Literal
 
 from model.poi_submission_model import PoiSubmissionStatus, PoiSubmissionType
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from schema.geo_schema import GeoPoint
+from util.image import validate_static_image_urls
 
 
 class ViewPoiSubmission(BaseModel):
@@ -51,3 +52,8 @@ class RegisterPoiSubmission(BaseModel):
     images: list[str] = Field(default_factory=list, max_length=10)
     trigger_radius: int = Field(default=30, ge=10, le=500)
     owner_note: str = Field(default="", max_length=1000)
+
+    @field_validator("images")
+    @classmethod
+    def validate_images(cls, values: list[str]):
+        return validate_static_image_urls(values)

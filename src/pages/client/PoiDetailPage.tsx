@@ -1,29 +1,25 @@
-import { ArrowLeftIcon, NavigationIcon } from "lucide-react";
+import { ArrowLeftIcon, ImageIcon, NavigationIcon } from "lucide-react";
 import { useEffect, useRef, useState, type UIEvent } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import { Button } from "#components/ui/button";
 import { usePoiData } from "#hooks/use-poi-data";
+import { useMenuItemData } from "#hooks/use-menu-item-data";
 import { useUiBundle } from "#hooks/use-ui-bundle";
 import { publicService } from "../../services/PublicService";
-
-function resolveMediaUrl(url: string) {
-  if (/^https?:\/\//i.test(url)) return url;
-
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
-  if (apiBaseUrl?.startsWith("http")) {
-    return new URL(url, apiBaseUrl).toString();
-  }
-
-  return url;
-}
 
 export default function PoiDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { pois, loading } = usePoiData();
+  const {
+    menuItems,
+    loading: menuItemsLoading,
+    errorMessage: menuItemsError,
+  } = useMenuItemData();
   const { t } = useUiBundle();
   const poi = pois.find((item) => item.id === id);
+  const poiMenuItems = menuItems.filter((item) => item.poi_id === id);
   const [activeImage, setActiveImage] = useState(0);
   const carouselRef = useRef<HTMLDivElement | null>(null);
   const recordedAudioPoiIdRef = useRef<string | null>(null);
@@ -148,13 +144,58 @@ export default function PoiDetailPage() {
               className="mt-3 w-full"
               controls
               preload="metadata"
-              src={resolveMediaUrl(poi.audio_url)}
+              src={poi.audio_url}
               onPlay={recordAudioListen}
             />
           ) : (
             <p className="mt-2 text-sm text-muted-foreground">
               {t("poi.audioUnavailable")}
             </p>
+          )}
+        </section>
+
+        <section>
+          <h2 className="mb-3 font-semibold">{t("poi.menu.title")}</h2>
+          {menuItemsLoading && poiMenuItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("poi.menu.loading")}</p>
+          ) : menuItemsError && poiMenuItems.length === 0 ? (
+            <p className="text-sm text-destructive">{menuItemsError}</p>
+          ) : poiMenuItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t("poi.menu.empty")}
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {poiMenuItems.map((item) => (
+                <article
+                  key={item.id}
+                  className="grid grid-cols-[6rem_minmax(0,1fr)] overflow-hidden rounded-2xl border bg-card"
+                >
+                  <div className="h-28 bg-muted">
+                    {item.image_url ? (
+                      <img
+                        className="h-full w-full object-cover"
+                        src={item.image_url}
+                        alt={item.name}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-muted-foreground">
+                        <ImageIcon aria-hidden="true" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 p-4">
+                    <h3 className="font-semibold">{item.name}</h3>
+                    {item.description && (
+                      <p className="mt-1 line-clamp-3 text-sm leading-5 text-muted-foreground">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+                </article>
+              ))}
+            </div>
           )}
         </section>
       </div>

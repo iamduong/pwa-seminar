@@ -27,10 +27,6 @@ class Setting(BaseSettings):
     JWT_REFRESH: str
     JWT_ALGORITHM: str
 
-    CLOUDINARY_CLOUD_NAME: str = ""
-    CLOUDINARY_API_KEY: str = ""
-    CLOUDINARY_API_SECRET: str = ""
-
     AI_OLLAMA_URL: str = "http://127.0.0.1:11434"
     AI_MODEL: str = "qwen2.5:3b"
     AI_DAILY_LIMIT: int = Field(default=20, ge=0)

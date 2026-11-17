@@ -27,7 +27,7 @@ class MenuItemService {
   async uploadImage(file: File) {
     const formData = new FormData();
     formData.append("image", file);
-    const response = await api.post<ApiResponse<{ url: string; public_id: string }>>(
+    const response = await api.post<ApiResponse<string>>(
       "/menu-items/images",
       formData,
       { headers: { "Content-Type": "multipart/form-data" } },

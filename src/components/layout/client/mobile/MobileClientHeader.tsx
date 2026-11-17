@@ -8,6 +8,8 @@ const mobilePageTitleKeys: Record<string, string> = {
   "/": "page.map.title",
   "/mon-an": "page.food.title",
   "/dia-diem": "page.places.title",
+  "/du-lich": "page.travel.title",
+  "/du-lich/quet-qr": "page.qr.title",
 }
 
 export const MobileClientHeader = () => {

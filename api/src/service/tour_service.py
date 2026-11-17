@@ -89,7 +89,9 @@ class TourService:
                 code = candidate
                 break
         if not code:
-            raise HTTPException(503, "Không thể sinh mã tour duy nhất. Vui lòng thử lại")
+            raise HTTPException(
+                503, "Không thể sinh mã tour duy nhất. Vui lòng thử lại"
+            )
 
         tour = TourModel(
             code=code,
@@ -99,6 +101,7 @@ class TourService:
             expires_at=expires_at,
         )
         await self.repository.insert(tour, poi_ids)
+
         await self.audit_logs.create(
             actor_user_id=actor_user_id,
             action="tour.create",
@@ -141,6 +144,20 @@ class TourService:
         if restored is None:
             raise HTTPException(500, "Không thể tải lại tour vừa khôi phục")
         return self._view(restored)
+
+    async def find_by_code(self, code: str, deleted: bool = False) -> ViewTour:
+        tour = await self.repository.find_by_code(code, deleted=False)
+        if tour is None:
+            raise HTTPException(404, "Không thể tìm thấy tour")
+
+        if tour.max_people < tour.scanned_people + 1:
+            raise HTTPException(400, "Đã đủ số người quét")
+
+        tour.scanned_people = tour.scanned_people + 1
+
+        await self.repository.update(tour)
+
+        return self._view(tour)
 
     async def _get(self, tour_id: str, *, deleted: bool = False) -> TourModel:
         tour = await self.repository.find_by_id(

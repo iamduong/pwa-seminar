@@ -49,6 +49,11 @@ class TourService {
     const response = await api.patch<ApiResponse<Tour>>(`/tours/${id}/restore`);
     return response.data;
   }
+
+  async detailByCode(code: string) {
+    const response = await api.get<ApiResponse<Tour>>(`/tours/${encodeURIComponent(code)}`);
+    return response.data;
+  }
 }
 
 export const tourService = new TourService();

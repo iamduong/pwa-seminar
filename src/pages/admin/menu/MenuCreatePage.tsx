@@ -41,7 +41,7 @@ export default function MenuCreatePage() {
         if (!uploadResponse.success || !uploadResponse.data) {
           throw new Error(uploadResponse.message || "Không thể tải ảnh món ăn.");
         }
-        imageUrl = uploadResponse.data.url;
+        imageUrl = uploadResponse.data;
       }
 
       const response = await menuItemService.createDirect(poiId, {

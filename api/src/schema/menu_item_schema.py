@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from util.image import is_static_image_url
 
 
 class MenuItemSave(BaseModel):
@@ -15,12 +16,26 @@ class MenuItemSave(BaseModel):
     def strip_name(cls, value):
         return value.strip() if isinstance(value, str) else value
 
+    @field_validator("image_url")
+    @classmethod
+    def validate_image_url(cls, value: str | None):
+        if value is not None and not is_static_image_url(value):
+            raise ValueError("Ảnh món ăn phải được tải lên hệ thống")
+        return value
+
 
 class MenuItemCreate(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
     name: str = Field(min_length=2, max_length=120)
     description: str | None = Field(default=None, max_length=1000)
     image_url: str | None = Field(default=None, max_length=500)
+
+    @field_validator("image_url")
+    @classmethod
+    def validate_image_url(cls, value: str | None):
+        if value is not None and not is_static_image_url(value):
+            raise ValueError("Ảnh món ăn phải được tải lên hệ thống")
+        return value
 
 
 class MenuItemView(BaseModel):

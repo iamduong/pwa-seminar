@@ -43,7 +43,7 @@ AI_DAILY_LIMIT=20
 AI_TIMEOUT_SECONDS=300
 ```
 
-Cấu hình Cloudinary có thể để trống khi chỉ thử AI; tính năng tải ảnh sẽ báo cần cấu hình cho đến khi có đủ ba khóa Cloudinary.
+Ảnh POI và món ăn được lưu trong `api/resource/images`, không cần cấu hình dịch vụ lưu trữ bên ngoài.
 
 Sau khi PostgreSQL sẵn sàng, chạy:
 

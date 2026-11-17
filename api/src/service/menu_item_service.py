@@ -7,12 +7,14 @@ from resource.config import MY_MEMORY_LANGUAGES
 from repository.menu_item_repository import MenuItemRepository
 from repository.poi_repository import PoiRepository
 from schema.menu_item_schema import MenuItemCreate, MenuItemFilter, MenuItemSave, MenuItemView, MenuTranslationFilter, MenuTranslationTaskView, MenuTranslationView
+from service.content_dataset_version_service import ContentDatasetVersionService
 
 
 class MenuItemService:
     def __init__(self, db: PostgresDB):
         self.repository = MenuItemRepository(db)
         self.pois = PoiRepository(db)
+        self.dataset_versions = ContentDatasetVersionService(db)
 
     @staticmethod
     def _view(item, localization=None):
@@ -35,6 +37,7 @@ class MenuItemService:
         if await self.repository.find_pending_duplicate(poi.id, body.name):
             raise HTTPException(409, "Món ăn này đang chờ duyệt")
         item = await self.repository.insert(MenuItemModel(poi_id=poi.id, name=body.name, description=body.description, image_url=body.image_url, is_active=False, is_available=False))
+        await self.dataset_versions.rotate_menu_item_etag()
         return self._view(item)
 
     async def get_owned(self, owner_id: str, item_id: str):
@@ -53,7 +56,9 @@ class MenuItemService:
         item.poi_id, item.name, item.description, item.image_url = destination.id, body.name, body.description, body.image_url
         item.is_active = item.is_available = False
         await self.repository.clear_localizations(item.id)
-        return self._view(await self.repository.save(item))
+        saved = await self.repository.save(item)
+        await self.dataset_versions.rotate_menu_item_etag()
+        return self._view(saved)
 
     async def list_owned_pois(self, owner_id: str):
         items = await self.pois.find_owned(parse_uuid(owner_id, "Mã chủ quán"))
@@ -71,6 +76,14 @@ class MenuItemService:
         poi = await self._poi(poi_id, active=True)
         return [self._view(item, localization) for item, localization in await self.repository.find_public(poi.id, lang)]
 
+    async def list_all_public(self, lang: str = "vi-VN"):
+        if lang not in MY_MEMORY_LANGUAGES:
+            raise HTTPException(422, "Ngôn ngữ không được hỗ trợ")
+        return [
+            self._view(item, localization)
+            for item, localization in await self.repository.find_all_public(lang)
+        ]
+
     async def list_by_poi(self, poi_id: str, filters: MenuItemFilter):
         poi = await self._poi(poi_id)
         total = await self.repository.count(poi_id=poi.id, is_active=filters.is_active, keyword=filters.q)
@@ -83,7 +96,9 @@ class MenuItemService:
         self.repository.context.add(item)
         await self.repository.context.flush()
         await self.repository.queue_translations(item, MY_MEMORY_LANGUAGES)
-        return self._view(await self.repository.save(item))
+        saved = await self.repository.save(item)
+        await self.dataset_versions.rotate_menu_item_etag()
+        return self._view(saved)
 
     async def list_admin_pois(self, filters: MenuItemFilter):
         items, total = await self.pois.list_admin(filters.page, filters.page_size, filters.q)
@@ -102,7 +117,9 @@ class MenuItemService:
             return self._view(item)
         item.is_active, item.is_available = True, False
         await self.repository.queue_translations(item, MY_MEMORY_LANGUAGES)
-        return self._view(await self.repository.save(item))
+        saved = await self.repository.save(item)
+        await self.dataset_versions.rotate_menu_item_etag()
+        return self._view(saved)
 
     @staticmethod
     def _translation_view(item, localizations):
@@ -134,4 +151,5 @@ class MenuItemService:
             localization.translation_status, localization.error_message = "pending", None
         item.is_available = False
         await self.repository.save(item)
+        await self.dataset_versions.rotate_menu_item_etag()
         return self._translation_view(item, localizations)

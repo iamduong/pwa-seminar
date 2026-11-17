@@ -1,8 +1,9 @@
 from datetime import datetime
 
 from model.poi_model import AudioStatus
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from schema.geo_schema import GeoPoint
+from util.image import validate_static_image_urls
 
 
 class FilterOwnerPoi(BaseModel):
@@ -21,6 +22,11 @@ class CreateAdminPoi(BaseModel):
     trigger_radius: float = Field(default=30, ge=10, le=500)
     audio_priority: int = Field(default=100, ge=1, le=1000)
     activation_requested: bool = True
+
+    @field_validator("images")
+    @classmethod
+    def validate_images(cls, values: list[str]):
+        return validate_static_image_urls(values)
 
 
 class ViewOwnerPoi(BaseModel):

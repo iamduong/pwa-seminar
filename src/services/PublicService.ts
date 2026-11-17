@@ -3,6 +3,7 @@ import type { ApiResponse } from "#lib/api";
 import type { PoiBundle } from "../types/Poi";
 import type { PoiCategoryPagination } from "../types/PoiCategory";
 import type { UiBundle } from "../types/UiBundle";
+import type { MenuItemBundle } from "../types/MenuItem";
 
 class PublicService {
     async RecordPoiAudioListen(poiId: string) {
@@ -46,6 +47,25 @@ class PublicService {
                     lang,
                     ...(updatedAfter ? { updated_after: updatedAfter } : {}),
                 },
+                headers: etag ? { Etag: etag } : undefined,
+                signal,
+                validateStatus: (status) =>
+                    (status >= 200 && status < 300) || status === 304,
+            },
+        );
+
+        return response.status === 304 ? null : response.data;
+    }
+
+    async BundleMenuItem(
+        lang: string,
+        etag?: string,
+        signal?: AbortSignal,
+    ): Promise<ApiResponse<MenuItemBundle> | null> {
+        const response = await api.get<ApiResponse<MenuItemBundle>>(
+            "/public/menu-item/load-all",
+            {
+                params: { lang },
                 headers: etag ? { Etag: etag } : undefined,
                 signal,
                 validateStatus: (status) =>

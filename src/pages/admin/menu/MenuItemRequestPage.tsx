@@ -81,7 +81,7 @@ export default function MenuItemRequestPage() {
         if (!uploadResponse.success || !uploadResponse.data) {
           throw new Error(uploadResponse.message || "Không thể tải ảnh món ăn.");
         }
-        imageUrl = uploadResponse.data.url;
+        imageUrl = uploadResponse.data;
       }
 
       const payload = {

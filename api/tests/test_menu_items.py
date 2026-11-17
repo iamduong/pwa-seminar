@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 
 from model.menu_item_localization_model import MenuItemLocalizationModel
 from model.menu_item_model import MenuItemModel
+from model.content_dataset_version_model import ContentDatasetVersionModel
 from resource.config import MY_MEMORY_LANGUAGES
 from schema.menu_item_schema import MenuItemCreate, MenuItemSave, MenuTranslationFilter
 from service.menu_item_service import MenuItemService
@@ -55,6 +56,7 @@ class MenuItemTests(unittest.IsolatedAsyncioTestCase):
         self.service = object.__new__(MenuItemService)
         self.service.repository = AsyncMock()
         self.service.pois = AsyncMock()
+        self.service.dataset_versions = AsyncMock()
         self.service.pois.find_owned.return_value = [
             SimpleNamespace(id=self.poi_id, name="Quán")
         ]
@@ -118,6 +120,7 @@ class MenuTranslationTests(unittest.IsolatedAsyncioTestCase):
         self.engine = create_engine("sqlite://")
         MenuItemModel.__table__.create(self.engine)
         MenuItemLocalizationModel.__table__.create(self.engine)
+        ContentDatasetVersionModel.__table__.create(self.engine)
         self.session = Session(self.engine, expire_on_commit=False)
         self.db = AsyncMock(spec=AsyncSession)
         for method in ("execute", "scalars", "scalar", "merge", "commit", "refresh", "flush", "rollback"):

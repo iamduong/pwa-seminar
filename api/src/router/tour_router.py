@@ -8,7 +8,6 @@ from fastapi import APIRouter, Depends, Query, status
 from schema.tour_schema import CreateTour, FilterTour, ViewTour, ViewTourPoi
 from service.tour_service import TourService
 
-
 router = APIRouter(prefix="/tours", tags=["Tours"])
 
 
@@ -77,4 +76,16 @@ async def restore_tour(
         success=True,
         message="Khôi phục tour thành công",
         data=await service.restore_tour(tour_id, UUID(principal.sub)),
+    )
+
+
+@router.get("/{code}")
+async def detail_pois_tour(
+    code: str, service: Annotated[TourService, Depends()]
+) -> ApiResponse[ViewTour]:
+    tour = await service.find_by_code(code)
+    return ApiResponse(
+        success=True,
+        message="Lấy thông tin tour thành công",
+        data=tour,
     )

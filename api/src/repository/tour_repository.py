@@ -67,6 +67,21 @@ class TourRepository:
             )
         ).one_or_none()
 
+    async def find_by_code(self, code: str, deleted: bool = False) -> TourModel | None:
+        condition = (
+            TourModel.deleted_at.is_not(None)
+            if deleted
+            else TourModel.deleted_at.is_(None)
+        )
+
+        return (
+            await self.context.scalars(
+                select(TourModel)
+                .options(self._with_pois())
+                .where(TourModel.code == code, condition)
+            )
+        ).one_or_none()
+
     async def code_exists(self, code: str) -> bool:
         return bool(
             await self.context.scalar(
@@ -116,3 +131,9 @@ class TourRepository:
         tour.deleted_at = None
         tour.updated_at = datetime.now(UTC)
         await self.context.flush()
+
+    async def update(self, tour: TourModel) -> TourModel:
+        await self.context.flush()
+        await self.context.commit()
+        await self.context.refresh(tour)
+        return tour

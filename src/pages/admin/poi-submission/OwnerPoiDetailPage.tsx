@@ -100,13 +100,6 @@ function getCoordinates(poi: OwnerPoiDetail): MapCoordinates | null {
   return [longitude, latitude];
 }
 
-function resolveMediaUrl(url: string) {
-  if (/^https?:\/\//i.test(url)) return url;
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
-  if (apiBaseUrl?.startsWith("http")) return new URL(url, apiBaseUrl).toString();
-  return url;
-}
-
 function LanguageCard({ localization }: { localization: OwnerPoiLanguage }) {
   return (
     <article className="space-y-4 rounded-xl border bg-card p-5 shadow-sm">
@@ -148,7 +141,7 @@ function LanguageCard({ localization }: { localization: OwnerPoiLanguage }) {
             className="w-full"
             controls
             preload="metadata"
-            src={resolveMediaUrl(localization.audio_url)}
+            src={localization.audio_url}
           />
         ) : (
           <p className="text-sm text-muted-foreground">Chưa có file audio cho ngôn ngữ này.</p>

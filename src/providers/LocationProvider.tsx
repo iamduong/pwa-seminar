@@ -65,6 +65,7 @@ export const LocationProvider = ({ children }: { children: React.ReactNode }) =>
         startWatching();
       },
       (error) => {
+        console.log("Can't get current location")
         setErrorMessage(error.message);
         setStatus(error.code === error.PERMISSION_DENIED ? "denied" : "error");
       },

@@ -3,12 +3,17 @@ import type { DBSchema, IDBPDatabase } from "idb";
 
 import type { PoiBundle, PublicPoi } from "../types/Poi";
 import type { UiBundle } from "../types/UiBundle";
+import type { MenuItem, MenuItemBundle } from "../types/MenuItem";
 
 export type DBPoi = PoiBundle & {
   lang: string;
 };
 
 export type DBUiBundle = UiBundle;
+
+export type DBMenuItem = MenuItemBundle & {
+  lang: string;
+};
 
 interface Quan4DatabaseSchema extends DBSchema {
   db_poi: {
@@ -19,12 +24,17 @@ interface Quan4DatabaseSchema extends DBSchema {
     key: string;
     value: DBUiBundle;
   };
+  db_menu_item: {
+    key: string;
+    value: DBMenuItem;
+  };
 }
 
 const DB_NAME = "Quan4DB";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const POI_STORE = "db_poi";
 const UI_BUNDLE_STORE = "db_ui_bundle";
+const MENU_ITEM_STORE = "db_menu_item";
 
 let databasePromise: Promise<IDBPDatabase<Quan4DatabaseSchema>> | null = null;
 
@@ -37,6 +47,9 @@ export function getDatabase(): Promise<IDBPDatabase<Quan4DatabaseSchema>> {
         }
         if (!database.objectStoreNames.contains(UI_BUNDLE_STORE)) {
           database.createObjectStore(UI_BUNDLE_STORE, { keyPath: "lang" });
+        }
+        if (!database.objectStoreNames.contains(MENU_ITEM_STORE)) {
+          database.createObjectStore(MENU_ITEM_STORE, { keyPath: "lang" });
         }
       },
     });
@@ -89,4 +102,28 @@ export async function saveUiBundle(data: UiBundle): Promise<DBUiBundle> {
   const database = await getDatabase();
   await database.put(UI_BUNDLE_STORE, data);
   return data;
+}
+
+export async function getCachedMenuItems(
+  lang: string,
+): Promise<DBMenuItem | undefined> {
+  const database = await getDatabase();
+  return database.get(MENU_ITEM_STORE, lang);
+}
+
+export async function saveMenuItems(
+  lang: string,
+  data: MenuItemBundle,
+): Promise<DBMenuItem> {
+  const database = await getDatabase();
+  const menuItemsById = new Map<string, MenuItem>();
+  data.menu_items.forEach((item) => menuItemsById.set(item.id, item));
+  const record: DBMenuItem = {
+    lang,
+    etag: data.etag,
+    updated_after: data.updated_after,
+    menu_items: Array.from(menuItemsById.values()),
+  };
+  await database.put(MENU_ITEM_STORE, record);
+  return record;
 }

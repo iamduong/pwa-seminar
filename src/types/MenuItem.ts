@@ -15,6 +15,12 @@ export type MenuItem = {
   updated_at: string;
 };
 
+export type MenuItemBundle = {
+  etag: string;
+  updated_after: string | null;
+  menu_items: MenuItem[];
+};
+
 export type MenuItemPayload = {
   poi_id: string;
   name: string;

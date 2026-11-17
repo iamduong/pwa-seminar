@@ -5,8 +5,8 @@ from core.pagination import Pagination
 from core.dependency import AccessTokenPayload, require_permission, validate_session
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from schema.menu_item_schema import MenuItemFilter, MenuItemSave, MenuItemView, MenuTranslationFilter, MenuTranslationTaskView
-from service.cloudinary_service import CloudinaryService
 from service.menu_item_service import MenuItemService
+from util.image import save_menu_item_image
 
 router = APIRouter(prefix="/menu-items", tags=["Menu Items"])
 
@@ -33,8 +33,7 @@ async def retry_menu_translations(
 async def upload_menu_item_image(
     image: Annotated[UploadFile, File()],
     principal: Annotated[AccessTokenPayload, Depends(validate_session)],
-    service: Annotated[CloudinaryService, Depends()],
-) -> ApiResponse[dict[str, str]]:
+) -> ApiResponse[str]:
     allowed_permissions = {"menu:create", "menu:update", "owner:menu_submit"}
     if not (allowed_permissions & set(principal.permissions)):
         raise HTTPException(403, "Bạn không có quyền tải ảnh món ăn")
@@ -42,7 +41,7 @@ async def upload_menu_item_image(
     return ApiResponse(
         success=True,
         message="Tải ảnh món ăn thành công",
-        data=await service.upload_image(image),
+        data=await save_menu_item_image(image),
     )
 
 
