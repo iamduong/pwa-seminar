@@ -57,7 +57,7 @@ export function MenuItemDataProvider({ children }: { children: ReactNode }) {
 
     void syncMenuItems();
     return () => controller.abort();
-  }, [language, t]);
+  }, [language]);
 
   const value = useMemo(
     () => ({

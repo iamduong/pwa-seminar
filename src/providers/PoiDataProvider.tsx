@@ -68,7 +68,7 @@ export function PoiDataProvider({ children }: { children: ReactNode }) {
 
     void syncPoiData();
     return () => controller.abort();
-  }, [language, t]);
+  }, [language]);
 
   const value = useMemo(
     () => ({
