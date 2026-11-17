@@ -5,13 +5,13 @@ from core.api_response import ApiResponse
 from core.pagination import Pagination
 from core.ui_bundle import UiBundle
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
-from schema.menu_item_schema import MenuItemView
-from schema.menu_item_dataset_schema import MenuItemDataset
 from schema.analytics_event_schema import ViewAudioPlayCount
+from schema.menu_item_dataset_schema import MenuItemDataset
+from schema.menu_item_schema import MenuItemView
 from schema.poi_category_schema import FilterPoiCategory, ViewPoiCategory
 from schema.poi_dataset_schema import PoiDataset
-from service.content_dataset_version_service import ContentDatasetVersionService
 from service.analytics_event_service import AnalyticsEventService
+from service.content_dataset_version_service import ContentDatasetVersionService
 from service.menu_item_service import MenuItemService
 from service.poi_category_service import PoiCategoryService
 from service.poi_service import PoiService
@@ -46,6 +46,7 @@ async def bundle_ui(
     )
 
 
+# ! Un see
 @router.get("/pois/{poi_id}/menu-items")
 async def list_public_menu(
     poi_id: str,
@@ -59,6 +60,7 @@ async def list_public_menu(
     )
 
 
+# * Menu Bundles
 @router.get("/menu-item/load-all", response_model=None)
 async def menu_item_bundles(
     lang: str,
@@ -95,6 +97,7 @@ async def menu_item_bundles(
     )
 
 
+# ! Un see
 @router.post("/pois/{poi_id}/audio-listens")
 async def record_poi_audio_play(
     poi_id: str,
@@ -118,6 +121,7 @@ async def filter_poi_category(
     return ApiResponse(success=True, message="Lấy danh mục POI thành công", data=result)
 
 
+# * POI Bundles
 @router.get("/poi/load-all", response_model=None)
 async def poi_bundles(
     # Params

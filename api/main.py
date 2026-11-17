@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
 
 
 origins = [
-    "https://pwa-seminar.vercel.app",
+    "http://localhost:5173",
 ]
 
 app = FastAPI(title="PWA Seminar API", lifespan=lifespan)
