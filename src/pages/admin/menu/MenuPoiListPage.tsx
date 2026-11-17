@@ -75,10 +75,15 @@ export default function MenuPoiListPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-sm text-muted-foreground">Quản trị nội dung</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Danh sách thực đơn</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Chọn một địa điểm để xem và quản lý các món ăn.</p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-sm text-muted-foreground">Quản trị nội dung</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Thực đơn tại POI</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Chọn một địa điểm để xem và quản lý các món ăn.</p>
+        </div>
+        <Button nativeButton={false} role="link" variant="outline" className="w-fit" render={<Link to="/quan-ly/tien-trinh-dich-mon-an" />}>
+          Tiến trình dịch món ăn
+        </Button>
       </header>
 
       <ListStats total={data?.total_item ?? 0} visible={data?.data.length ?? 0} pages={data?.total_page ?? 0} loading={loading} error={Boolean(error)} />
@@ -149,12 +154,12 @@ export default function MenuPoiListPage() {
                 <TableCell className="max-w-xl whitespace-normal text-sm text-muted-foreground">{poi.address}</TableCell>
                 <TableCell className="pr-4 text-right">
                   <div className="flex justify-end gap-2">
-                    <Button nativeButton={false} variant="outline" size="sm" render={<Link to={`/quan-ly/dia-diem-poi/${poi.id}/mon-an`} />}>
+                    <Button nativeButton={false} role="link" variant="outline" size="sm" render={<Link to={`/quan-ly/dia-diem-poi/${poi.id}/mon-an`} />}>
                       <UtensilsIcon aria-hidden="true" />
                       Xem thực đơn
                     </Button>
                     {canCreate && (
-                      <Button nativeButton={false} size="sm" render={<Link to={`/quan-ly/dia-diem-poi/${poi.id}/mon-an/them`} />}>
+                      <Button nativeButton={false} role="link" size="sm" render={<Link to={`/quan-ly/dia-diem-poi/${poi.id}/mon-an/them`} />}>
                         Thêm món
                       </Button>
                     )}
