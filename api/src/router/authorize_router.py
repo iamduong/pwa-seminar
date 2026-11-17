@@ -40,8 +40,8 @@ async def login(
         key="access_token",
         value=result["access_token"],
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=30 * 60,
         path="/",
     )
@@ -50,8 +50,8 @@ async def login(
         key="refresh_token",
         value=result["refresh_token"],
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=7 * 24 * 60 * 60,
         path="/",
     )
@@ -123,8 +123,8 @@ async def refresh_token(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
         max_age=30 * 60,
         path="/",
     )

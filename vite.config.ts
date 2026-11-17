@@ -23,16 +23,16 @@ export default defineConfig({
     // allowedHosts: ["livable-elsewhere-elyse.ngrok-free.dev"],
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://livable-elsewhere-elyse.ngrok-free.dev',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/resource': {
-        target: 'http://localhost:8000',
+        target: 'https://livable-elsewhere-elyse.ngrok-free.dev',
         changeOrigin: true,
       },
       '/ws': {
-        target: 'ws://localhost:8000',
+        target: 'ws://livable-elsewhere-elyse.ngrok-free.dev',
         ws: true,
       },
     },
