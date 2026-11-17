@@ -76,7 +76,7 @@ export function PoiMapPreviewCard({
                 onClick={onClearRoute}
               >
                 <XIcon aria-hidden="true" />
-                Tắt chỉ đường
+                {t("poi.route.clear")}
               </Button>
             ) : (
               <Button

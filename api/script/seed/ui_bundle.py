@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-async def init_ui_bundles(session: AsyncSession) -> list[UiBundleModel]:
+async def sync_ui_bundles(session: AsyncSession) -> list[UiBundleModel]:
     existing = {
         item.lang: item
         for item in (
@@ -31,3 +31,7 @@ async def init_ui_bundles(session: AsyncSession) -> list[UiBundleModel]:
 
     await session.flush()
     return result
+
+
+# Backward-compatible name for scripts importing the old seed helper.
+init_ui_bundles = sync_ui_bundles

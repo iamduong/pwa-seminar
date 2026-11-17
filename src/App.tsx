@@ -14,6 +14,9 @@ import PoiDetailPage from "./pages/client/PoiDetailPage";
 import MobilePlacesPage from "./pages/client/mobile/MobilePlacesPage";
 import MobileFoodPage from "./pages/client/mobile/MobileFoodPage";
 import MobilePoiDirectoryPage from "./pages/client/mobile/MobilePoiDirectoryPage";
+import MobileTourListPage from "./pages/client/mobile/MobileTourListPage";
+import MobileTourDetailPage from "./pages/client/mobile/MobileTourDetailPage";
+import MobileQrScannerPage from "./pages/client/mobile/MobileQrScannerPage";
 import DesktopPlacesPage from "./pages/client/desktop/DesktopPlacesPage";
 import DesktopFoodPage from "./pages/client/desktop/DesktopFoodPage";
 // Admin page
@@ -39,6 +42,7 @@ import MenuItemRequestPage from "./pages/admin/menu/MenuItemRequestPage";
 import { MobileClientAccessGate } from "./components/layout/client/mobile/MobileClientAccessGate";
 import { LanguageProvider } from "./providers/LanguageProvider";
 import { PoiDataProvider } from "./providers/PoiDataProvider";
+import { MenuItemDataProvider } from "./providers/MenuItemDataProvider";
 import MenuReviewPage from "./pages/admin/menu/MenuReviewPage";
 import MenuTranslationMonitorPage from "./pages/admin/menu/MenuTranslationMonitorPage";
 import { UiBundleProvider } from "./providers/UiBundleProvider";
@@ -62,7 +66,9 @@ const ClientProviders = () => {
       <VisitorPresence />
       <UiBundleProvider>
         <PoiDataProvider>
-          <MobileClientAccessGate />
+          <MenuItemDataProvider>
+            <MobileClientAccessGate />
+          </MenuItemDataProvider>
         </PoiDataProvider>
       </UiBundleProvider>
     </LanguageProvider>
@@ -100,6 +106,9 @@ export default function App() {
             />
             <Route path="/dia-diem" element={<MobilePoiDirectoryPage />} />
             <Route path="/dia-diem/:id" element={<PoiDetailPage />} />
+            <Route path="/du-lich" element={<MobileTourListPage />} />
+            <Route path="/du-lich/quet-qr" element={<MobileQrScannerPage />} />
+            <Route path="/du-lich/:code" element={<MobileTourDetailPage />} />
           </Route>
         </Route>
 

@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from model.menu_item_localization_model import MenuItemLocalizationModel
 from model.menu_item_model import MenuItemModel
 from repository.menu_item_repository import MenuItemRepository
+from service.content_dataset_version_service import ContentDatasetVersionService
 from resource.config import MY_MEMORY_LANGUAGES
 from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -80,6 +81,7 @@ async def _finish_translation(session, localization, name, description, error_me
         and all(row.translation_status == "ready" for row in current)
     )
     await repository.save(item)
+    await ContentDatasetVersionService(session).rotate_menu_item_etag()
 
 
 async def process_menu_item_worker(

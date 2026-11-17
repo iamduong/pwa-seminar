@@ -38,6 +38,21 @@ class MenuItemRepository:
             .order_by(MenuItemModel.created_at.desc(), MenuItemModel.id.desc())
         )).all()
 
+    async def find_all_public(self, lang: str):
+        return (await self.context.execute(
+            select(MenuItemModel, MenuItemLocalizationModel)
+            .join(MenuItemLocalizationModel, MenuItemLocalizationModel.menu_item_id == MenuItemModel.id)
+            .where(
+                MenuItemModel.deleted_at.is_(None),
+                MenuItemModel.is_active.is_(True),
+                MenuItemModel.is_available.is_(True),
+                MenuItemLocalizationModel.lang == lang,
+                MenuItemLocalizationModel.deleted_at.is_(None),
+                MenuItemLocalizationModel.translation_status == "ready",
+            )
+            .order_by(MenuItemModel.created_at.desc(), MenuItemModel.id.desc())
+        )).all()
+
     async def find_translation_tasks(self, page: int, page_size: int, status: str | None):
         localization = MenuItemLocalizationModel
         def has_status(value):

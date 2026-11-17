@@ -2,27 +2,31 @@ import {
   MapPinPenIcon,
   MapPinnedIcon,
   MapPinIcon,
-  SoupIcon,
+  LuggageIcon,
 } from "lucide-react"
 import { NavLink, Outlet, useLocation } from "react-router"
 
 import { ClientMenu } from "#components/layout/client/shared/ClientMenu"
+import { useUiBundle } from "#hooks/use-ui-bundle"
 
 const desktopNavigation = [
-  { title: "Trang chủ", href: "/", icon: MapPinnedIcon },
-  { title: "Món ăn", href: "/mon-an", icon: SoupIcon },
-  { title: "Địa điểm", href: "/dia-diem", icon: MapPinPenIcon },
+  { titleKey: "navigation.home", href: "/", icon: MapPinnedIcon },
+  { titleKey: "navigation.places", href: "/dia-diem", icon: MapPinPenIcon },
+  { titleKey: "navigation.travel", href: "/du-lich", icon: LuggageIcon },
 ]
 
 const desktopPageTitles: Record<string, string> = {
-  "/": "Địa điểm",
-  "/mon-an": "Món ăn",
-  "/dia-diem": "Khám phá địa điểm",
+  "/": "page.map.title",
+  "/mon-an": "page.food.title",
+  "/dia-diem": "page.places.title",
+  "/du-lich": "page.travel.title",
 }
 
 export function DesktopClientLayout() {
   const location = useLocation()
-  const title = desktopPageTitles[location.pathname] ?? "Quan4 Tourism"
+  const { t } = useUiBundle()
+  const titleKey = desktopPageTitles[location.pathname]
+  const title = titleKey ? t(titleKey) : "Quan4 Tourism"
 
   return (
     <div className="min-h-dvh bg-background">
@@ -34,11 +38,11 @@ export function DesktopClientLayout() {
             </span>
             <div className="min-w-0">
               <p className="truncate font-semibold">Quan4 Tourism</p>
-              <p className="text-xs text-muted-foreground">Khám phá Quận 4</p>
+              <p className="text-xs text-muted-foreground">{t("brand.subtitle")}</p>
             </div>
           </div>
 
-          <nav className="mt-6 space-y-1" aria-label="Điều hướng chính">
+          <nav className="mt-6 space-y-1" aria-label={t("navigation.main.ariaLabel")}>
             {desktopNavigation.map((item) => (
               <NavLink
                 key={item.href}
@@ -53,7 +57,7 @@ export function DesktopClientLayout() {
                 }
               >
                 <item.icon className="size-5" aria-hidden="true" />
-                <span>{item.title}</span>
+                <span>{t(item.titleKey)}</span>
               </NavLink>
             ))}
           </nav>

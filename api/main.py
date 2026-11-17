@@ -14,8 +14,8 @@ from service.content_dataset_version_service import ContentDatasetVersionService
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from util.audio import AUDIO_DIRECTORY
 from util.image import IMAGE_DIRECTORY
-from util.worker import process_worker
 from util.menu_item_worker import process_menu_item_worker
+from util.worker import process_worker
 
 
 @asynccontextmanager
@@ -29,7 +29,9 @@ async def lifespan(app: FastAPI):
 
     stop_event = asyncio.Event()
     worker_task = asyncio.create_task(process_worker(SessionFactory, stop_event))
-    menu_worker_task = asyncio.create_task(process_menu_item_worker(SessionFactory, stop_event))
+    menu_worker_task = asyncio.create_task(
+        process_menu_item_worker(SessionFactory, stop_event)
+    )
 
     try:
         yield
@@ -128,19 +130,19 @@ async def unexpected_exception_handler(
 
 
 from router.admin_user_router import router as admin_user_router
+from router.ai_advisor_router import router as ai_advisor_router
+from router.audit_log_router import router as audit_log_router
 from router.authorize_router import router as authorize_router
 from router.dashboard_statistics_router import router as dashboard_statistics_router
 from router.menu_item_router import router as menu_item_router
+from router.owner_notification_router import router as owner_notification_router
 from router.poi_owner_registration_router import router as poi_owner_registration_router
 from router.poi_registration_router import router as poi_registration_router
 from router.poi_router import router as poi_router
+from router.poi_task_router import router as poi_task_router
+from router.presence_router import router as presence_router
 from router.public_router import router as public_router
 from router.role_router import router as role_router
-from router.poi_task_router import router as poi_task_router
-from router.audit_log_router import router as audit_log_router
-from router.ai_advisor_router import router as ai_advisor_router
-from router.owner_notification_router import router as owner_notification_router
-from router.presence_router import router as presence_router
 from router.tour_router import router as tour_router
 from router.transaction_log_router import router as transaction_log_router
 

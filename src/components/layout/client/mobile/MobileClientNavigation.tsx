@@ -1,7 +1,7 @@
 import {
   MapPinPenIcon,
   MapPinnedIcon,
-  SoupIcon,
+  LuggageIcon,
 } from "lucide-react"
 import { NavLink } from "react-router"
 
@@ -10,8 +10,8 @@ import { useUiBundle } from "#hooks/use-ui-bundle"
 
 const mobileNavigation = [
   { titleKey: "navigation.home", href: "/", icon: MapPinnedIcon },
-  { titleKey: "navigation.food", href: "/mon-an", icon: SoupIcon },
   { titleKey: "navigation.places", href: "/dia-diem", icon: MapPinPenIcon },
+  { titleKey: "navigation.travel", href: "/du-lich", icon: LuggageIcon },
 ]
 
 export const MobileClientNavigation = () => {

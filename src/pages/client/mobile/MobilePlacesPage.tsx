@@ -1,6 +1,7 @@
 import HybridMap from "#components/map/HybridMap";
 import { useLocation } from "#hooks/use-location";
 import { usePoiData } from "#hooks/use-poi-data";
+import { useUiBundle } from "#hooks/use-ui-bundle";
 import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import type { PublicPoi } from "../../../types/Poi";
@@ -20,6 +21,7 @@ type OsrmRouteResponse = {
 
 export default function MobilePlacesPage() {
   const { execute } = useQuery();
+  const { t } = useUiBundle();
 
   const { coordinate } = useLocation();
   const { pois: poiMarkers } = usePoiData();
@@ -47,7 +49,7 @@ export default function MobilePlacesPage() {
         );
         const routeCoordinates = data.routes?.[0]?.geometry?.coordinates;
         if (data.code !== "Ok" || !routeCoordinates || routeCoordinates.length < 2) {
-          throw new Error("Không tìm thấy tuyến đường tới địa điểm này.");
+          throw new Error(t("poi.route.notFound"));
         }
         setGeometryCoordinates(routeCoordinates);
       },
@@ -55,7 +57,7 @@ export default function MobilePlacesPage() {
         onError: (error) => window.alert(error.message),
       },
     );
-  }, [coordinate, execute, selectedPoi]);
+  }, [coordinate, execute, selectedPoi, t]);
 
   if (!coordinate) return;
 

@@ -1,9 +1,13 @@
+import { useUiBundle } from "#hooks/use-ui-bundle"
+
 export default function DesktopQrScannerPage() {
+  const { t } = useUiBundle()
+
   return (
     <section>
-      <h2 className="text-2xl font-semibold tracking-tight">Quét mã QR</h2>
+      <h2 className="text-2xl font-semibold tracking-tight">{t("page.qr.title")}</h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Quét mã QR để truy cập nhanh thông tin và nội dung thuyết minh.
+        {t("page.qr.description")}
       </p>
     </section>
   )

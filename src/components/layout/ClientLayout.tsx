@@ -12,7 +12,8 @@ export const ClientLayout = () => {
   if (!isMobile) return <DesktopClientLayout />
 
   const isPoiDetail = /^\/dia-diem\/[^/]+$/.test(location.pathname)
-  const isMapPage = location.pathname === "/"
+  const isTourMapPage = /^\/du-lich\/[^/]+$/.test(location.pathname) && location.pathname !== "/du-lich/quet-qr"
+  const isMapPage = location.pathname === "/" || isTourMapPage
 
   if (isPoiDetail) {
     return (

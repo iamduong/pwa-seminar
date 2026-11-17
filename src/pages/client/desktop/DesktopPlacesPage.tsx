@@ -1,9 +1,13 @@
+import { useUiBundle } from "#hooks/use-ui-bundle"
+
 export default function DesktopPlacesPage() {
+  const { t } = useUiBundle()
+
   return (
     <section>
-      <h2 className="text-2xl font-semibold tracking-tight">Khám phá địa điểm</h2>
+      <h2 className="text-2xl font-semibold tracking-tight">{t("page.places.title")}</h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Khám phá và tra cứu các địa điểm nổi bật tại Quận 4.
+        {t("places.desktopDescription")}
       </p>
     </section>
   )

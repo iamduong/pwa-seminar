@@ -21,7 +21,7 @@ from seed.ai_usage_limit import init_ai_usage_limits
 from seed.category import init_categories
 from seed.permission import init_permissions
 from seed.role import init_roles
-from seed.ui_bundle import init_ui_bundles
+from seed.ui_bundle import sync_ui_bundles
 from sqlalchemy import inspect
 
 
@@ -45,7 +45,7 @@ async def seed_data() -> None:
         roles = await init_roles(session, permissions)
         users = await init_admin_users(session, roles)
         await init_categories(session)
-        await init_ui_bundles(session)
+        await sync_ui_bundles(session)
         await init_ai_usage_limits(session, users)
         await session.commit()
 

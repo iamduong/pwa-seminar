@@ -6,6 +6,7 @@ from core.pagination import Pagination
 from core.ui_bundle import UiBundle
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from schema.menu_item_schema import MenuItemView
+from schema.menu_item_dataset_schema import MenuItemDataset
 from schema.analytics_event_schema import ViewAudioPlayCount
 from schema.poi_category_schema import FilterPoiCategory, ViewPoiCategory
 from schema.poi_dataset_schema import PoiDataset
@@ -18,6 +19,7 @@ from service.ui_bundle_service import UiBundleService
 
 router = APIRouter(prefix="/public", tags=["Public Controller"])
 POI_CACHE_SCHEMA_VERSION = 2
+MENU_ITEM_CACHE_SCHEMA_VERSION = 1
 
 
 # * UI Bundles
@@ -54,6 +56,42 @@ async def list_public_menu(
         success=True,
         message="Lấy thực đơn thành công",
         data=await service.list_public(poi_id, lang),
+    )
+
+
+@router.get("/menu-item/load-all", response_model=None)
+async def menu_item_bundles(
+    lang: str,
+    content_dataset_version_service: Annotated[ContentDatasetVersionService, Depends()],
+    menu_item_service: Annotated[MenuItemService, Depends()],
+    etag: str | None = Header(default=None, alias="Etag"),
+):
+    content_dataset_version = (
+        await content_dataset_version_service.find_menu_item_version()
+    )
+    if content_dataset_version is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Phiên bản dữ liệu món ăn chưa được khởi tạo",
+        )
+
+    public_etag = f"{MENU_ITEM_CACHE_SCHEMA_VERSION}:{content_dataset_version.etag}"
+    if public_etag == etag:
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED)
+
+    menu_items = await menu_item_service.list_all_public(lang)
+    next_updated_after = max(
+        (item.updated_at for item in menu_items),
+        default=None,
+    )
+    return ApiResponse[MenuItemDataset](
+        success=True,
+        message="Đồng bộ dữ liệu món ăn thành công",
+        data=MenuItemDataset(
+            etag=public_etag,
+            updated_after=next_updated_after,
+            menu_items=menu_items,
+        ),
     )
 
 
