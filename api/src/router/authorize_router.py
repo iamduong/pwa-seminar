@@ -140,8 +140,20 @@ async def refresh_token(
 @router.post("/logout")
 async def logout(response: Response) -> ApiResponse[None]:
 
-    response.delete_cookie(key="access_token", path="/")
-    response.delete_cookie(key="refresh_token", path="/")
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        secure=True,
+        httponly=True,
+        samesite="none",
+    )
+    response.delete_cookie(
+        key="refresh_token",
+        path="/",
+        secure=True,
+        httponly=True,
+        samesite="none",
+    )
 
     return ApiResponse(
         success=True,

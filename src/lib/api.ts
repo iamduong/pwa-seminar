@@ -18,6 +18,7 @@ const api = axios.create({
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
   },
 });
 
@@ -42,7 +43,7 @@ api.interceptors.response.use(
     // }
 
     // console.error("API error:", error.response?.data || error.message);
-    
+
     // Other errors, handle later in the component
     return Promise.reject(error);
   },
