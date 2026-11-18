@@ -96,6 +96,7 @@ export function drawPoiMarkers(
     const markers: Marker[] = [];
 
     if (poiMarker.trigger_radius > 0) {
+      console.log(markerAriaLabel)
       markers.push(
         radiusMarker(
           map,
