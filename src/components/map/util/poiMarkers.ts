@@ -28,7 +28,7 @@ const categoriesDictionary: Record<string, string> = {
   "6aea88d28619345b689272c8": `${TWEMOJI_BASE_URL}/1f371.svg`,
 };
 
-function createMarkerElement(
+export function createMarkerElement(
   categoryId: string,
   ariaLabel: string,
   onClick?: () => void,
