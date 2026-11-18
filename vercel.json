@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/resource/:path*",
+      "destination": "https://livable-elsewhere-elyse.ngrok-free.dev/resource/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}
