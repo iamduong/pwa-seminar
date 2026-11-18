@@ -40,6 +40,11 @@ export function getSavedTours(): Tour[] {
   }
 }
 
+export function containTour(code: string): boolean {
+  const tours = getSavedTours();
+  return tours.find((t) => t.code == code) != null;
+}
+
 export function saveTour(tour: Tour): Tour[] {
   const tours = getSavedTours();
   const nextTours = [tour, ...tours.filter((item) => item.code !== tour.code)];

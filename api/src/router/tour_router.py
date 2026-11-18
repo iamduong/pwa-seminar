@@ -4,9 +4,10 @@ from uuid import UUID
 from core.api_response import ApiResponse
 from core.dependency import AccessTokenPayload, require_permission
 from core.pagination import Pagination
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status, HTTPException
 from schema.tour_schema import CreateTour, FilterTour, ViewTour, ViewTourPoi
 from service.tour_service import TourService
+from datetime import datetime, UTC
 
 router = APIRouter(prefix="/tours", tags=["Tours"])
 
@@ -84,6 +85,7 @@ async def detail_pois_tour(
     code: str, service: Annotated[TourService, Depends()]
 ) -> ApiResponse[ViewTour]:
     tour = await service.find_by_code(code)
+
     return ApiResponse(
         success=True,
         message="Lấy thông tin tour thành công",

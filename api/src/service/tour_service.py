@@ -153,6 +153,9 @@ class TourService:
         if tour.max_people < tour.scanned_people + 1:
             raise HTTPException(400, "Đã đủ số người quét")
 
+        if tour.expires_at < datetime.now(UTC):
+            raise HTTPException(status_code=400, detail="Hết hạn quét mã QR")
+
         tour.scanned_people = tour.scanned_people + 1
 
         await self.repository.update(tour)

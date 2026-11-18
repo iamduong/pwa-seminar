@@ -16,7 +16,7 @@ function getWebSocketBaseUrl() {
   const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
   const url = new URL(apiBaseUrl || window.location.origin, window.location.origin);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-  url.pathname = url.pathname.replace(/\/$/, "");
+  url.pathname = "";
   url.search = "";
   url.hash = "";
   return url.toString().replace(/\/$/, "");
