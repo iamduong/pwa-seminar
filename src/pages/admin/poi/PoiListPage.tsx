@@ -33,6 +33,9 @@ import { poiService } from "../../../services/PoiService";
 import type { MapCoordinates } from "../../../components/map/lib/map-type";
 import type { Poi, PoiAudioStatus, PoiPagination } from "../../../types/Poi";
 
+// import { distance } from "@turf/distance"
+// import { point } from "@turf/helpers";
+
 const PAGE_SIZES = [20, 30, 50];
 const AUDIO_STATUS_LABELS: Record<PoiAudioStatus, string> = {
   pending: "Chờ xử lý",
@@ -194,6 +197,22 @@ export default function PoiListPage() {
             radius: selectedPoi.radius,
             isFocus: true,
           } : undefined}
+          // onClickMap={(local) => {
+          //   if (!selectedPoi) return;
+          //   console.log(local);
+          //   const defaultRadius = 50;
+            
+          //   const isOverSlap = distance(
+          //     point([local[0], local[1]]),
+          //     point([selectedPoi.coordinates[0], selectedPoi.coordinates[1]]),
+          //     {
+          //       units: "meters"
+          //     }
+          //   ) <= Math.max(defaultRadius, selectedPoi.radius);
+
+          //   console.log(isOverSlap ? "Trùng" : "Không trùng");
+
+          // }}
         />
       </div>
 

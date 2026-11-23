@@ -7,6 +7,7 @@ import { publicService } from "../services/PublicService";
 import type { MenuItem } from "../types/MenuItem";
 import { MenuItemDataContext } from "./contexts/menu-item-data-context";
 import type { LanguageCode } from "./contexts/language-context";
+import { prefetchMedia } from "#lib/cache";
 
 type MenuItemSnapshot = {
   language: LanguageCode;
@@ -31,6 +32,13 @@ export function MenuItemDataProvider({ children }: { children: ReactNode }) {
         if (controller.signal.aborted) return;
         setSnapshot({ language, menuItems: cached?.menu_items ?? [] });
 
+        // * PrefetchMedia
+        void prefetchMedia(
+          (cached?.menu_items ?? [])
+            .map((item) => item.image_url)
+            .filter((url): url is string => Boolean(url)),
+        );
+
         const response = await publicService.BundleMenuItem(
           language,
           cached?.etag,
@@ -45,6 +53,13 @@ export function MenuItemDataProvider({ children }: { children: ReactNode }) {
         if (!controller.signal.aborted) {
           setSnapshot({ language, menuItems: updated.menu_items });
         }
+
+        // * PrefetchMedia
+        void prefetchMedia(
+          updated.menu_items
+            .map((item) => item.image_url)
+            .filter((url): url is string => Boolean(url)),
+        );
       } catch (error: unknown) {
         if (controller.signal.aborted) return;
         setErrorMessage(

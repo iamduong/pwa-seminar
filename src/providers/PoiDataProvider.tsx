@@ -7,6 +7,7 @@ import { publicService } from "../services/PublicService";
 import type { PublicPoi } from "../types/Poi";
 import { PoiDataContext } from "./contexts/poi-data-context";
 import type { LanguageCode } from "./contexts/language-context";
+import { prefetchMedia } from "#lib/cache";
 
 type PoiSnapshot = {
   language: LanguageCode;
@@ -33,6 +34,14 @@ export function PoiDataProvider({ children }: { children: ReactNode }) {
 
         setSnapshot({ language, pois: cached?.pois ?? [] });
 
+        // * PrefetchMedia
+        void prefetchMedia(
+          (cached?.pois ?? []).flatMap((poi) => [
+            ...poi.images,
+            ...(poi.audio_url ? [poi.audio_url] : []),
+          ]),
+        );
+
         const response = await publicService.BundlePoi(
           language,
           cached?.updated_after ?? null,
@@ -45,21 +54,23 @@ export function PoiDataProvider({ children }: { children: ReactNode }) {
           throw new Error(t("data.poiSyncError"));
         }
 
-        const updated = await savePoi(
-          language,
-          response.data,
-          true,
-        );
+        const updated = await savePoi(language, response.data, true);
 
         if (!controller.signal.aborted) {
           setSnapshot({ language, pois: updated.pois });
         }
+
+        // * PrefetchMedia
+        void prefetchMedia(
+          updated.pois.flatMap((poi) => [
+            ...poi.images,
+            ...(poi.audio_url ? [poi.audio_url] : []),
+          ]),
+        );
       } catch (error: unknown) {
         if (controller.signal.aborted) return;
         setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : t("data.poiSyncError"),
+          error instanceof Error ? error.message : t("data.poiSyncError"),
         );
       } finally {
         if (!controller.signal.aborted) setLoading(false);

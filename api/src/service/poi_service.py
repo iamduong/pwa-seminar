@@ -244,7 +244,7 @@ class PoiService:
                     audio_status=localization.audio_status
                     if localization
                     else poi.audio_status,
-                    # audio_url=f"https://livable-elsewhere-elyse.ngrok-free.dev{localization.audio_url}"
+                    # audio_url=f"https://livable-elsewhere-elyse.ngrok-free.dev{localization.audio_url}",
                     audio_url=localization.audio_url if localization else None,
                     lang=lang,
                     created_at=poi.created_at,

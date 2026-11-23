@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 
 import { usePoiData } from "#hooks/use-poi-data";
 import { useUiBundle } from "#hooks/use-ui-bundle";
+import { useCache } from "#lib/cache";
 
 export default function MobilePoiDirectoryPage() {
   const navigate = useNavigate();
@@ -31,13 +32,13 @@ export default function MobilePoiDirectoryPage() {
           <button
             key={poi.id}
             type="button"
-            className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl bg-muted text-left shadow-sm"
+            className="group relative block aspect-16/10 w-full overflow-hidden rounded-2xl bg-muted text-left shadow-sm"
             onClick={() => navigate(`/dia-diem/${poi.id}`)}
           >
             {poi.images[0] ? (
               <img
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                src={poi.images[0]}
+                src={useCache(poi.images[0])}
                 alt={poi.name}
               />
             ) : (
