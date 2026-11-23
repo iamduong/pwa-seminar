@@ -7,6 +7,7 @@ import { usePoiData } from "#hooks/use-poi-data";
 import { useMenuItemData } from "#hooks/use-menu-item-data";
 import { useUiBundle } from "#hooks/use-ui-bundle";
 import { publicService } from "../../services/PublicService";
+import { useCache } from "#lib/cache";
 
 export default function PoiDetailPage() {
   const { id } = useParams();
@@ -15,7 +16,7 @@ export default function PoiDetailPage() {
   const {
     menuItems,
     loading: menuItemsLoading,
-    errorMessage: menuItemsError,
+    // errorMessage: menuItemsError,
   } = useMenuItemData();
   const { t } = useUiBundle();
   const poi = pois.find((item) => item.id === id);
@@ -73,14 +74,14 @@ export default function PoiDetailPage() {
         {images.length > 0 ? (
           <div
             ref={carouselRef}
-            className="flex h-[52dvh] snap-x snap-mandatory overflow-x-auto scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex h-[52dvh] snap-x snap-mandatory overflow-x-auto scroll-smooth scrollbar-none [&::-webkit-scrollbar]:hidden"
             onScroll={handleImageScroll}
           >
             {images.map((image, index) => (
               <img
                 key={`${image}-${index}`}
                 className="h-full min-w-full snap-center object-cover"
-                src={image}
+                src={useCache(image)}
                 alt={t("poi.imageAlt", { name: poi.name, index: index + 1 })}
               />
             ))}
@@ -144,7 +145,7 @@ export default function PoiDetailPage() {
               className="mt-3 w-full"
               controls
               preload="metadata"
-              src={poi.audio_url}
+              src={useCache(poi.audio_url)}
               onPlay={recordAudioListen}
             />
           ) : (
@@ -158,8 +159,8 @@ export default function PoiDetailPage() {
           <h2 className="mb-3 font-semibold">{t("poi.menu.title")}</h2>
           {menuItemsLoading && poiMenuItems.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("poi.menu.loading")}</p>
-          ) : menuItemsError && poiMenuItems.length === 0 ? (
-            <p className="text-sm text-destructive">{menuItemsError}</p>
+          // ) : menuItemsError && poiMenuItems.length === 0 ? (
+          //   <p className="text-sm text-destructive">{menuItemsError}</p>
           ) : poiMenuItems.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               {t("poi.menu.empty")}
@@ -175,7 +176,7 @@ export default function PoiDetailPage() {
                     {item.image_url ? (
                       <img
                         className="h-full w-full object-cover"
-                        src={item.image_url}
+                        src={useCache(item.image_url)}
                         alt={item.name}
                         loading="lazy"
                       />

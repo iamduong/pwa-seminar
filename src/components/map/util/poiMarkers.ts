@@ -1,7 +1,7 @@
 import { Marker, type Map } from "maplibre-gl";
 
 import type { PoiMarker } from "../lib/map-type";
-import { radiusMarker } from "./radiusMarker";
+// import { radiusMarker } from "./radiusMarker";
 
 const TWEMOJI_BASE_URL =
   "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg";
@@ -97,13 +97,13 @@ export function drawPoiMarkers(
 
     if (poiMarker.trigger_radius > 0) {
       console.log(markerAriaLabel)
-      markers.push(
-        radiusMarker(
-          map,
-          poiMarker.location.coordinates,
-          poiMarker.trigger_radius,
-        ),
-      );
+      // markers.push(
+      //   radiusMarker(
+      //     map,
+      //     poiMarker.location.coordinates,
+      //     poiMarker.trigger_radius,
+      //   ),
+      // );
     }
 
     // markers.push(

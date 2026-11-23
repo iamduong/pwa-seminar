@@ -97,7 +97,7 @@ const HybridMap = ({
     const handleStyleLoad = () => setStyleRevision((revision) => revision + 1);
     map.on("style.load", handleStyleLoad);
 
-    // ! Button click to go to self locationm (GPS)
+    // ! Button click to go to self location (GPS)
     if (isSupportLocationRef.current) {
       const geolocateControl = new GeolocateControl({
         positionOptions: {
