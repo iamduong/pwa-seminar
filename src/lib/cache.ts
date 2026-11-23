@@ -11,7 +11,11 @@ export const prefetchMedia = async (resources: string[]) => {
 
             if (await cache.match(url)) return;
             
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: {
+                    "ngrok-skip-browser-warning": "true",
+                }
+            });
             if (response.ok) {
                 await cache.put(url, response.clone());
             }
