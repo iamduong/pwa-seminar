@@ -1,6 +1,6 @@
 import axios from "axios";
 import { ArrowLeftIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import HybridMap from "#components/map/HybridMap";
@@ -12,6 +12,9 @@ import { useUiBundle } from "#hooks/use-ui-bundle";
 import { getSavedTour } from "../../../services/ClientTourService";
 import type { PublicPoi } from "../../../types/Poi";
 import { PoiMapPreviewCard } from "../components/PoiMapPreviewCard";
+
+import { distance } from "@turf/distance"
+import { point } from "@turf/helpers"
 
 type OsrmRouteResponse = {
   code: string;
@@ -58,6 +61,28 @@ export default function MobileTourDetailPage() {
   }
 
   if (!coordinate) return null;
+
+  useEffect(() => {
+    if (!cachedPois) return;
+
+    var result = 0;
+    
+    let start = point([cachedPois[0].location.coordinates[0], cachedPois[0].location.coordinates[1]])
+
+    for (let i = 1; i < cachedPois.length; i++) {
+      const to =  point([cachedPois[i].location.coordinates[0], cachedPois[i].location.coordinates[1]])
+
+      const d = distance(start, to, { units: "meters" });
+      result += d
+
+      start = to;
+    }
+
+    console.log(result)
+    alert(result)
+
+
+  }, [cachedPois]);
 
   return (
     <section className="relative h-full w-full">

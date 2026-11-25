@@ -138,8 +138,8 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
               </span>
               <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden="true" />
             </button>
-
-            <button
+          {/* Download map offline button */}
+            {/* <button
               className="flex w-full items-center gap-3 rounded-xl px-3 py-4 text-left transition-colors hover:bg-muted active:bg-muted"
               type="button"
             >
@@ -153,7 +153,7 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
                 </span>
               </span>
               <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-            </button>
+            </button> */}
 
             <button
               className="flex w-full items-center gap-3 rounded-xl px-3 py-4 text-left transition-colors hover:bg-muted active:bg-muted"
@@ -170,8 +170,9 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
               </span>
               <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden="true" />
             </button>
-
-            <button
+            
+            {/* Notification button */}
+            {/* <button
               className="flex w-full items-center gap-3 rounded-xl px-3 py-4 text-left transition-colors hover:bg-muted active:bg-muted"
               type="button"
             >
@@ -185,7 +186,7 @@ export function ClientMenu({ triggerClassName }: { triggerClassName: string }) {
                 </span>
               </span>
               <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden="true" />
-            </button>
+            </button> */}
 
             <a
               className="flex items-center gap-3 rounded-xl px-3 py-4 transition-colors hover:bg-muted active:bg-muted"

@@ -58,6 +58,7 @@ export function getDatabase(): Promise<IDBPDatabase<Quan4DatabaseSchema>> {
   return databasePromise;
 }
 
+// * POI Bundles
 export async function getCachedPoi(lang: string): Promise<DBPoi | undefined> {
   const database = await getDatabase();
   return database.get(POI_STORE, lang);
@@ -91,6 +92,7 @@ export async function savePoi(
   return record;
 }
 
+// * UI Bundles
 export async function getCachedUiBundle(
   lang: string,
 ): Promise<DBUiBundle | undefined> {
@@ -104,6 +106,7 @@ export async function saveUiBundle(data: UiBundle): Promise<DBUiBundle> {
   return data;
 }
 
+// * Menu Bundles
 export async function getCachedMenuItems(
   lang: string,
 ): Promise<DBMenuItem | undefined> {

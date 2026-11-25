@@ -6,7 +6,7 @@ type PulsingDot = StyleImageInterface & {
 };
 
 const size = 120;
-
+// Source: https://maplibre.org/maplibre-gl-js/docs/examples/add-an-animated-icon-to-the-map/
 export const drawClientLocation = (map: Map, location: MapCoordinates) => {
   const pulsingDot: PulsingDot = {
     width: size,
