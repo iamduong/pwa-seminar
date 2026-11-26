@@ -34,4 +34,4 @@ _requirement/
 venv/
 __pycache__/
 .env
-resource/audio/
+audio/
