@@ -1,7 +1,7 @@
 from pathlib import Path
 
 RESOURCE_DIRECTORY = Path(__file__).resolve().parent
-AUDIO_DIRECTORY = RESOURCE_DIRECTORY / "audio_v2"
+AUDIO_DIRECTORY = RESOURCE_DIRECTORY / "audio"
 DOC_DIRECTORY = RESOURCE_DIRECTORY / "doc"
 
 DEFAULT_LANGUAGES = ["vi", "en"]

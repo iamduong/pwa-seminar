@@ -79,8 +79,7 @@ export default function MobileTourDetailPage() {
     }
 
     console.log(result)
-    alert(result)
-
+    // alert(result)
 
   }, [cachedPois]);
 

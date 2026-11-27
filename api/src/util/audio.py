@@ -8,7 +8,7 @@ import edge_tts
 from aiohttp import ClientError
 from edge_tts.exceptions import EdgeTTSException
 
-AUDIO_URL_PREFIX = "/resource/audio_v2"
+AUDIO_URL_PREFIX = "/resource/audio"
 
 
 class AudioGenerationError(RuntimeError):
